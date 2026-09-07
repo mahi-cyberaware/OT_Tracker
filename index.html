@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 </head>
 <body>
   <div id="authView" class="auth-shell">
@@ -57,9 +58,12 @@
       <section class="stats">
         <div class="stat glass-card"><span>Working days</span><b id="workingDays">0</b><small>This month</small></div>
         <div class="stat glass-card"><span>Day off</span><b id="dayOffCount">0</b><small>Off days recorded</small></div>
+        <div class="stat glass-card"><span>Leave</span><b id="leaveCount">0</b><small>Leave records</small></div>
+        <div class="stat glass-card"><span>Attendance</span><b id="attendanceRate">0%</b><small>Recorded workdays</small></div>
         <div class="stat glass-card"><span>Regular hours</span><b id="regularHours">0h</b><small>Duty hours covered</small></div>
         <div class="stat glass-card stat-ot"><span>Overtime</span><b id="otHours">0h</b><small>Extra hours</small></div>
         <div class="stat glass-card"><span>Total worked</span><b id="workedHours">0h</b><small>Recorded hours</small></div>
+        <div class="stat glass-card"><span>Average / day</span><b id="avgHours">0h</b><small>Present days</small></div>
         <div class="stat glass-card stat-holiday"><span>Holiday worked</span><b id="holidayWorkedCount">0</b><small>Public holidays worked</small></div>
       </section>
 
@@ -69,9 +73,27 @@
         <div class="legend"><span><i class="dot normal-dot"></i>Present</span><span><i class="dot ot-dot"></i>Overtime</span><span><i class="dot holiday-dot"></i>UAE Public Holiday</span><span><i class="dot leave-dot"></i>Leave / Off</span></div>
       </section>
 
+      <section class="panel glass-card analytics-panel">
+        <div class="panel-head"><div><div class="section-kicker">ANALYTICS</div><h2>Monthly insights</h2><span class="muted small">A quick view of your hours, overtime and attendance pattern</span></div><div class="analytics-summary"><span id="analyticsWorked">0h worked</span><span id="analyticsOt">0h OT</span></div></div>
+        <div class="analytics-grid">
+          <div class="chart-card"><div class="chart-title"><strong>Worked hours</strong><span>by day</span></div><div id="hoursChart" class="bar-chart"></div></div>
+          <div class="chart-card"><div class="chart-title"><strong>Overtime</strong><span>by day</span></div><div id="otChart" class="bar-chart"></div></div>
+          <div class="chart-card"><div class="chart-title"><strong>Status mix</strong><span>this month</span></div><div id="statusChart" class="status-chart"></div></div>
+        </div>
+      </section>
+
       <section class="panel glass-card">
-        <div class="panel-head"><div><div class="section-kicker">RECORDS</div><h2>Attendance history</h2><span class="muted small">Your records for the selected month</span></div><button id="exportCsv" class="ghost" type="button">Export CSV</button></div>
+        <div class="panel-head"><div><div class="section-kicker">REPORTS</div><h2>Monthly report</h2><span class="muted small">Generate a professional PDF or CSV for the selected month</span></div><div class="report-actions"><button id="exportPdf" class="primary" type="button">Download PDF</button><button id="exportCsv" class="ghost" type="button">Export CSV</button></div></div>
+      </section>
+
+      <section class="panel glass-card">
+        <div class="panel-head"><div><div class="section-kicker">RECORDS</div><h2>Attendance history</h2><span class="muted small">Your records for the selected month</span></div></div>
         <div class="table-wrap"><table><thead><tr><th>Date</th><th>In</th><th>Out</th><th>Worked</th><th>OT</th><th>Status</th><th></th></tr></thead><tbody id="records"></tbody></table><div id="emptyRecords" class="empty hidden">No attendance records for this month.</div></div>
+      </section>
+
+      <section class="panel glass-card reminder-panel">
+        <div><div class="section-kicker">REMINDERS</div><h2>Attendance reminder</h2><p class="muted small">Get a browser reminder if today's attendance has not been added. Reminders work while WorkTrack is open.</p></div>
+        <div class="reminder-controls"><label class="switch-line"><input id="reminderEnabled" type="checkbox"><span>Enable daily reminder</span></label><label>Reminder time<input id="reminderTime" type="time" value="20:00"></label><button id="enableNotifications" class="ghost" type="button">Allow notifications</button><button id="testNotification" class="ghost" type="button">Test</button></div>
       </section>
 
       <section class="panel glass-card settings-panel">
