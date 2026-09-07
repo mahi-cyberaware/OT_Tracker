@@ -44,7 +44,7 @@ function showAuth(){$('authView').classList.remove('hidden');$('appView').classL
 function showApp(){
   $('authView').classList.add('hidden');$('appView').classList.remove('hidden');
   let p=profile(),name=displayName(),initial=(name.trim()[0]||'W').toUpperCase();
-  setText('headerName',name);setText('headerEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('heroName',name.split(' ')[0]);setText('avatarInitial',initial);setText('menuName',name);setText('menuEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('menuAvatar',initial);
+  setText('headerName',name);setText('headerEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('heroName',name.split(' ')[0]);setText('avatarInitial',initial);
   setTag('profileCompany',p.company_name);setTag('profilePosition',p.position);setTag('profileEmployee',p.employee_id?`Employee ID • ${p.employee_id}`:'');
 }
 function setTag(id,text){$(id).textContent=text||'';$(id).classList.toggle('hidden',!text)}
@@ -97,22 +97,6 @@ function openProfile(){
   $('profileDialog').showModal();
 }
 function closeProfile(){$('profileDialog').close()}
-function closeAppMenu(){if(!$('appMenu'))return;$('appMenu').classList.add('hidden');$('menuButton').setAttribute('aria-expanded','false')}
-function scrollToSection(id){closeAppMenu();let el=$(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
-$('menuButton').addEventListener('click',e=>{
-  e.preventDefault();
-  e.stopPropagation();
-  const menu=$('appMenu');
-  const willOpen=menu.classList.contains('hidden');
-  menu.classList.toggle('hidden',!willOpen);
-  $('menuButton').setAttribute('aria-expanded',String(willOpen));
-});
-document.addEventListener('click',e=>{const menu=$('appMenu');if(menu&&!menu.classList.contains('hidden')&&!e.target.closest('.header-actions'))closeAppMenu()});
-document.querySelectorAll('[data-menu-target]').forEach(btn=>btn.onclick=()=>{let t=btn.dataset.menuTarget;if(t==='home')window.scrollTo({top:0,behavior:'smooth'});else if(t==='profile'){closeAppMenu();openProfile();}else if(t==='admin'){alert('Admin dashboard is planned for a future version.');closeAppMenu();return}else scrollToSection(t+'Section')});
-document.querySelectorAll('[data-menu-action]').forEach(btn=>btn.onclick=()=>{closeAppMenu();if(btn.dataset.menuAction==='about')$('aboutDialog').showModal();else $('contactDialog').showModal()});
-$('menuLogout').onclick=async()=>{closeAppMenu();await sb.auth.signOut()};
-$('closeAbout').onclick=()=>$('aboutDialog').close();$('aboutDone').onclick=()=>$('aboutDialog').close();$('closeContact').onclick=()=>$('contactDialog').close();$('contactDone').onclick=()=>$('contactDialog').close();
-$('aboutDialog').addEventListener('click',e=>{if(e.target===$('aboutDialog'))$('aboutDialog').close()});$('contactDialog').addEventListener('click',e=>{if(e.target===$('contactDialog'))$('contactDialog').close()});
 $('profileButton').onclick=openProfile;
 $('closeProfile').onclick=closeProfile;
 $('cancelProfile').onclick=closeProfile;
@@ -267,4 +251,15 @@ $('reminderEnabled').onchange=saveReminderSettings;$('reminderTime').onchange=sa
 loadReminderSettings();setInterval(checkReminder,30000);
 
 $('exportCsv').onclick=()=>{let rows=[['Date','Check In','Check Out','Worked Hours','Overtime Hours','Status','Notes'],...records.map(r=>{let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty);return[r.work_date,r.check_in||'',r.check_out||'',h.toFixed(2),ot.toFixed(2),r.status,r.notes||'']})];let csv=rows.map(row=>row.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`worktrack-${monthKey()}.csv`;a.click();URL.revokeObjectURL(a.href)};
+
+// Main three-dot menu. This is intentionally isolated from authentication so it cannot affect sessions.
+const menuButton=$('menuButton'),mainMenu=$('mainMenu');
+function closeMainMenu(){if(!mainMenu)return;mainMenu.classList.add('hidden');menuButton?.setAttribute('aria-expanded','false')}
+function toggleMainMenu(){if(!mainMenu||!menuButton)return;let open=mainMenu.classList.toggle('hidden')===false;menuButton.setAttribute('aria-expanded',String(open))}
+menuButton?.addEventListener('click',e=>{e.stopPropagation();toggleMainMenu()});
+mainMenu?.addEventListener('click',e=>{let b=e.target.closest('button[data-menu-action]');if(!b)return;let a=b.dataset.menuAction;closeMainMenu();if(a==='logout'){$('logout').click();return}if(a==='profile'){openProfile();return}if(a==='about'){$('aboutDialog').showModal();return}if(a==='contact'){$('contactDialog').showModal();return}if(a==='admin'){alert('Admin dashboard is reserved for a future WorkTrack version.');return}let target={home:'hero',analytics:'hoursChart',reports:'exportPdf',reminders:'reminderEnabled',settings:'dutyHours'}[a];if(target){let el=$(target);(el?.closest('section')||el)?.scrollIntoView({behavior:'smooth',block:'start')}}});
+document.addEventListener('click',e=>{if(mainMenu&&!mainMenu.classList.contains('hidden')&&!e.target.closest('.menu-wrap'))closeMainMenu()});
+$('closeAbout').onclick=()=>$('aboutDialog').close();$('closeContact').onclick=()=>$('contactDialog').close();
+$('aboutDialog').addEventListener('click',e=>{if(e.target===$('aboutDialog'))$('aboutDialog').close()});$('contactDialog').addEventListener('click',e=>{if(e.target===$('contactDialog'))$('contactDialog').close()});
+
 setAuthMode();init();

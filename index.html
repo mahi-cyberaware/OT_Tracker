@@ -45,7 +45,7 @@
     <header class="topbar glass-bar">
       <div class="topbar-inner">
         <div class="brand-mark compact"><span class="brand-icon">W</span><div><div class="brand">WorkTrack</div><div class="header-sub">Attendance • Hours • Overtime</div></div></div>
-        <div class="header-actions"><button id="profileButton" class="identity-chip profile-button" type="button" aria-label="Open profile"><span class="avatar" id="avatarInitial">W</span><div><strong id="headerName">Employee</strong><small id="headerEmployeeId"></small></div><span class="profile-chevron">›</span></button><button id="menuButton" class="menu-button" type="button" aria-label="Open menu" aria-expanded="false">⋮</button><div id="appMenu" class="app-menu glass-card hidden"><div class="menu-user"><span class="avatar" id="menuAvatar">W</span><div><strong id="menuName">Employee</strong><small id="menuEmployeeId"></small></div></div><div class="menu-divider"></div><button type="button" data-menu-target="home">⌂ <span>Home</span></button><button type="button" data-menu-target="profile">◉ <span>My Profile</span></button><button type="button" data-menu-target="analytics">◌ <span>Analytics</span></button><button type="button" data-menu-target="reports">▣ <span>Reports</span></button><button type="button" data-menu-target="reminders">◷ <span>Reminders</span></button><button type="button" data-menu-target="settings">⚙ <span>Settings</span></button><button id="adminMenuItem" type="button" class="admin-menu-item hidden" data-menu-target="admin">♙ <span>Admin</span><em>Admin only</em></button><div class="menu-divider"></div><button type="button" data-menu-action="about">ⓘ <span>About WorkTrack</span></button><button type="button" data-menu-action="contact">✆ <span>Contact</span></button><button id="menuLogout" type="button" class="menu-danger">↪ <span>Logout</span></button></div></div>
+        <div class="header-actions"><button id="profileButton" class="identity-chip profile-button" type="button" aria-label="Open profile"><span class="avatar" id="avatarInitial">W</span><div><strong id="headerName">Employee</strong><small id="headerEmployeeId"></small></div><span class="profile-chevron">›</span></button><div class="menu-wrap"><button id="menuButton" class="menu-button" type="button" aria-label="Open menu" aria-expanded="false">⋮</button><div id="mainMenu" class="main-menu hidden" role="menu"><button type="button" data-menu-action="home">🏠 <span>Home</span></button><button type="button" data-menu-action="profile">👤 <span>My Profile</span></button><button type="button" data-menu-action="analytics">📊 <span>Analytics</span></button><button type="button" data-menu-action="reports">📄 <span>Reports</span></button><button type="button" data-menu-action="reminders">🔔 <span>Reminders</span></button><button type="button" data-menu-action="settings">⚙️ <span>Settings</span></button><button type="button" data-menu-action="admin">👨‍💼 <span>Admin</span><small>Coming soon</small></button><div class="menu-divider"></div><button type="button" data-menu-action="about">ℹ️ <span>About WorkTrack</span></button><button type="button" data-menu-action="contact">📞 <span>Contact</span></button><button type="button" data-menu-action="logout" class="menu-logout">🚪 <span>Logout</span></button></div></div></div>
       </div>
     </header>
 
@@ -73,7 +73,7 @@
         <div class="legend"><span><i class="dot normal-dot"></i>Present</span><span><i class="dot ot-dot"></i>Overtime</span><span><i class="dot holiday-dot"></i>UAE Public Holiday</span><span><i class="dot leave-dot"></i>Leave / Off</span></div>
       </section>
 
-      <section id="analyticsSection" class="panel glass-card analytics-panel">
+      <section class="panel glass-card analytics-panel">
         <div class="panel-head"><div><div class="section-kicker">ANALYTICS</div><h2>Monthly insights</h2><span class="muted small">A quick view of your hours, overtime and attendance pattern</span></div><div class="analytics-summary"><span id="analyticsWorked">0h worked</span><span id="analyticsOt">0h OT</span></div></div>
         <div class="analytics-grid">
           <div class="chart-card"><div class="chart-title"><strong>Worked hours</strong><span>by day</span></div><div id="hoursChart" class="bar-chart"></div></div>
@@ -82,7 +82,7 @@
         </div>
       </section>
 
-      <section id="reportsSection" class="panel glass-card">
+      <section class="panel glass-card">
         <div class="panel-head"><div><div class="section-kicker">REPORTS</div><h2>Monthly report</h2><span class="muted small">Generate a professional PDF or CSV for the selected month</span></div><div class="report-actions"><button id="exportPdf" class="primary" type="button">Download PDF</button><button id="exportCsv" class="ghost" type="button">Export CSV</button></div></div>
       </section>
 
@@ -100,17 +100,21 @@
         </div>
       </section>
 
-      <section id="remindersSection" class="panel glass-card reminder-panel">
+      <section class="panel glass-card reminder-panel">
         <div><div class="section-kicker">REMINDERS</div><h2>Attendance reminder</h2><p class="muted small">Get a browser reminder if today's attendance has not been added. Reminders work while WorkTrack is open.</p></div>
         <div class="reminder-controls"><label class="switch-line"><input id="reminderEnabled" type="checkbox"><span>Enable daily reminder</span></label><label>Reminder time<input id="reminderTime" type="time" value="20:00"></label><button id="enableNotifications" class="ghost" type="button">Allow notifications</button><button id="testNotification" class="ghost" type="button">Test</button></div>
       </section>
 
-      <section id="settingsSection" class="panel glass-card settings-panel">
+      <section class="panel glass-card settings-panel">
         <div><div class="section-kicker">PREFERENCES</div><h2>Settings</h2><p class="muted small">Set the normal daily duty hours used to calculate overtime.</p></div>
         <div class="settings-grid"><label>Daily duty hours<input id="dutyHours" type="number" min="0.25" max="24" step=".25" inputmode="decimal"></label><button id="saveSettings" class="primary" type="button">Save settings</button></div>
       </section>
     </main>
   </div>
+
+
+  <dialog id="aboutDialog"><div class="dialog-card glass-card info-dialog"><div class="dialog-top"><div><div class="section-kicker">ABOUT</div><h2>WorkTrack</h2><span class="muted small">Attendance • Hours • Overtime</span></div><button id="closeAbout" type="button" class="modal-close">×</button></div><div class="info-content"><div class="about-logo">W</div><h3>WorkTrack</h3><p>Simple, private attendance and overtime tracking for employees.</p><span class="version-badge">Version 9.0</span></div></div></dialog>
+  <dialog id="contactDialog"><div class="dialog-card glass-card info-dialog"><div class="dialog-top"><div><div class="section-kicker">SUPPORT</div><h2>Contact</h2><span class="muted small">Need help with WorkTrack?</span></div><button id="closeContact" type="button" class="modal-close">×</button></div><div class="info-content contact-content"><div class="contact-item">📧 <div><strong>Email</strong><span>Contact your WorkTrack administrator</span></div></div><div class="contact-item">💬 <div><strong>WorkTrack Support</strong><span>For account or attendance questions, contact your administrator.</span></div></div></div></div></dialog>
 
   <dialog id="profileDialog">
     <form id="profileForm" class="dialog-card glass-card">
@@ -126,23 +130,6 @@
       </div>
       <div class="dialog-actions"><button id="saveProfile" class="primary" type="submit">Save profile</button><button id="cancelProfile" type="button" class="ghost">Cancel</button></div>
     </form>
-  </dialog>
-
-
-  <dialog id="aboutDialog">
-    <div class="dialog-card glass-card info-dialog">
-      <div class="dialog-top"><div><div class="section-kicker">ABOUT</div><h2>About WorkTrack</h2><span class="muted small">Attendance • Hours • Overtime</span></div><button id="closeAbout" type="button" class="modal-close" aria-label="Close">×</button></div>
-      <div class="info-content"><div class="about-logo">W</div><h3>WorkTrack</h3><p>Simple, private attendance and overtime tracking for employees.</p><div class="info-row"><span>Version</span><strong>9.0</strong></div><div class="info-row"><span>Calendar</span><strong>UAE / Abu Dhabi</strong></div><div class="info-row"><span>Data</span><strong>Private to your account</strong></div></div>
-      <div class="dialog-actions"><button id="aboutDone" type="button" class="primary">Done</button></div>
-    </div>
-  </dialog>
-
-  <dialog id="contactDialog">
-    <div class="dialog-card glass-card info-dialog">
-      <div class="dialog-top"><div><div class="section-kicker">HELP & SUPPORT</div><h2>Contact</h2><span class="muted small">Need help with WorkTrack?</span></div><button id="closeContact" type="button" class="modal-close" aria-label="Close">×</button></div>
-      <div class="info-content"><div class="contact-card"><span class="contact-icon">✉</span><div><small>Email</small><strong>Contact your WorkTrack administrator</strong></div></div><div class="contact-card"><span class="contact-icon">☎</span><div><small>Support</small><strong>Use your company support channel</strong></div></div><div class="status-note"><span class="status-dot"></span><span>For account, attendance or payroll questions, contact your company administrator.</span></div></div>
-      <div class="dialog-actions"><button id="contactDone" type="button" class="primary">Done</button></div>
-    </div>
   </dialog>
 
   <dialog id="attendanceDialog">
