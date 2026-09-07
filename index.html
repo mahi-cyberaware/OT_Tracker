@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#172033">
   <title>WorkTrack — Attendance & Overtime</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -10,70 +11,75 @@
 <body>
 <div id="authView" class="auth-shell">
   <div class="auth-card">
-    <div class="brand">WorkTrack</div>
-    <p class="muted">Attendance • Hours • Overtime</p>
-    <div id="authMessage"></div>
+    <div class="brand brand-large">WorkTrack</div>
+    <p class="muted">Simple attendance & overtime tracking</p>
+    <div id="authMessage" class="message"></div>
     <form id="authForm">
-      <input id="email" type="email" placeholder="Email" required>
-      <input id="password" type="password" placeholder="Password" minlength="6" placeholder="Password" required>
-      <button id="authSubmit" class="primary">Sign in</button>
+      <label>Email<input id="email" type="email" placeholder="Email address" autocomplete="email" required></label>
+      <label>Password<input id="password" type="password" placeholder="Password" minlength="6" autocomplete="current-password" required></label>
+      <button id="authSubmit" class="primary full" type="submit">Sign in</button>
     </form>
-    <button id="toggleAuth" class="linkbtn">Create an account</button>
+    <button id="toggleAuth" class="linkbtn" type="button">Create an account</button>
   </div>
 </div>
 
 <div id="appView" class="hidden">
   <header>
-    <div class="brand">WorkTrack</div>
-    <div class="header-actions"><span id="userEmail"></span><button id="logout" class="ghost">Logout</button></div>
+    <div>
+      <div class="brand">WorkTrack</div>
+      <div class="header-sub">Attendance • Hours • Overtime</div>
+    </div>
+    <div class="header-actions"><span id="userEmail"></span><button id="logout" class="ghost" type="button">Logout</button></div>
   </header>
+
   <main>
     <section class="hero">
-      <div><h1>Attendance Dashboard</h1><p class="muted">Track every working hour and every overtime hour.</p></div>
-      <button id="addToday" class="primary">+ Add attendance</button>
+      <div>
+        <div class="eyebrow">MY WORK RECORD</div>
+        <h1>Attendance Dashboard</h1>
+        <p class="muted">Record your shift once and let WorkTrack calculate your overtime.</p>
+      </div>
+      <button id="addToday" class="primary" type="button">+ Add attendance</button>
     </section>
 
     <section class="stats">
       <div class="stat"><span>Working days</span><b id="workingDays">0</b></div>
       <div class="stat"><span>Regular hours</span><b id="regularHours">0h</b></div>
-      <div class="stat"><span>Overtime</span><b id="otHours">0h</b></div>
+      <div class="stat accent"><span>Overtime</span><b id="otHours">0h</b></div>
       <div class="stat"><span>Total worked</span><b id="workedHours">0h</b></div>
     </section>
 
-    <section class="panel">
+    <section class="panel calendar-panel">
       <div class="panel-head">
-        <h2 id="monthTitle"></h2>
-        <div><button id="prevMonth" class="ghost">‹</button><button id="nextMonth" class="ghost">›</button></div>
+        <div><h2 id="monthTitle"></h2><span id="monthMeta" class="muted small"></span></div>
+        <div class="month-actions"><button id="todayMonth" class="ghost" type="button">Today</button><button id="prevMonth" class="ghost icon-btn" type="button" aria-label="Previous month">‹</button><button id="nextMonth" class="ghost icon-btn" type="button" aria-label="Next month">›</button></div>
       </div>
       <div id="calendar" class="calendar"></div>
+      <div class="legend"><span><i class="dot normal-dot"></i>Present</span><span><i class="dot ot-dot"></i>Overtime</span><span><i class="dot leave-dot"></i>Leave/Off/Holiday</span></div>
     </section>
 
     <section class="panel">
-      <div class="panel-head"><h2>Attendance history</h2><button id="exportCsv" class="ghost">Export CSV</button></div>
-      <div class="table-wrap"><table><thead><tr><th>Date</th><th>In</th><th>Out</th><th>Break</th><th>Worked</th><th>OT</th><th>Status</th><th></th></tr></thead><tbody id="records"></tbody></table></div>
+      <div class="panel-head"><div><h2>Attendance history</h2><span class="muted small">Your records for the selected month</span></div><button id="exportCsv" class="ghost" type="button">Export CSV</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>In</th><th>Out</th><th>Worked</th><th>OT</th><th>Status</th><th></th></tr></thead><tbody id="records"></tbody></table><div id="emptyRecords" class="empty hidden">No attendance records for this month.</div></div>
     </section>
 
-    <section class="panel">
-      <h2>Settings</h2>
-      <div class="settings-grid">
-        <label>Daily duty hours<input id="dutyHours" type="number" min="0" max="24" step=".25"></label>
-        <button id="saveSettings" class="primary">Save settings</button>
-      </div>
+    <section class="panel settings-panel">
+      <div><h2>Settings</h2><p class="muted small">Set the normal duty hours used to calculate overtime.</p></div>
+      <div class="settings-grid"><label>Daily duty hours<input id="dutyHours" type="number" min="0.25" max="24" step=".25" inputmode="decimal"></label><button id="saveSettings" class="primary" type="button">Save settings</button></div>
     </section>
   </main>
 </div>
 
 <dialog id="attendanceDialog">
   <form method="dialog" id="attendanceForm" class="dialog-card">
-    <div class="panel-head"><h2 id="dialogTitle">Attendance</h2><button value="cancel" class="ghost">×</button></div>
+    <div class="panel-head"><div><h2 id="dialogTitle">Add attendance</h2><span class="muted small">Enter your shift details</span></div><button value="cancel" class="ghost icon-btn" aria-label="Close">×</button></div>
     <input type="hidden" id="recordId">
     <label>Date<input id="date" type="date" required></label>
-    <div class="two"><label>Check in<input id="checkIn" type="time" required></label><label>Check out<input id="checkOut" type="time" required></label></div>
-    <label>Break (minutes)<input id="breakMinutes" type="number" min="0" value="0"></label>
+    <div class="two"><label>Check in<input id="checkIn" type="time"></label><label>Check out<input id="checkOut" type="time"></label></div>
+    <p id="timeHint" class="muted small">For Present, both check-in and check-out are required.</p>
     <label>Status<select id="status"><option value="present">Present</option><option value="leave">Leave</option><option value="off">Off day</option><option value="holiday">Holiday</option></select></label>
     <label>Notes<textarea id="notes" rows="3" placeholder="Optional note"></textarea></label>
-    <button class="primary" value="default">Save attendance</button>
-    <button type="button" id="deleteRecord" class="danger hidden">Delete record</button>
+    <div class="dialog-actions"><button class="primary" type="submit">Save attendance</button><button type="button" id="deleteRecord" class="danger hidden">Delete record</button></div>
   </form>
 </dialog>
 <script src="app.js"></script>
