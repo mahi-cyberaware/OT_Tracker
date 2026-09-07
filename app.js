@@ -251,15 +251,4 @@ $('reminderEnabled').onchange=saveReminderSettings;$('reminderTime').onchange=sa
 loadReminderSettings();setInterval(checkReminder,30000);
 
 $('exportCsv').onclick=()=>{let rows=[['Date','Check In','Check Out','Worked Hours','Overtime Hours','Status','Notes'],...records.map(r=>{let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty);return[r.work_date,r.check_in||'',r.check_out||'',h.toFixed(2),ot.toFixed(2),r.status,r.notes||'']})];let csv=rows.map(row=>row.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`worktrack-${monthKey()}.csv`;a.click();URL.revokeObjectURL(a.href)};
-
-// Main three-dot menu. This is intentionally isolated from authentication so it cannot affect sessions.
-const menuButton=$('menuButton'),mainMenu=$('mainMenu');
-function closeMainMenu(){if(!mainMenu)return;mainMenu.classList.add('hidden');menuButton?.setAttribute('aria-expanded','false')}
-function toggleMainMenu(){if(!mainMenu||!menuButton)return;let open=mainMenu.classList.toggle('hidden')===false;menuButton.setAttribute('aria-expanded',String(open))}
-menuButton?.addEventListener('click',e=>{e.stopPropagation();toggleMainMenu()});
-mainMenu?.addEventListener('click',e=>{let b=e.target.closest('button[data-menu-action]');if(!b)return;let a=b.dataset.menuAction;closeMainMenu();if(a==='logout'){$('logout').click();return}if(a==='profile'){openProfile();return}if(a==='about'){$('aboutDialog').showModal();return}if(a==='contact'){$('contactDialog').showModal();return}if(a==='admin'){alert('Admin dashboard is reserved for a future WorkTrack version.');return}let target={home:'hero',analytics:'hoursChart',reports:'exportPdf',reminders:'reminderEnabled',settings:'dutyHours'}[a];if(target){let el=$(target);(el?.closest('section')||el)?.scrollIntoView({behavior:'smooth',block:'start')}}});
-document.addEventListener('click',e=>{if(mainMenu&&!mainMenu.classList.contains('hidden')&&!e.target.closest('.menu-wrap'))closeMainMenu()});
-$('closeAbout').onclick=()=>$('aboutDialog').close();$('closeContact').onclick=()=>$('contactDialog').close();
-$('aboutDialog').addEventListener('click',e=>{if(e.target===$('aboutDialog'))$('aboutDialog').close()});$('contactDialog').addEventListener('click',e=>{if(e.target===$('contactDialog'))$('contactDialog').close()});
-
 setAuthMode();init();

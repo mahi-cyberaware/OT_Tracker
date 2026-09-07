@@ -45,7 +45,7 @@
     <header class="topbar glass-bar">
       <div class="topbar-inner">
         <div class="brand-mark compact"><span class="brand-icon">W</span><div><div class="brand">WorkTrack</div><div class="header-sub">Attendance • Hours • Overtime</div></div></div>
-        <div class="header-actions"><button id="profileButton" class="identity-chip profile-button" type="button" aria-label="Open profile"><span class="avatar" id="avatarInitial">W</span><div><strong id="headerName">Employee</strong><small id="headerEmployeeId"></small></div><span class="profile-chevron">›</span></button><div class="menu-wrap"><button id="menuButton" class="menu-button" type="button" aria-label="Open menu" aria-expanded="false">⋮</button><div id="mainMenu" class="main-menu hidden" role="menu"><button type="button" data-menu-action="home">🏠 <span>Home</span></button><button type="button" data-menu-action="profile">👤 <span>My Profile</span></button><button type="button" data-menu-action="analytics">📊 <span>Analytics</span></button><button type="button" data-menu-action="reports">📄 <span>Reports</span></button><button type="button" data-menu-action="reminders">🔔 <span>Reminders</span></button><button type="button" data-menu-action="settings">⚙️ <span>Settings</span></button><button type="button" data-menu-action="admin">👨‍💼 <span>Admin</span><small>Coming soon</small></button><div class="menu-divider"></div><button type="button" data-menu-action="about">ℹ️ <span>About WorkTrack</span></button><button type="button" data-menu-action="contact">📞 <span>Contact</span></button><button type="button" data-menu-action="logout" class="menu-logout">🚪 <span>Logout</span></button></div></div></div>
+        <div class="header-actions"><button id="profileButton" class="identity-chip profile-button" type="button" aria-label="Open profile"><span class="avatar" id="avatarInitial">W</span><div><strong id="headerName">Employee</strong><small id="headerEmployeeId"></small></div><span class="profile-chevron">›</span></button><button id="logout" class="ghost" type="button">Logout</button></div>
       </div>
     </header>
 
@@ -111,10 +111,6 @@
       </section>
     </main>
   </div>
-
-
-  <dialog id="aboutDialog"><div class="dialog-card glass-card info-dialog"><div class="dialog-top"><div><div class="section-kicker">ABOUT</div><h2>WorkTrack</h2><span class="muted small">Attendance • Hours • Overtime</span></div><button id="closeAbout" type="button" class="modal-close">×</button></div><div class="info-content"><div class="about-logo">W</div><h3>WorkTrack</h3><p>Simple, private attendance and overtime tracking for employees.</p><span class="version-badge">Version 9.0</span></div></div></dialog>
-  <dialog id="contactDialog"><div class="dialog-card glass-card info-dialog"><div class="dialog-top"><div><div class="section-kicker">SUPPORT</div><h2>Contact</h2><span class="muted small">Need help with WorkTrack?</span></div><button id="closeContact" type="button" class="modal-close">×</button></div><div class="info-content contact-content"><div class="contact-item">📧 <div><strong>Email</strong><span>Contact your WorkTrack administrator</span></div></div><div class="contact-item">💬 <div><strong>WorkTrack Support</strong><span>For account or attendance questions, contact your administrator.</span></div></div></div></div></dialog>
 
   <dialog id="profileDialog">
     <form id="profileForm" class="dialog-card glass-card">
