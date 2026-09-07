@@ -44,7 +44,7 @@
     <header class="topbar glass-bar">
       <div class="topbar-inner">
         <div class="brand-mark compact"><span class="brand-icon">W</span><div><div class="brand">WorkTrack</div><div class="header-sub">Attendance • Hours • Overtime</div></div></div>
-        <div class="header-actions"><div class="identity-chip"><span class="avatar" id="avatarInitial">W</span><div><strong id="headerName">Employee</strong><small id="headerEmployeeId"></small></div></div><button id="logout" class="ghost" type="button">Logout</button></div>
+        <div class="header-actions"><button id="profileButton" class="identity-chip profile-button" type="button" aria-label="Open profile"><span class="avatar" id="avatarInitial">W</span><div><strong id="headerName">Employee</strong><small id="headerEmployeeId"></small></div><span class="profile-chevron">›</span></button><button id="logout" class="ghost" type="button">Logout</button></div>
       </div>
     </header>
 
@@ -78,6 +78,22 @@
       </section>
     </main>
   </div>
+
+  <dialog id="profileDialog">
+    <form id="profileForm" class="dialog-card glass-card">
+      <div class="dialog-top"><div><div class="section-kicker">MY PROFILE</div><h2>Edit personal information</h2><span class="muted small">Keep your employee details up to date.</span></div><button id="closeProfile" type="button" class="modal-close" aria-label="Close">×</button></div>
+      <div id="profileMessage" class="message"></div>
+      <div class="profile-form-grid">
+        <label>First name<input id="profileFirstName" type="text" autocomplete="given-name" required></label>
+        <label>Surname<input id="profileSurname" type="text" autocomplete="family-name" required></label>
+        <label>Company name<input id="profileCompanyName" type="text" autocomplete="organization" required></label>
+        <label>Employee ID<input id="profileEmployeeId" type="text" autocomplete="off" required></label>
+        <label class="profile-full">Position<input id="profilePositionInput" type="text" autocomplete="organization-title" required></label>
+        <label class="profile-full">Email<input id="profileEmail" type="email" readonly></label>
+      </div>
+      <div class="dialog-actions"><button id="saveProfile" class="primary" type="submit">Save profile</button><button id="cancelProfile" type="button" class="ghost">Cancel</button></div>
+    </form>
+  </dialog>
 
   <dialog id="attendanceDialog">
     <form id="attendanceForm" class="dialog-card glass-card">

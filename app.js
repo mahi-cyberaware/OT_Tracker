@@ -63,6 +63,38 @@ $('authForm').onsubmit=async e=>{
 };
 $('resendConfirm').onclick=async()=>{const email=$('email').value.trim().toLowerCase();if(!email){authMessage('Enter your email address first.',true);return}$('resendConfirm').disabled=true;authMessage('Sending confirmation email…');try{const r=await sb.auth.resend({type:'signup',email,options:{emailRedirectTo:REDIRECT_URL}});if(r.error)authMessage(r.error.message,true);else authMessage('Confirmation email requested. Check your inbox and spam folder.')}catch(err){authMessage(err?.message||'Could not resend the email.',true)}finally{$('resendConfirm').disabled=false}};
 $('logout').onclick=async()=>{await sb.auth.signOut()};
+function profileMessage(text,isError=false){$('profileMessage').textContent=text||'';$('profileMessage').className=`message ${text?(isError?'error':'success'):''}`}
+function openProfile(){
+  let p=profile();
+  $('profileFirstName').value=p.first_name||'';
+  $('profileSurname').value=p.surname||'';
+  $('profileCompanyName').value=p.company_name||'';
+  $('profileEmployeeId').value=p.employee_id||'';
+  $('profilePositionInput').value=p.position||'';
+  $('profileEmail').value=user?.email||'';
+  profileMessage('');
+  $('profileDialog').showModal();
+}
+function closeProfile(){$('profileDialog').close()}
+$('profileButton').onclick=openProfile;
+$('closeProfile').onclick=closeProfile;
+$('cancelProfile').onclick=closeProfile;
+$('profileDialog').addEventListener('click',e=>{if(e.target===$('profileDialog'))closeProfile()});
+$('profileForm').onsubmit=async e=>{
+  e.preventDefault();
+  let data={first_name:$('profileFirstName').value.trim(),surname:$('profileSurname').value.trim(),company_name:$('profileCompanyName').value.trim(),employee_id:$('profileEmployeeId').value.trim(),position:$('profilePositionInput').value.trim()};
+  $('saveProfile').disabled=true;profileMessage('Saving changes…');
+  try{
+    let r=await sb.auth.updateUser({data});
+    if(r.error){profileMessage(r.error.message,true);return}
+    user=r.data.user||user;
+    showApp();
+    profileMessage('Profile updated successfully.');
+    setTimeout(()=>{if($('profileDialog').open)closeProfile()},650);
+  }catch(err){profileMessage(err?.message||'Could not update your profile.',true)}
+  finally{$('saveProfile').disabled=false}
+};
+
 
 async function load(){
   if(!user)return;
