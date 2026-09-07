@@ -99,9 +99,16 @@ function openProfile(){
 function closeProfile(){$('profileDialog').close()}
 function closeAppMenu(){if(!$('appMenu'))return;$('appMenu').classList.add('hidden');$('menuButton').setAttribute('aria-expanded','false')}
 function scrollToSection(id){closeAppMenu();let el=$(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
-$('menuButton').onclick=()=>{let open=$('appMenu').classList.toggle('hidden')===false;$('menuButton').setAttribute('aria-expanded',String(open))};
-document.addEventListener('click',e=>{if($('appMenu')&&!$('appMenu').classList.contains('hidden')&&!e.target.closest('.header-actions'))closeAppMenu()});
-document.querySelectorAll('[data-menu-target]').forEach(btn=>btn.onclick=()=>{let t=btn.dataset.menuTarget;if(t==='home')window.scrollTo({top:0,behavior:'smooth'});else if(t==='profile')openProfile();else if(t==='admin'){alert('Admin dashboard is planned for a future version.');closeAppMenu();return}else scrollToSection(t+'Section')});
+$('menuButton').addEventListener('click',e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  const menu=$('appMenu');
+  const willOpen=menu.classList.contains('hidden');
+  menu.classList.toggle('hidden',!willOpen);
+  $('menuButton').setAttribute('aria-expanded',String(willOpen));
+});
+document.addEventListener('click',e=>{const menu=$('appMenu');if(menu&&!menu.classList.contains('hidden')&&!e.target.closest('.header-actions'))closeAppMenu()});
+document.querySelectorAll('[data-menu-target]').forEach(btn=>btn.onclick=()=>{let t=btn.dataset.menuTarget;if(t==='home')window.scrollTo({top:0,behavior:'smooth'});else if(t==='profile'){closeAppMenu();openProfile();}else if(t==='admin'){alert('Admin dashboard is planned for a future version.');closeAppMenu();return}else scrollToSection(t+'Section')});
 document.querySelectorAll('[data-menu-action]').forEach(btn=>btn.onclick=()=>{closeAppMenu();if(btn.dataset.menuAction==='about')$('aboutDialog').showModal();else $('contactDialog').showModal()});
 $('menuLogout').onclick=async()=>{closeAppMenu();await sb.auth.signOut()};
 $('closeAbout').onclick=()=>$('aboutDialog').close();$('aboutDone').onclick=()=>$('aboutDialog').close();$('closeContact').onclick=()=>$('contactDialog').close();$('contactDone').onclick=()=>$('contactDialog').close();
