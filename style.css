@@ -25,3 +25,15 @@
   .month-actions{width:100%;flex-wrap:nowrap;justify-content:flex-end}
   .month-actions .ghost:first-child{flex:1}
 }
+
+
+/* V7 — day-off and public-holiday summary cards */
+.stat-holiday b{color:var(--blue)}
+.stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+.day.public-holiday{border-color:rgba(124,156,255,.28);background:linear-gradient(180deg,rgba(79,111,229,.10),rgba(17,25,40,.38))}
+.day.public-holiday .daynum{color:#dbe4ff}
+.pill.holiday{background:rgba(124,156,255,.15);color:#b9c8ff;border:1px solid rgba(124,156,255,.22)}
+.pill.holidayworked{background:rgba(168,148,255,.18);color:#d5caff;border:1px solid rgba(168,148,255,.28)}
+.dot.holiday-dot{background:var(--blue)}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:430px){.stat{padding:18px 16px}.stat b{font-size:30px}.stat span{font-size:13px}.stat small{font-size:11px}}

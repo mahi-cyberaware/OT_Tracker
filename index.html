@@ -56,15 +56,17 @@
 
       <section class="stats">
         <div class="stat glass-card"><span>Working days</span><b id="workingDays">0</b><small>This month</small></div>
+        <div class="stat glass-card"><span>Day off</span><b id="dayOffCount">0</b><small>Off days recorded</small></div>
         <div class="stat glass-card"><span>Regular hours</span><b id="regularHours">0h</b><small>Duty hours covered</small></div>
         <div class="stat glass-card stat-ot"><span>Overtime</span><b id="otHours">0h</b><small>Extra hours</small></div>
         <div class="stat glass-card"><span>Total worked</span><b id="workedHours">0h</b><small>Recorded hours</small></div>
+        <div class="stat glass-card stat-holiday"><span>Holiday worked</span><b id="holidayWorkedCount">0</b><small>Public holidays worked</small></div>
       </section>
 
       <section class="panel glass-card calendar-panel">
         <div class="panel-head"><div><div class="section-kicker">MONTH VIEW</div><h2 id="monthTitle"></h2><span id="monthMeta" class="muted small"></span></div><div class="month-actions"><button id="todayMonth" class="ghost" type="button">Today</button><button id="prevMonth" class="ghost icon-btn" type="button" aria-label="Previous month">‹</button><button id="nextMonth" class="ghost icon-btn" type="button" aria-label="Next month">›</button></div></div>
         <div id="calendar" class="calendar"></div>
-        <div class="legend"><span><i class="dot normal-dot"></i>Present</span><span><i class="dot ot-dot"></i>Overtime</span><span><i class="dot leave-dot"></i>Leave / Off / Holiday</span></div>
+        <div class="legend"><span><i class="dot normal-dot"></i>Present</span><span><i class="dot ot-dot"></i>Overtime</span><span><i class="dot holiday-dot"></i>UAE Public Holiday</span><span><i class="dot leave-dot"></i>Leave / Off</span></div>
       </section>
 
       <section class="panel glass-card">

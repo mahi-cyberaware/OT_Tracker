@@ -9,6 +9,26 @@ function fmt(n){return `${Number(n.toFixed(2))}h`}
 function hours(inT,outT){if(!inT||!outT)return 0;let [ih,im]=inT.split(':').map(Number),[oh,om]=outT.split(':').map(Number);let a=ih*60+im,b=oh*60+om;if(b<a)b+=1440;return Math.max(0,(b-a)/60)}
 function monthKey(){return `${month.getFullYear()}-${String(month.getMonth()+1).padStart(2,'0')}`}
 function todayKey(){let d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+
+// UAE public holidays used by the WorkTrack Abu Dhabi calendar for 2026.
+// Dates are kept here so public holidays are visible even before an attendance record is added.
+const UAE_HOLIDAYS_2026={
+  '2026-01-01':'New Year’s Day',
+  '2026-03-19':'Eid Al-Fitr',
+  '2026-03-20':'Eid Al-Fitr',
+  '2026-03-21':'Eid Al-Fitr',
+  '2026-03-22':'Eid Al-Fitr',
+  '2026-05-25':'Arafat Day / Eid Al-Adha',
+  '2026-05-26':'Arafat Day / Eid Al-Adha',
+  '2026-05-27':'Arafat Day / Eid Al-Adha',
+  '2026-05-28':'Arafat Day / Eid Al-Adha',
+  '2026-05-29':'Arafat Day / Eid Al-Adha',
+  '2026-06-15':'Hijri New Year',
+  '2026-08-28':'Prophet’s Birthday',
+  '2026-12-02':'UAE National Day',
+  '2026-12-03':'UAE National Day'
+};
+function publicHolidayName(date){return UAE_HOLIDAYS_2026[date]||''}
 function profile(){return user?.user_metadata||{}}
 function displayName(){let p=profile(),full=[p.first_name,p.surname].filter(Boolean).join(' ');return full||user?.email?.split('@')[0]||'Employee'}
 function setText(id,text){$(id).textContent=text||''}
@@ -108,13 +128,15 @@ async function load(){
 function render(){
   $('monthTitle').textContent=month.toLocaleString('en',{month:'long',year:'numeric'});$('monthMeta').textContent=`${records.length} record${records.length===1?'':'s'}`;
   let present=records.filter(x=>x.status==='present'),worked=present.reduce((s,x)=>s+hours(x.check_in,x.check_out),0),ot=present.reduce((s,x)=>s+Math.max(0,hours(x.check_in,x.check_out)-duty),0);
-  $('workingDays').textContent=present.length;$('workedHours').textContent=fmt(worked);$('otHours').textContent=fmt(ot);$('regularHours').textContent=fmt(Math.max(0,worked-ot));renderCalendar();renderTable();
+  let dayOffCount=records.filter(x=>x.status==='off').length;
+  let holidayWorkedCount=records.filter(x=>x.status==='present'&&publicHolidayName(x.work_date)).length;
+  $('workingDays').textContent=present.length;$('dayOffCount').textContent=dayOffCount;$('workedHours').textContent=fmt(worked);$('otHours').textContent=fmt(ot);$('regularHours').textContent=fmt(Math.max(0,worked-ot));$('holidayWorkedCount').textContent=holidayWorkedCount;renderCalendar();renderTable();
 }
 function renderCalendar(){
   let c=$('calendar');c.innerHTML='';['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(x=>{let d=document.createElement('div');d.className='cal-head';d.textContent=x;c.appendChild(d)});
   let first=new Date(month.getFullYear(),month.getMonth(),1),days=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
   for(let i=0;i<first.getDay();i++){let d=document.createElement('div');d.className='day mutedday';c.appendChild(d)}
-  for(let n=1;n<=days;n++){let date=`${monthKey()}-${String(n).padStart(2,'0')}`,r=records.find(x=>x.work_date===date),d=document.createElement('div');d.className='day'+(date===todayKey()?' today':'');d.innerHTML=`<div class="daynum">${n}</div>`;if(r){let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty);d.innerHTML+=`<span class="pill ${ot?'ot':r.status==='present'?'normal':'leave'}">${r.status==='present'?(ot?`+${fmt(ot)} OT`:fmt(h)):r.status}</span>`}d.onclick=()=>openDialog(r,date);c.appendChild(d)}
+  for(let n=1;n<=days;n++){let date=`${monthKey()}-${String(n).padStart(2,'0')}`,r=records.find(x=>x.work_date===date),holiday=publicHolidayName(date),d=document.createElement('div');d.className='day'+(date===todayKey()?' today':'')+(holiday?' public-holiday':'');d.innerHTML=`<div class="daynum">${n}</div>`;if(r){let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty);d.innerHTML+=`<span class="pill ${ot?'ot':r.status==='present'?(holiday?'holidayworked':'normal'):'leave'}">${r.status==='present'?(ot?`+${fmt(ot)} OT`:fmt(h)):r.status}</span>`;if(holiday)d.title=`${holiday}${r.status==='present'?' • Worked':''}`}else if(holiday){d.innerHTML+=`<span class="pill holiday">Holiday</span>`;d.title=holiday}d.onclick=()=>openDialog(r,date);c.appendChild(d)}
 }
 function renderTable(){
   let t=$('records');t.innerHTML='';$('emptyRecords').classList.toggle('hidden',records.length>0);
