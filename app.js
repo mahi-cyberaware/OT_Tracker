@@ -4,6 +4,7 @@ const REDIRECT_URL="https://ot-tracker-psi.vercel.app/";
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
 let user=null,records=[],month=new Date(),duty=9,signUp=false;
+const NORMAL_OT_RATE=8.94;
 const $=id=>document.getElementById(id);
 function fmt(n){return `${Number(n.toFixed(2))}h`}
 function hours(inT,outT){if(!inT||!outT)return 0;let [ih,im]=inT.split(':').map(Number),[oh,om]=outT.split(':').map(Number);let a=ih*60+im,b=oh*60+om;if(b<a)b+=1440;return Math.max(0,(b-a)/60)}
@@ -146,6 +147,8 @@ function render(){
   $('regularHours').textContent=fmt(Math.max(0,worked-ot));
   $('avgHours').textContent=fmt(avg);
   $('holidayWorkedCount').textContent=holidayWorkedCount;
+  $('payrollOtHours').textContent=fmt(ot);
+  $('estimatedOtPay').textContent=`AED ${(ot*NORMAL_OT_RATE).toFixed(2)}`;
   $('analyticsWorked').textContent=`${fmt(worked)} worked`;
   $('analyticsOt').textContent=`${fmt(ot)} OT`;
   renderCalendar();renderTable();renderAnalytics();
@@ -207,7 +210,7 @@ function exportPdf(){
   doc.setFont('helvetica','bold');doc.setFontSize(18);doc.setTextColor(235,241,250);doc.text(monthName,40,115);
   doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(170,183,204);
   doc.text(`Employee: ${name}`,40,140);doc.text(`Employee ID: ${p.employee_id||'-'}`,40,156);doc.text(`Company: ${p.company_name||'-'}`,40,172);doc.text(`Position: ${p.position||'-'}`,40,188);
-  let summary=[['Present',t.present.length],['Leave',t.leave],['Day off',t.off],['Holiday worked',t.holidayWorked],['Worked hours',fmt(t.worked)],['Regular hours',fmt(t.regular)],['Overtime',fmt(t.ot)]];
+  let summary=[['Present',t.present.length],['Leave',t.leave],['Day off',t.off],['Holiday worked',t.holidayWorked],['Worked hours',fmt(t.worked)],['Regular hours',fmt(t.regular)],['Overtime',fmt(t.ot)],['OT rate',`AED ${NORMAL_OT_RATE.toFixed(2)}/h`],['Estimated OT pay',`AED ${(t.ot*NORMAL_OT_RATE).toFixed(2)}`]];
   doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(235,241,250);doc.text('Monthly summary',40,220);
   let y=242;doc.setFontSize(10);summary.forEach(([k,v],i)=>{let x=i%2?310:40;if(i%2===0&&i>0)y+=25;doc.setFont('helvetica','normal');doc.setTextColor(145,160,185);doc.text(k,x,y);doc.setFont('helvetica','bold');doc.setTextColor(235,241,250);doc.text(String(v),x+105,y)});
   y+=40;doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text('Attendance records',40,y);y+=22;

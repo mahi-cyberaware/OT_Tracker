@@ -91,6 +91,15 @@
         <div class="table-wrap"><table><thead><tr><th>Date</th><th>In</th><th>Out</th><th>Worked</th><th>OT</th><th>Status</th><th></th></tr></thead><tbody id="records"></tbody></table><div id="emptyRecords" class="empty hidden">No attendance records for this month.</div></div>
       </section>
 
+      <section class="panel glass-card payroll-panel">
+        <div class="panel-head"><div><div class="section-kicker">PAYROLL ESTIMATE</div><h2>Overtime pay</h2><span class="muted small">Estimated using your normal OT rate of AED 8.94/hour. Public Holiday (PH) pay is kept separate.</span></div><div class="payroll-rate"><span>Normal OT rate</span><strong>AED 8.94<span>/h</span></strong></div></div>
+        <div class="payroll-grid">
+          <div class="payroll-item"><span>Normal OT hours</span><b id="payrollOtHours">0h</b></div>
+          <div class="payroll-item"><span>Estimated OT pay</span><b id="estimatedOtPay">AED 0.00</b></div>
+          <div class="payroll-note"><span class="pill-info">i</span><span>PH / public-holiday work is not included in this normal OT estimate.</span></div>
+        </div>
+      </section>
+
       <section class="panel glass-card reminder-panel">
         <div><div class="section-kicker">REMINDERS</div><h2>Attendance reminder</h2><p class="muted small">Get a browser reminder if today's attendance has not been added. Reminders work while WorkTrack is open.</p></div>
         <div class="reminder-controls"><label class="switch-line"><input id="reminderEnabled" type="checkbox"><span>Enable daily reminder</span></label><label>Reminder time<input id="reminderTime" type="time" value="20:00"></label><button id="enableNotifications" class="ghost" type="button">Allow notifications</button><button id="testNotification" class="ghost" type="button">Test</button></div>
