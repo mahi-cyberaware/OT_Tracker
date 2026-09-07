@@ -44,7 +44,7 @@ function showAuth(){$('authView').classList.remove('hidden');$('appView').classL
 function showApp(){
   $('authView').classList.add('hidden');$('appView').classList.remove('hidden');
   let p=profile(),name=displayName(),initial=(name.trim()[0]||'W').toUpperCase();
-  setText('headerName',name);setText('headerEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('heroName',name.split(' ')[0]);setText('avatarInitial',initial);
+  setText('headerName',name);setText('headerEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('heroName',name.split(' ')[0]);setText('avatarInitial',initial);setText('menuName',name);setText('menuEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('menuAvatar',initial);
   setTag('profileCompany',p.company_name);setTag('profilePosition',p.position);setTag('profileEmployee',p.employee_id?`Employee ID • ${p.employee_id}`:'');
 }
 function setTag(id,text){$(id).textContent=text||'';$(id).classList.toggle('hidden',!text)}
@@ -97,6 +97,15 @@ function openProfile(){
   $('profileDialog').showModal();
 }
 function closeProfile(){$('profileDialog').close()}
+function closeAppMenu(){if(!$('appMenu'))return;$('appMenu').classList.add('hidden');$('menuButton').setAttribute('aria-expanded','false')}
+function scrollToSection(id){closeAppMenu();let el=$(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
+$('menuButton').onclick=()=>{let open=$('appMenu').classList.toggle('hidden')===false;$('menuButton').setAttribute('aria-expanded',String(open))};
+document.addEventListener('click',e=>{if($('appMenu')&&!$('appMenu').classList.contains('hidden')&&!e.target.closest('.header-actions'))closeAppMenu()});
+document.querySelectorAll('[data-menu-target]').forEach(btn=>btn.onclick=()=>{let t=btn.dataset.menuTarget;if(t==='home')window.scrollTo({top:0,behavior:'smooth'});else if(t==='profile')openProfile();else if(t==='admin'){alert('Admin dashboard is planned for a future version.');closeAppMenu();return}else scrollToSection(t+'Section')});
+document.querySelectorAll('[data-menu-action]').forEach(btn=>btn.onclick=()=>{closeAppMenu();if(btn.dataset.menuAction==='about')$('aboutDialog').showModal();else $('contactDialog').showModal()});
+$('menuLogout').onclick=async()=>{closeAppMenu();await sb.auth.signOut()};
+$('closeAbout').onclick=()=>$('aboutDialog').close();$('aboutDone').onclick=()=>$('aboutDialog').close();$('closeContact').onclick=()=>$('contactDialog').close();$('contactDone').onclick=()=>$('contactDialog').close();
+$('aboutDialog').addEventListener('click',e=>{if(e.target===$('aboutDialog'))$('aboutDialog').close()});$('contactDialog').addEventListener('click',e=>{if(e.target===$('contactDialog'))$('contactDialog').close()});
 $('profileButton').onclick=openProfile;
 $('closeProfile').onclick=closeProfile;
 $('cancelProfile').onclick=closeProfile;
