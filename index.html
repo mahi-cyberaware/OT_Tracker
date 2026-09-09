@@ -45,17 +45,25 @@
     <header class="topbar glass-bar">
       <div class="topbar-inner">
         <div class="brand-mark compact"><span class="brand-icon">W</span><div><div class="brand">WorkTrack</div><div class="header-sub">Attendance • Hours • Overtime</div></div></div>
-        <div class="header-actions"><button id="profileButton" class="identity-chip profile-button" type="button" aria-label="Open profile"><span class="avatar" id="avatarInitial">W</span><div><strong id="headerName">Employee</strong><small id="headerEmployeeId"></small></div><span class="profile-chevron">›</span></button><button id="logout" class="ghost" type="button">Logout</button></div>
+        <div class="header-actions">
+          <button id="menuButton" class="ghost menu-button" type="button" aria-label="Open menu" aria-expanded="false">☰ <span>Menu</span></button>
+          <button id="profileButton" class="identity-chip profile-button" type="button" aria-label="Open profile">
+            <span class="avatar" id="avatarInitial">W</span>
+            <div><strong id="headerName">Employee</strong><small id="headerEmployeeId"></small></div>
+            <span class="profile-chevron">›</span>
+          </button>
+          <button id="logout" class="ghost" type="button">Logout</button>
+        </div>
       </div>
     </header>
 
     <main>
-      <section class="hero glass-card">
+      <section id="homeSection" class="hero glass-card">
         <div class="hero-copy"><div class="eyebrow">MY WORKSPACE</div><h1>Good to see you, <span id="heroName">there</span>.</h1><p>Track your attendance, see your hours at a glance, and keep overtime under control.</p><div class="profile-tags"><span id="profileCompany" class="tag hidden"></span><span id="profilePosition" class="tag hidden"></span><span id="profileEmployee" class="tag hidden"></span></div></div>
         <button id="addToday" class="primary hero-btn" type="button"><span>＋</span> Add attendance</button>
       </section>
 
-      <section class="stats">
+      <section id="homeStats" class="stats">
         <div class="stat glass-card"><span>Working days</span><b id="workingDays">0</b><small>This month</small></div>
         <div class="stat glass-card"><span>Day off</span><b id="dayOffCount">0</b><small>Off days recorded</small></div>
         <div class="stat glass-card"><span>Leave</span><b id="leaveCount">0</b><small>Leave records</small></div>
@@ -67,13 +75,13 @@
         <div class="stat glass-card stat-holiday"><span>Holiday worked</span><b id="holidayWorkedCount">0</b><small>Public holidays worked</small></div>
       </section>
 
-      <section class="panel glass-card calendar-panel">
+      <section id="calendarSection" class="panel glass-card calendar-panel">
         <div class="panel-head"><div><div class="section-kicker">MONTH VIEW</div><h2 id="monthTitle"></h2><span id="monthMeta" class="muted small"></span></div><div class="month-actions"><button id="todayMonth" class="ghost" type="button">Today</button><button id="prevMonth" class="ghost icon-btn" type="button" aria-label="Previous month">‹</button><button id="nextMonth" class="ghost icon-btn" type="button" aria-label="Next month">›</button></div></div>
         <div id="calendar" class="calendar"></div>
         <div class="legend"><span><i class="dot normal-dot"></i>Present</span><span><i class="dot ot-dot"></i>Overtime</span><span><i class="dot holiday-dot"></i>UAE Public Holiday</span><span><i class="dot leave-dot"></i>Leave / Off</span></div>
       </section>
 
-      <section class="panel glass-card analytics-panel">
+      <section id="analyticsSection" class="panel glass-card analytics-panel">
         <div class="panel-head"><div><div class="section-kicker">ANALYTICS</div><h2>Monthly insights</h2><span class="muted small">A quick view of your hours, overtime and attendance pattern</span></div><div class="analytics-summary"><span id="analyticsWorked">0h worked</span><span id="analyticsOt">0h OT</span></div></div>
         <div class="analytics-grid">
           <div class="chart-card"><div class="chart-title"><strong>Worked hours</strong><span>by day</span></div><div id="hoursChart" class="bar-chart"></div></div>
@@ -82,16 +90,16 @@
         </div>
       </section>
 
-      <section class="panel glass-card">
+      <section id="reportsSection" class="panel glass-card">
         <div class="panel-head"><div><div class="section-kicker">REPORTS</div><h2>Monthly report</h2><span class="muted small">Generate a professional PDF or CSV for the selected month</span></div><div class="report-actions"><button id="exportPdf" class="primary" type="button">Download PDF</button><button id="exportCsv" class="ghost" type="button">Export CSV</button></div></div>
       </section>
 
-      <section class="panel glass-card">
+      <section id="recordsSection" class="panel glass-card">
         <div class="panel-head"><div><div class="section-kicker">RECORDS</div><h2>Attendance history</h2><span class="muted small">Your records for the selected month</span></div></div>
         <div class="table-wrap"><table><thead><tr><th>Date</th><th>In</th><th>Out</th><th>Worked</th><th>OT</th><th>Status</th><th></th></tr></thead><tbody id="records"></tbody></table><div id="emptyRecords" class="empty hidden">No attendance records for this month.</div></div>
       </section>
 
-      <section class="panel glass-card payroll-panel">
+      <section id="payrollSection" class="panel glass-card payroll-panel">
         <div class="panel-head"><div><div class="section-kicker">PAYROLL ESTIMATE</div><h2>Overtime pay</h2><span class="muted small">Estimated using your normal OT rate of AED 8.94/hour. Public Holiday (PH) pay is kept separate.</span></div><div class="payroll-rate"><span>Normal OT rate</span><strong>AED 8.94<span>/h</span></strong></div></div>
         <div class="payroll-grid">
           <div class="payroll-item"><span>Normal OT hours</span><b id="payrollOtHours">0h</b></div>
@@ -100,16 +108,83 @@
         </div>
       </section>
 
-      <section class="panel glass-card reminder-panel">
+      <section id="remindersSection" class="panel glass-card reminder-panel">
         <div><div class="section-kicker">REMINDERS</div><h2>Attendance reminder</h2><p class="muted small">Get a browser reminder if today's attendance has not been added. Reminders work while WorkTrack is open.</p></div>
         <div class="reminder-controls"><label class="switch-line"><input id="reminderEnabled" type="checkbox"><span>Enable daily reminder</span></label><label>Reminder time<input id="reminderTime" type="time" value="20:00"></label><button id="enableNotifications" class="ghost" type="button">Allow notifications</button><button id="testNotification" class="ghost" type="button">Test</button></div>
       </section>
 
-      <section class="panel glass-card settings-panel">
+      <section id="settingsSection" class="panel glass-card settings-panel">
         <div><div class="section-kicker">PREFERENCES</div><h2>Settings</h2><p class="muted small">Set the normal daily duty hours used to calculate overtime.</p></div>
         <div class="settings-grid"><label>Daily duty hours<input id="dutyHours" type="number" min="0.25" max="24" step=".25" inputmode="decimal"></label><button id="saveSettings" class="primary" type="button">Save settings</button></div>
       </section>
+
+      <footer class="app-footer">
+        <div class="footer-brand">
+          <strong>WorkTrack</strong>
+          <span>Attendance • Hours • Overtime</span>
+        </div>
+        <div class="footer-made">Made by <strong>Mahi</strong></div>
+        <div class="footer-links">
+          <button type="button" class="footer-link" data-nav="about">About</button>
+          <button type="button" class="footer-link" data-nav="contact">Contact</button>
+          <button type="button" class="footer-link" data-nav="security">Security</button>
+        </div>
+        <div class="footer-security">Private account access • HTTPS • Supabase authentication • Row Level Security</div>
+        <div class="footer-copy">© 2026 Mahi. WorkTrack.</div>
+      </footer>
     </main>
+
+    <aside id="appMenu" class="app-menu" aria-hidden="true">
+      <div class="menu-backdrop" id="menuBackdrop"></div>
+      <div class="menu-panel">
+        <div class="menu-head">
+          <div>
+            <div class="section-kicker">WORKTRACK</div>
+            <h2>Menu</h2>
+          </div>
+          <button id="closeMenu" class="modal-close" type="button" aria-label="Close menu">×</button>
+        </div>
+
+        <nav class="menu-nav">
+          <button type="button" class="menu-item active" data-nav="home">⌂ <span>Home</span></button>
+          <button type="button" class="menu-item" data-nav="calendar">▦ <span>Calendar</span></button>
+          <button type="button" class="menu-item" data-nav="analytics">◫ <span>Analytics</span></button>
+          <button type="button" class="menu-item" data-nav="reports">▤ <span>Reports</span></button>
+          <button type="button" class="menu-item" data-nav="records">☷ <span>Attendance history</span></button>
+          <button type="button" class="menu-item" data-nav="payroll">₹ <span>Payroll estimate</span></button>
+          <button type="button" class="menu-item" data-nav="reminders">◷ <span>Reminders</span></button>
+          <button type="button" class="menu-item" data-nav="settings">⚙ <span>Settings</span></button>
+        </nav>
+
+        <div class="menu-divider"></div>
+
+        <nav class="menu-nav menu-secondary">
+          <button type="button" class="menu-item" data-nav="profile">◉ <span>My Profile</span></button>
+          <button type="button" class="menu-item" data-nav="about">ⓘ <span>About Mahi</span></button>
+          <button type="button" class="menu-item" data-nav="contact">✉ <span>Contact</span></button>
+          <button type="button" class="menu-item" data-nav="security">✓ <span>Security & Privacy</span></button>
+        </nav>
+
+        <button id="menuLogout" class="danger menu-logout" type="button">Logout</button>
+      </div>
+    </aside>
+
+    <dialog id="infoDialog">
+      <div class="dialog-card glass-card">
+        <div class="dialog-top">
+          <div>
+            <div id="infoKicker" class="section-kicker">WORKTRACK</div>
+            <h2 id="infoTitle">About</h2>
+          </div>
+          <button id="closeInfo" type="button" class="modal-close" aria-label="Close">×</button>
+        </div>
+        <div id="infoBody" class="info-body"></div>
+        <div class="dialog-actions">
+          <button id="closeInfoBottom" type="button" class="ghost">Close</button>
+        </div>
+      </div>
+    </dialog>
+
   </div>
 
   <dialog id="profileDialog">

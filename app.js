@@ -511,3 +511,156 @@ loadReminderSettings();setInterval(checkReminder,30000);
 
 $('exportCsv').onclick=()=>{let rows=[['Date','Check In','Check Out','Worked Hours','Overtime Hours','Status','OT Reason','Notes'],...records.map(r=>{let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty);return[r.work_date,r.check_in||'',r.check_out||'',h.toFixed(2),ot.toFixed(2),statusLabel(r.status),r.ot_reason||'',r.notes||'']})];let csv=rows.map(row=>row.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`worktrack-${monthKey()}.csv`;a.click();URL.revokeObjectURL(a.href)};
 setAuthMode();init();
+
+/* =========================
+   V11 — APP MENU + FOOTER
+   ========================= */
+
+const appSections={
+  home:['homeSection','homeStats'],
+  calendar:['calendarSection'],
+  analytics:['analyticsSection'],
+  reports:['reportsSection'],
+  records:['recordsSection'],
+  payroll:['payrollSection'],
+  reminders:['remindersSection'],
+  settings:['settingsSection']
+};
+
+const navLabels={
+  home:'Home',
+  calendar:'Calendar',
+  analytics:'Analytics',
+  reports:'Reports',
+  records:'Attendance history',
+  payroll:'Payroll estimate',
+  reminders:'Reminders',
+  settings:'Settings'
+};
+
+function closeAppMenu(){
+  let menu=$('appMenu');
+  if(!menu)return;
+  menu.classList.remove('open');
+  menu.setAttribute('aria-hidden','true');
+  $('menuButton')?.setAttribute('aria-expanded','false');
+}
+
+function openAppMenu(){
+  let menu=$('appMenu');
+  if(!menu)return;
+  menu.classList.add('open');
+  menu.setAttribute('aria-hidden','false');
+  $('menuButton')?.setAttribute('aria-expanded','true');
+}
+
+function showAppSection(name){
+
+  Object.values(appSections).flat().forEach(id=>{
+    let el=$(id);
+    if(el)el.classList.add('menu-hidden-section');
+  });
+
+  let ids=appSections[name]||appSections.home;
+  ids.forEach(id=>{
+    let el=$(id);
+    if(el)el.classList.remove('menu-hidden-section');
+  });
+
+  document.querySelectorAll('.menu-item[data-nav]').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.nav===name);
+  });
+
+  closeAppMenu();
+
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showInfo(type){
+
+  let title='';
+  let kicker='';
+  let body='';
+
+  if(type==='about'){
+    kicker='ABOUT MAHI';
+    title='About the creator';
+    body=`
+      <div class="info-highlight">
+        <strong>Mahi</strong>
+        <span>Creator of WorkTrack</span>
+      </div>
+      <p>Mahi is an Operations Officer who built WorkTrack as a simple, practical tool for managing attendance, working hours and overtime.</p>
+      <p>The goal is straightforward: keep work records organized, make overtime easier to understand, and give employees a clean private workspace.</p>
+    `;
+  }
+
+  if(type==='contact'){
+    kicker='CONTACT';
+    title='Contact Mahi';
+    body=`
+      <div class="contact-list">
+        <a href="mailto:myprogrammwork1@gmail.com"><span>Email</span><strong>myprogrammwork1@gmail.com</strong></a>
+        <a href="tel:+971507635453"><span>Contact</span><strong>+971 50 763 5453</strong></a>
+        <a href="https://github.com/mahi-cyberaware" target="_blank" rel="noopener noreferrer"><span>GitHub</span><strong>mahi_cyberaware</strong></a>
+      </div>
+    `;
+  }
+
+  if(type==='security'){
+    kicker='SECURITY & PRIVACY';
+    title='Your data & security';
+    body=`
+      <div class="security-list">
+        <div><strong>🔐 Account authentication</strong><span>Sign-in is handled through Supabase Authentication.</span></div>
+        <div><strong>🛡️ Private records</strong><span>WorkTrack uses Row Level Security so attendance records are intended to be accessible only to the authenticated account.</span></div>
+        <div><strong>🔑 Browser-safe key</strong><span>The app uses a Supabase publishable key. Never place a Supabase secret/service-role key in browser code.</span></div>
+        <div><strong>🌐 Secure connection</strong><span>Use the HTTPS WorkTrack address and keep your account password private.</span></div>
+        <div><strong>⚠️ Good practice</strong><span>Do not share your login credentials, and always sign out on shared devices.</span></div>
+      </div>
+    `;
+  }
+
+  $('infoKicker').textContent=kicker;
+  $('infoTitle').textContent=title;
+  $('infoBody').innerHTML=body;
+  $('infoDialog').showModal();
+}
+
+$('menuButton')?.addEventListener('click',openAppMenu);
+$('closeMenu')?.addEventListener('click',closeAppMenu);
+$('menuBackdrop')?.addEventListener('click',closeAppMenu);
+$('menuLogout')?.addEventListener('click',async()=>{
+  closeAppMenu();
+  await sb.auth.signOut();
+});
+
+document.querySelectorAll('[data-nav]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    let target=btn.dataset.nav;
+
+    if(target==='profile'){
+      closeAppMenu();
+      openProfile();
+      return;
+    }
+
+    if(['about','contact','security'].includes(target)){
+      closeAppMenu();
+      showInfo(target);
+      return;
+    }
+
+    showAppSection(target);
+  });
+});
+
+$('closeInfo')?.addEventListener('click',()=>$('infoDialog').close());
+$('closeInfoBottom')?.addEventListener('click',()=>$('infoDialog').close());
+$('infoDialog')?.addEventListener('click',e=>{
+  if(e.target===$('infoDialog'))$('infoDialog').close();
+});
+
+// Home is the quiet default view; other sections are opened from the menu.
+showAppSection('home');
+

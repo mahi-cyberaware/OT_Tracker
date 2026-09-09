@@ -27,3 +27,6 @@ Static files can be deployed directly to Vercel. Update `app.js` only if the Sup
 
 ## Security
 Use the Supabase Publishable key in the browser. Never put a Supabase Secret/service-role key in frontend code.
+
+
+V11 adds a menu-based interface, footer, About, Contact, and Security & Privacy sections.
