@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <div id="authView" class="auth-shell">
@@ -76,6 +77,27 @@
         <div class="stat glass-card"><span>Total worked</span><b id="workedHours">0h</b><small>Recorded hours</small></div>
         <div class="stat glass-card"><span>Average / day</span><b id="avgHours">0h</b><small>Present days</small></div>
         <div class="stat glass-card stat-holiday"><span>Holiday worked</span><b id="holidayWorkedCount">0</b><small>Public holidays worked</small></div>
+      </section>
+
+      <section id="rosterSection" class="panel glass-card roster-panel">
+        <div class="panel-head">
+          <div><div class="section-kicker">MY ROSTER</div><h2>Duty roster</h2><span class="muted small">Your private duty schedule. Roster uploads are controlled by the WorkTrack administrator.</span></div>
+          <div id="rosterAdminControls" class="roster-actions hidden"><label class="file-button primary" for="rosterFile">Upload Excel</label><input id="rosterFile" type="file" accept=".xlsx,.xls,.csv" hidden><button id="clearRoster" class="ghost" type="button">Clear roster</button></div>
+        </div>
+        <div class="roster-privacy"><span>🔐</span><span>The full Excel file is processed in the administrator’s browser. WorkTrack matches employees by Employee ID and each user can view only their own saved roster.</span></div>
+        <div id="rosterAdminNotice" class="message hidden"></div>
+        <div id="rosterMessage" class="message"></div>
+        <div class="roster-next glass-card">
+          <div><div class="section-kicker">NEXT DUTY</div><strong id="nextDutyTitle">No roster loaded</strong><span id="nextDutyMeta" class="muted small">Upload your roster to see tomorrow's duty.</span></div>
+          <div class="wake-box"><span>Wake-up</span><b id="nextWakeTime">—</b><small id="wakeMeta">Set your wake-up lead time below.</small></div>
+        </div>
+        <div class="roster-settings">
+          <label>Wake up before duty<select id="wakeLead"><option value="30">30 minutes</option><option value="60" selected>1 hour</option><option value="90">1 hour 30 minutes</option><option value="120">2 hours</option><option value="180">3 hours</option></select></label>
+          <label>Duty reminder time<input id="dutyReminderTime" type="time" value="20:00"></label>
+          <label class="switch-line roster-switch"><input id="dutyReminderEnabled" type="checkbox"><span>Tomorrow duty notification</span></label>
+          <button id="saveRosterSettings" class="primary" type="button">Save reminder settings</button>
+        </div>
+        <div class="table-wrap roster-table-wrap"><table><thead><tr><th>Date</th><th>Day</th><th>Duty</th><th>Status</th></tr></thead><tbody id="rosterRecords"></tbody></table><div id="emptyRoster" class="empty">No roster entries yet.</div></div>
       </section>
 
       <section id="calendarSection" class="panel glass-card calendar-panel">
@@ -169,6 +191,7 @@
 
         <nav class="menu-nav">
           <button type="button" class="menu-item active" data-nav="home">⌂ <span>Home</span></button>
+          <button type="button" class="menu-item" data-nav="roster">◷ <span>My Roster</span></button>
           <button type="button" class="menu-item" data-nav="calendar">▦ <span>Calendar</span></button>
           <button type="button" class="menu-item" data-nav="analytics">◫ <span>Analytics</span></button>
           <button type="button" class="menu-item" data-nav="reports">▤ <span>Reports</span></button>
@@ -336,6 +359,6 @@
       <div class="dialog-actions"><button class="primary" type="submit">Save attendance</button><button type="button" id="deleteRecord" class="danger hidden">Delete record</button></div>
     </form>
   </dialog>
-  <script src="app.js?v=10.1"></script>
+  <script src="app.js?v=17.0"></script>
 </body>
 </html>
