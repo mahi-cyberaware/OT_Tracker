@@ -135,8 +135,8 @@ function render(){
   let dayOffCount=records.filter(x=>x.status==='off').length;
   let leaveCount=records.filter(x=>x.status==='leave').length;
   let holidayWorkedCount=records.filter(x=>x.status==='present'&&publicHolidayName(x.work_date)).length;
-  let recordedDays=present.length+leaveCount+dayOffCount;
-  let attendanceRate=recordedDays?Math.round((present.length/recordedDays)*100):0;
+  let scheduledDays=present.length+leaveCount;
+  let attendanceRate=scheduledDays?Math.round((present.length/scheduledDays)*100):0;
   let avg=present.length?worked/present.length:0;
   $('workingDays').textContent=present.length;
   $('dayOffCount').textContent=dayOffCount;
