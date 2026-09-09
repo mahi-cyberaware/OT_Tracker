@@ -533,3 +533,136 @@
   }
 }
 
+/* =========================
+   V12 — LOGO + FOOTER + REMINDERS
+   ========================= */
+
+.brand-home{
+  appearance:none;
+  -webkit-appearance:none;
+  border:0;
+  cursor:pointer;
+  background:transparent;
+  color:inherit;
+  padding:0;
+  text-align:left;
+}
+
+.brand-home:hover .brand-icon{
+  transform:translateY(-1px);
+  box-shadow:0 12px 30px rgba(79,111,229,.38);
+}
+
+.brand-icon{
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+
+.reminder-controls{
+  display:grid!important;
+  grid-template-columns:minmax(210px,1fr) 150px;
+  align-items:end;
+  gap:12px!important;
+  width:min(100%,560px);
+}
+
+.reminder-controls .switch-line{
+  width:auto!important;
+  height:48px;
+  padding:0 13px;
+}
+
+.reminder-time{
+  width:auto!important;
+}
+
+.reminder-actions{
+  grid-column:1/-1;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.reminder-btn{
+  min-height:46px;
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:13px;
+  font-size:12px;
+  font-weight:800;
+}
+
+.notification-status{
+  grid-column:1/-1;
+  min-height:18px;
+  color:#8795aa;
+  font-size:10px;
+  line-height:1.45;
+}
+
+.notification-status[data-state="ok"]{
+  color:#88dfa9;
+}
+
+.notification-status[data-state="bad"]{
+  color:#ffaaa2;
+}
+
+.notification-status[data-state="info"]{
+  color:#9aabc5;
+}
+
+.app-footer{
+  text-align:center;
+  display:flex!important;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  padding:30px 18px 36px;
+}
+
+.footer-brand{
+  text-align:center;
+}
+
+.footer-links{
+  justify-content:center;
+  align-items:center;
+}
+
+.footer-security,
+.footer-copy{
+  width:100%;
+  text-align:center;
+}
+
+.footer-security{
+  border-top:1px solid rgba(255,255,255,.05);
+  padding-top:12px;
+}
+
+@media(max-width:640px){
+  .reminder-panel{
+    grid-template-columns:1fr!important;
+  }
+
+  .reminder-controls{
+    grid-template-columns:1fr!important;
+    width:100%;
+  }
+
+  .reminder-actions{
+    grid-template-columns:1fr;
+  }
+
+  .reminder-btn{
+    min-height:48px;
+  }
+
+  .notification-status{
+    text-align:left;
+  }
+}
+

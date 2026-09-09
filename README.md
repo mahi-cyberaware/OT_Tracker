@@ -29,4 +29,6 @@ Static files can be deployed directly to Vercel. Update `app.js` only if the Sup
 Use the Supabase Publishable key in the browser. Never put a Supabase Secret/service-role key in frontend code.
 
 
-V11 adds a menu-based interface, footer, About, Contact, and Security & Privacy sections.
+V12 adds a menu-based interface, footer, About, Contact, and Security & Privacy sections.
+
+V12 adds a unified clickable WorkTrack logo, centered footer, and repaired reminder controls/notification flow.

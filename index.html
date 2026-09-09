@@ -44,7 +44,10 @@
   <div id="appView" class="hidden app-shell">
     <header class="topbar glass-bar">
       <div class="topbar-inner">
-        <div class="brand-mark compact"><span class="brand-icon">W</span><div><div class="brand">WorkTrack</div><div class="header-sub">Attendance • Hours • Overtime</div></div></div>
+        <button id="homeLogo" class="brand-mark compact brand-home" type="button" aria-label="WorkTrack home">
+          <span class="brand-icon">W</span>
+          <div><div class="brand">WorkTrack</div><div class="header-sub">Attendance • Hours • Overtime</div></div>
+        </button>
         <div class="header-actions">
           <button id="menuButton" class="ghost menu-button" type="button" aria-label="Open menu" aria-expanded="false">☰ <span>Menu</span></button>
           <button id="profileButton" class="identity-chip profile-button" type="button" aria-label="Open profile">
@@ -110,7 +113,15 @@
 
       <section id="remindersSection" class="panel glass-card reminder-panel">
         <div><div class="section-kicker">REMINDERS</div><h2>Attendance reminder</h2><p class="muted small">Get a browser reminder if today's attendance has not been added. Reminders work while WorkTrack is open.</p></div>
-        <div class="reminder-controls"><label class="switch-line"><input id="reminderEnabled" type="checkbox"><span>Enable daily reminder</span></label><label>Reminder time<input id="reminderTime" type="time" value="20:00"></label><button id="enableNotifications" class="ghost" type="button">Allow notifications</button><button id="testNotification" class="ghost" type="button">Test</button></div>
+        <div class="reminder-controls">
+          <label class="switch-line"><input id="reminderEnabled" type="checkbox"><span>Enable daily reminder</span></label>
+          <label class="reminder-time">Reminder time<input id="reminderTime" type="time" value="20:00"></label>
+          <div class="reminder-actions">
+            <button id="enableNotifications" class="primary reminder-btn" type="button">Allow notifications</button>
+            <button id="testNotification" class="ghost reminder-btn" type="button">Send test</button>
+          </div>
+          <div id="notificationStatus" class="notification-status" role="status"></div>
+        </div>
       </section>
 
       <section id="settingsSection" class="panel glass-card settings-panel">

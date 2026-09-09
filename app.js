@@ -480,34 +480,179 @@ function exportPdf(){
 $('exportPdf').onclick=exportPdf;
 
 const reminderKey='worktrack-reminder-settings';
+
 function loadReminderSettings(){
-  let saved;try{saved=JSON.parse(localStorage.getItem(reminderKey)||'{}')}catch(e){saved={}}
-  $('reminderEnabled').checked=!!saved.enabled;$('reminderTime').value=saved.time||'20:00';
+  let saved;
+  try{
+    saved=JSON.parse(localStorage.getItem(reminderKey)||'{}');
+  }catch(e){
+    saved={};
+  }
+
+  $('reminderEnabled').checked=!!saved.enabled;
+  $('reminderTime').value=saved.time||'20:00';
+  updateNotificationStatus();
 }
-function saveReminderSettings(){localStorage.setItem(reminderKey,JSON.stringify({enabled:$('reminderEnabled').checked,time:$('reminderTime').value||'20:00'}));}
+
+function saveReminderSettings(){
+  localStorage.setItem(
+    reminderKey,
+    JSON.stringify({
+      enabled:$('reminderEnabled').checked,
+      time:$('reminderTime').value||'20:00'
+    })
+  );
+}
+
+function updateNotificationStatus(message){
+  let el=$('notificationStatus');
+  if(!el)return;
+
+  let supported='Notification' in window;
+  let permission=supported?Notification.permission:'unsupported';
+
+  if(message){
+    el.textContent=message;
+    el.dataset.state='info';
+    return;
+  }
+
+  if(permission==='granted'){
+    el.textContent='Notifications are allowed.';
+    el.dataset.state='ok';
+  }else if(permission==='denied'){
+    el.textContent='Notifications are blocked. Enable them in your browser site settings.';
+    el.dataset.state='bad';
+  }else{
+    el.textContent='Notifications are not enabled yet.';
+    el.dataset.state='info';
+  }
+}
+
 async function requestNotifications(){
-  if(!('Notification' in window)){alert('This browser does not support notifications.');return}
-  let permission=await Notification.requestPermission();
-  if(permission==='granted')alert('Notifications enabled for WorkTrack.');
-  else alert('Notification permission was not granted. You can enable it from your browser site settings.');
+  if(!('Notification' in window)){
+    updateNotificationStatus('This browser does not support notifications.');
+    return false;
+  }
+
+  try{
+    let permission=await Notification.requestPermission();
+
+    if(permission==='granted'){
+      updateNotificationStatus('Notifications are enabled.');
+      return true;
+    }
+
+    updateNotificationStatus(
+      permission==='denied'
+        ?'Notifications are blocked. Enable them in your browser site settings.'
+        :'Notification permission was not granted.'
+    );
+    return false;
+  }catch(err){
+    updateNotificationStatus('Could not request notification permission.');
+    return false;
+  }
 }
-function sendReminder(){
-  if(records.some(r=>r.work_date===todayKey()))return;
+
+function sendReminder(force=false){
+  if(!force && records.some(r=>r.work_date===todayKey()))return;
+
   let msg="You haven't added today's attendance yet.";
-  if('Notification' in window&&Notification.permission==='granted')new Notification('WorkTrack reminder',{body:msg});
-  else showReminderBanner(msg);
+
+  if(
+    'Notification' in window &&
+    Notification.permission==='granted'
+  ){
+    try{
+      new Notification('WorkTrack reminder',{body:msg});
+      updateNotificationStatus('Test/reminder notification sent.');
+      return;
+    }catch(e){}
+  }
+
+  showReminderBanner(msg);
+  updateNotificationStatus(
+    force
+      ?'Test shown inside WorkTrack because browser notifications are not enabled.'
+      :'Reminder shown inside WorkTrack.'
+  );
 }
+
 function showReminderBanner(msg){
-  let existing=$('reminderBanner');if(existing)existing.remove();
-  let b=document.createElement('div');b.id='reminderBanner';b.className='reminder-banner';b.innerHTML=`<div><strong>Attendance reminder</strong><span>${msg}</span></div><button type="button">Open</button>`;b.querySelector('button').onclick=()=>{b.remove();openDialog(null,todayKey())};document.body.appendChild(b);setTimeout(()=>b.remove(),12000);
+  let existing=$('reminderBanner');
+  if(existing)existing.remove();
+
+  let b=document.createElement('div');
+  b.id='reminderBanner';
+  b.className='reminder-banner';
+
+  b.innerHTML=`
+    <div>
+      <strong>Attendance reminder</strong>
+      <span>${esc(msg)}</span>
+    </div>
+    <button type="button">Add attendance</button>
+  `;
+
+  b.querySelector('button').onclick=()=>{
+    b.remove();
+    openDialog(null,todayKey());
+  };
+
+  document.body.appendChild(b);
+
+  setTimeout(()=>b.remove(),12000);
 }
+
 function checkReminder(){
   if(!user||!$('reminderEnabled').checked)return;
-  let now=new Date(),time=$('reminderTime').value||'20:00',hh=Number(time.slice(0,2)),mm=Number(time.slice(3,5));
-  if(now.getHours()===hh&&now.getMinutes()===mm){let stamp=`${todayKey()}-${time}`;if(localStorage.getItem('worktrack-last-reminder')!==stamp){localStorage.setItem('worktrack-last-reminder',stamp);sendReminder()}}
+
+  let now=new Date();
+  let time=$('reminderTime').value||'20:00';
+  let parts=time.split(':');
+  let hh=Number(parts[0]);
+  let mm=Number(parts[1]);
+
+  // Trigger any time after the selected minute, once per day.
+  let currentMinutes=now.getHours()*60+now.getMinutes();
+  let selectedMinutes=hh*60+mm;
+
+  if(currentMinutes<selectedMinutes)return;
+
+  let stamp=`${todayKey()}-${time}`;
+
+  if(localStorage.getItem('worktrack-last-reminder')===stamp)return;
+
+  localStorage.setItem('worktrack-last-reminder',stamp);
+  sendReminder(false);
 }
-$('reminderEnabled').onchange=saveReminderSettings;$('reminderTime').onchange=saveReminderSettings;$('enableNotifications').onclick=requestNotifications;$('testNotification').onclick=()=>{if('Notification' in window&&Notification.permission==='granted')new Notification('WorkTrack test',{body:'Your attendance reminders are working.'});else showReminderBanner('Your reminder preview is working.');};
-loadReminderSettings();setInterval(checkReminder,30000);
+
+$('reminderEnabled').onchange=async()=>{
+  saveReminderSettings();
+
+  if($('reminderEnabled').checked){
+    await requestNotifications();
+  }else{
+    updateNotificationStatus('Daily reminder is turned off.');
+  }
+};
+
+$('reminderTime').onchange=()=>{
+  saveReminderSettings();
+  updateNotificationStatus('Reminder time saved.');
+};
+
+$('enableNotifications').onclick=requestNotifications;
+
+$('testNotification').onclick=()=>{
+  sendReminder(true);
+};
+
+loadReminderSettings();
+setInterval(checkReminder,30000);
+
+$('homeLogo')?.addEventListener('click',()=>showAppSection('home'));
 
 $('exportCsv').onclick=()=>{let rows=[['Date','Check In','Check Out','Worked Hours','Overtime Hours','Status','OT Reason','Notes'],...records.map(r=>{let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty);return[r.work_date,r.check_in||'',r.check_out||'',h.toFixed(2),ot.toFixed(2),statusLabel(r.status),r.ot_reason||'',r.notes||'']})];let csv=rows.map(row=>row.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`worktrack-${monthKey()}.csv`;a.click();URL.revokeObjectURL(a.href)};
 setAuthMode();init();
