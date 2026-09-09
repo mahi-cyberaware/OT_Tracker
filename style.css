@@ -666,3 +666,98 @@
   }
 }
 
+
+
+/* =========================
+   V13 — CHANGE PASSWORD
+   ========================= */
+
+#passwordDialog{
+  width:min(520px,calc(100% - 18px));
+  max-width:520px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:var(--text);
+}
+
+#passwordDialog::backdrop{
+  background:rgba(1,4,10,.82);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+
+#passwordDialog .dialog-card{
+  padding:22px;
+}
+
+#passwordDialog .dialog-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:20px;
+}
+
+#passwordDialog h2{
+  color:#f5f8ff;
+  margin:5px 0 0;
+  font-size:22px;
+}
+
+#passwordDialog .form-grid{
+  display:grid;
+  gap:14px;
+}
+
+#passwordDialog label>span{
+  display:block;
+  margin-bottom:7px;
+  color:#aebbd0;
+  font-size:11px;
+  font-weight:750;
+}
+
+#passwordDialog .password-field{
+  position:relative;
+}
+
+#passwordDialog .password-field input{
+  width:100%;
+  padding-right:70px;
+}
+
+#passwordDialog .password-toggle{
+  position:absolute;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+  border:0;
+  background:transparent;
+  color:#9eb2ff;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+  padding:7px;
+}
+
+#passwordDialog .password-hint{
+  color:#7f8da3;
+  font-size:10px;
+  line-height:1.5;
+  margin:12px 0 0;
+}
+
+#passwordDialog .message{
+  margin-top:10px;
+}
+
+@media(max-width:640px){
+  #passwordDialog .dialog-card{
+    padding:18px;
+  }
+
+  #passwordDialog h2{
+    font-size:19px;
+  }
+}

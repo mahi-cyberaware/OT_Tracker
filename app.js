@@ -809,3 +809,95 @@ $('infoDialog')?.addEventListener('click',e=>{
 // Home is the quiet default view; other sections are opened from the menu.
 showAppSection('home');
 
+
+
+/* =========================
+   V13 — CHANGE PASSWORD
+   ========================= */
+
+function openPasswordDialog(){
+  if(!$('passwordDialog'))return;
+  $('newPassword').value='';
+  $('confirmPassword').value='';
+  $('passwordMessage').textContent='';
+  $('passwordMessage').className='message';
+  $('passwordDialog').showModal();
+}
+
+function closePasswordDialog(){
+  if($('passwordDialog')?.open)$('passwordDialog').close();
+}
+
+function passwordMessage(text,isError=false){
+  if(!$('passwordMessage'))return;
+  $('passwordMessage').textContent=text||'';
+  $('passwordMessage').className=`message ${text?(isError?'error':'success'):''}`;
+}
+
+function setupPasswordToggle(buttonId,inputId){
+  $(buttonId)?.addEventListener('click',()=>{
+    let input=$(inputId);
+    let visible=input.type==='text';
+    input.type=visible?'password':'text';
+    $(buttonId).textContent=visible?'Show':'Hide';
+  });
+}
+
+$('passwordForm')?.addEventListener('submit',async e=>{
+  e.preventDefault();
+
+  let password=$('newPassword').value;
+  let confirm=$('confirmPassword').value;
+
+  if(password.length<6){
+    passwordMessage('Password must be at least 6 characters.',true);
+    return;
+  }
+
+  if(password!==confirm){
+    passwordMessage('Passwords do not match.',true);
+    return;
+  }
+
+  $('savePassword').disabled=true;
+  passwordMessage('Updating password…');
+
+  try{
+    let r=await sb.auth.updateUser({password});
+
+    if(r.error){
+      passwordMessage(r.error.message,true);
+    }else{
+      passwordMessage('Password changed successfully.');
+      $('newPassword').value='';
+      $('confirmPassword').value='';
+
+      setTimeout(()=>{
+        closePasswordDialog();
+      },900);
+    }
+  }catch(err){
+    passwordMessage(
+      err?.message||'Could not change your password.',
+      true
+    );
+  }finally{
+    $('savePassword').disabled=false;
+  }
+});
+
+$('closePassword')?.addEventListener('click',closePasswordDialog);
+$('cancelPassword')?.addEventListener('click',closePasswordDialog);
+$('passwordDialog')?.addEventListener('click',e=>{
+  if(e.target===$('passwordDialog'))closePasswordDialog();
+});
+
+setupPasswordToggle('toggleNewPassword','newPassword');
+setupPasswordToggle('toggleConfirmPassword','confirmPassword');
+
+document.querySelectorAll('[data-nav="password"]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    closeAppMenu();
+    openPasswordDialog();
+  });
+});
