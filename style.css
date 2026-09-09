@@ -62,3 +62,177 @@
 /* Payroll estimate */
 .payroll-panel{position:relative;overflow:hidden}.payroll-panel:after{content:"";position:absolute;width:220px;height:220px;right:-100px;top:-110px;border-radius:50%;background:rgba(124,156,255,.08);filter:blur(14px);pointer-events:none}.payroll-rate{min-width:150px;padding:13px 15px;border-radius:16px;background:rgba(124,156,255,.08);border:1px solid rgba(124,156,255,.14);position:relative;z-index:1}.payroll-rate span{display:block;color:#748299;font-size:10px}.payroll-rate strong{display:block;margin-top:4px;color:#c8d3ff;font-size:20px;letter-spacing:-.4px}.payroll-rate strong span{display:inline;color:#7f8ca4;font-size:10px;margin-left:2px}.payroll-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;position:relative;z-index:1}.payroll-item{padding:16px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}.payroll-item span{display:block;color:#7d8ba1;font-size:10px}.payroll-item b{display:block;margin-top:6px;font-size:22px;letter-spacing:-.4px}.payroll-item:nth-child(2) b{color:#9fb4ff}.payroll-note{grid-column:1/-1;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.025);color:#77859b;font-size:10px}.pill-info{display:grid;place-items:center;width:17px;height:17px;border-radius:50%;background:rgba(124,156,255,.13);color:#a9baff;font-weight:800;flex:0 0 auto}
 @media(max-width:600px){.payroll-panel .panel-head{align-items:flex-start;flex-direction:column}.payroll-rate{width:100%}.payroll-grid{grid-template-columns:1fr 1fr}.payroll-item{padding:13px}.payroll-item b{font-size:19px}.payroll-note{font-size:9px}}
+
+/* =========================
+   V10 — DATE DETAILS POPUP
+   ========================= */
+
+#dateDetailsDialog{
+  width:min(560px,calc(100% - 20px));
+  max-width:560px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:var(--text);
+}
+
+#dateDetailsDialog::backdrop{
+  background:rgba(1,4,10,.82);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+
+#dateDetailsDialog .dialog-card,
+#dateDetailsDialog{
+  color:var(--text);
+}
+
+#dateDetailsDialog .dialog-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:18px;
+}
+
+#dateDetailsDialog .eyebrow{
+  color:#9fb2d2;
+  font-weight:850;
+}
+
+#dateDetailsDialog h2{
+  color:#f5f8ff;
+  font-size:22px;
+  line-height:1.2;
+  margin:5px 0 0;
+}
+
+#dateDetailsDialog .details-body{
+  display:grid;
+  gap:12px;
+}
+
+#dateDetailsDialog .detail-status{
+  display:inline-flex;
+  width:max-content;
+  max-width:100%;
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(99,211,145,.13);
+  border:1px solid rgba(99,211,145,.22);
+  color:#8ce5ae;
+  font-size:12px;
+  font-weight:850;
+}
+
+#dateDetailsDialog .detail-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+}
+
+#dateDetailsDialog .detail-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:12px 13px;
+  border-radius:13px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.075);
+}
+
+#dateDetailsDialog .detail-row span{
+  color:#9aa8bd;
+  font-size:11px;
+}
+
+#dateDetailsDialog .detail-row b{
+  color:#f1f5fd;
+  font-size:12px;
+  text-align:right;
+}
+
+#dateDetailsDialog .detail-section{
+  padding:14px;
+  border-radius:14px;
+  background:rgba(124,156,255,.055);
+  border:1px solid rgba(124,156,255,.12);
+}
+
+#dateDetailsDialog .detail-section > span{
+  display:block;
+  color:#aebeff;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+  margin-bottom:7px;
+}
+
+#dateDetailsDialog .detail-section p{
+  color:#e8edf7;
+  font-size:12px;
+  line-height:1.55;
+  margin:0;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+
+#dateDetailsDialog .dialog-actions{
+  display:flex;
+  gap:10px;
+  margin-top:18px;
+}
+
+#dateDetailsDialog .dialog-actions button{
+  flex:1;
+}
+
+#dateDetailsDialog .ghost{
+  color:#e8eef9;
+}
+
+@media(max-width:640px){
+  #dateDetailsDialog{
+    width:calc(100% - 18px);
+  }
+
+  #dateDetailsDialog .dialog-card{
+    padding:18px;
+    border-radius:21px;
+  }
+
+  #dateDetailsDialog h2{
+    font-size:19px;
+  }
+
+  #dateDetailsDialog .detail-grid{
+    grid-template-columns:1fr;
+  }
+
+  #dateDetailsDialog .detail-row{
+    padding:11px 12px;
+  }
+
+  #dateDetailsDialog .detail-row span{
+    font-size:10px;
+  }
+
+  #dateDetailsDialog .detail-row b{
+    font-size:11px;
+  }
+
+  #dateDetailsDialog .detail-section p{
+    font-size:11px;
+  }
+
+  #dateDetailsDialog .dialog-actions{
+    flex-direction:column;
+  }
+
+  #dateDetailsDialog .dialog-actions button{
+    width:100%;
+  }
+}
+
