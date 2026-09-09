@@ -117,6 +117,164 @@ $('profileForm').onsubmit=async e=>{
 };
 
 
+/* =========================
+   V10 UI + ATTENDANCE TYPES
+   ========================= */
+
+const V10_STATUS_OPTIONS=[
+  ['present','Present'],
+  ['absent','Absent'],
+  ['sick_leave','Sick Leave'],
+  ['annual_leave','Annual Leave'],
+  ['comp_off','Comp-Off'],
+  ['off','Day Off'],
+  ['holiday','Public Holiday']
+];
+
+function ensureV10UI(){
+
+  // Add the new status options without requiring an HTML rewrite.
+  let status=$('status');
+
+  if(status){
+    status.innerHTML='';
+    V10_STATUS_OPTIONS.forEach(([value,label])=>{
+      let option=document.createElement('option');
+      option.value=value;
+      option.textContent=label;
+      status.appendChild(option);
+    });
+  }
+
+  // Add OT reason field beside the existing attendance fields.
+  if(status && !$('otReason')){
+    let wrap=document.createElement('div');
+    wrap.className='field';
+    wrap.innerHTML=`
+      <label for="otReason">Overtime reason</label>
+      <input id="otReason" type="text" maxlength="500"
+        placeholder="Why was overtime required?">
+      <small class="field-help">Required when overtime is recorded.</small>
+    `;
+    status.parentElement?.parentElement?.insertAdjacentElement('afterend',wrap);
+  }
+
+  // Create a date-details popup dynamically.
+  if(!$('dateDetailsDialog')){
+    let dialog=document.createElement('dialog');
+    dialog.id='dateDetailsDialog';
+    dialog.className='glass-dialog';
+    dialog.innerHTML=`
+      <div class="dialog-head">
+        <div>
+          <div class="eyebrow">DATE DETAILS</div>
+          <h2 id="dateDetailsTitle">Attendance details</h2>
+        </div>
+        <button id="closeDateDetails" class="ghost" type="button">Close</button>
+      </div>
+
+      <div id="dateDetailsBody" class="details-body"></div>
+
+      <div class="dialog-actions">
+        <button id="editDateDetails" class="primary" type="button">Edit attendance</button>
+        <button id="closeDateDetailsBottom" class="ghost" type="button">Close</button>
+      </div>
+    `;
+    document.body.appendChild(dialog);
+
+    $('closeDateDetails').onclick=()=>dialog.close();
+    $('closeDateDetailsBottom').onclick=()=>dialog.close();
+    dialog.addEventListener('click',e=>{
+      if(e.target===dialog)dialog.close();
+    });
+  }
+}
+
+function statusLabel(status){
+  return ({
+    present:'Present',
+    absent:'Absent',
+    sick_leave:'Sick Leave',
+    annual_leave:'Annual Leave',
+    leave:'Annual Leave',
+    comp_off:'Comp-Off',
+    off:'Day Off',
+    holiday:'Public Holiday'
+  })[status]||status||'Unknown';
+}
+
+function esc(value){
+  return String(value??'')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
+}
+
+function openDateDetails(r,date){
+
+  if(!r){
+    openDialog(null,date);
+    return;
+  }
+
+  let h=
+    r.status==='present'?
+    hours(r.check_in,r.check_out):
+    0;
+
+  let ot=
+    r.status==='present'?
+    Math.max(0,h-duty):
+    0;
+
+  let holiday=
+    publicHolidayName(r.work_date);
+
+  $('dateDetailsTitle').textContent=
+    new Date(`${r.work_date}T00:00:00`).toLocaleDateString(
+      'en',
+      {day:'numeric',month:'long',year:'numeric'}
+    );
+
+  $('dateDetailsBody').innerHTML=`
+    <div class="detail-status">${esc(statusLabel(r.status))}</div>
+
+    ${holiday?`<div class="detail-row"><span>Public holiday</span><b>${esc(holiday)}</b></div>`:''}
+
+    <div class="detail-grid">
+      <div class="detail-row"><span>Check-in</span><b>${esc(r.check_in||'-')}</b></div>
+      <div class="detail-row"><span>Check-out</span><b>${esc(r.check_out||'-')}</b></div>
+      <div class="detail-row"><span>Worked</span><b>${fmt(h)}</b></div>
+      <div class="detail-row"><span>Regular</span><b>${fmt(Math.max(0,h-ot))}</b></div>
+      <div class="detail-row"><span>Overtime</span><b>${fmt(ot)}</b></div>
+    </div>
+
+    ${ot>0?`
+      <div class="detail-section">
+        <span>Overtime reason</span>
+        <p>${esc(r.ot_reason||'No overtime reason added.')}</p>
+      </div>
+    `:''}
+
+    <div class="detail-section">
+      <span>Notes</span>
+      <p>${esc(r.notes||'No notes added.')}</p>
+    </div>
+  `;
+
+  $('editDateDetails').onclick=()=>{
+    $('dateDetailsDialog').close();
+    openDialog(r);
+  };
+
+  $('dateDetailsDialog').showModal();
+}
+
+ensureV10UI();
+
+
 async function load(){
   if(!user)return;
   let p=await sb.from('profiles').select('duty_hours').eq('id',user.id).single();
@@ -133,10 +291,44 @@ function render(){
   let worked=present.reduce((sum,x)=>sum+hours(x.check_in,x.check_out),0);
   let ot=present.reduce((sum,x)=>sum+Math.max(0,hours(x.check_in,x.check_out)-duty),0);
   let dayOffCount=records.filter(x=>x.status==='off').length;
-  let leaveCount=records.filter(x=>x.status==='leave').length;
+  let leaveCount=records.filter(x=>['leave','annual_leave','sick_leave'].includes(x.status)).length;
   let holidayWorkedCount=records.filter(x=>x.status==='present'&&publicHolidayName(x.work_date)).length;
-  let scheduledDays=present.length+leaveCount;
-  let attendanceRate=scheduledDays?Math.round((present.length/scheduledDays)*100):0;
+  // V10: monthly attendance is based on elapsed calendar days.
+  // Off, leave, comp-off and non-worked public holidays are excluded.
+  // Future days are never counted.
+  let now=new Date();
+  let isCurrentMonth=
+    now.getFullYear()===month.getFullYear() &&
+    now.getMonth()===month.getMonth();
+
+  let elapsedDays=isCurrentMonth
+    ? now.getDate()
+    : new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
+
+  let eligibleDays=0;
+
+  for(let day=1;day<=elapsedDays;day++){
+    let date=`${month.getFullYear()}-${String(month.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    let record=records.find(x=>x.work_date===date);
+    let holiday=publicHolidayName(date);
+
+    if(
+      record?.status==='off' ||
+      record?.status==='sick_leave' ||
+      record?.status==='annual_leave' ||
+      record?.status==='comp_off' ||
+      record?.status==='leave' ||
+      (!record && holiday)
+    ){
+      continue;
+    }
+
+    eligibleDays++;
+  }
+
+  let attendanceRate=eligibleDays
+    ? Math.round((present.filter(x=>Number(x.work_date.slice(8,10))<=elapsedDays).length/eligibleDays)*100)
+    : 0;
   let avg=present.length?worked/present.length:0;
   $('workingDays').textContent=present.length;
   $('dayOffCount').textContent=dayOffCount;
@@ -179,20 +371,85 @@ function renderCalendar(){
   let c=$('calendar');c.innerHTML='';['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(x=>{let d=document.createElement('div');d.className='cal-head';d.textContent=x;c.appendChild(d)});
   let first=new Date(month.getFullYear(),month.getMonth(),1),days=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
   for(let i=0;i<first.getDay();i++){let d=document.createElement('div');d.className='day mutedday';c.appendChild(d)}
-  for(let n=1;n<=days;n++){let date=`${monthKey()}-${String(n).padStart(2,'0')}`,r=records.find(x=>x.work_date===date),holiday=publicHolidayName(date),d=document.createElement('div');d.className='day'+(date===todayKey()?' today':'')+(holiday?' public-holiday':'');d.innerHTML=`<div class="daynum">${n}</div>`;if(r){let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty);d.innerHTML+=`<span class="pill ${ot?'ot':r.status==='present'?(holiday?'holidayworked':'normal'):'leave'}">${r.status==='present'?(ot?`+${fmt(ot)} OT`:fmt(h)):r.status}</span>`;if(holiday)d.title=`${holiday}${r.status==='present'?' • Worked':''}`}else if(holiday){d.innerHTML+=`<span class="pill holiday">Holiday</span>`;d.title=holiday}d.onclick=()=>openDialog(r,date);c.appendChild(d)}
+  for(let n=1;n<=days;n++){let date=`${monthKey()}-${String(n).padStart(2,'0')}`,r=records.find(x=>x.work_date===date),holiday=publicHolidayName(date),d=document.createElement('div');d.className='day'+(date===todayKey()?' today':'')+(holiday?' public-holiday':'');d.innerHTML=`<div class="daynum">${n}</div>`;if(r){let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty);d.innerHTML+=`<span class="pill ${ot?'ot':r.status==='present'?(holiday?'holidayworked':'normal'):'leave'}">${r.status==='present'?(ot?`+${fmt(ot)} OT`:fmt(h)):statusLabel(r.status)}</span>`;if(holiday)d.title=`${holiday}${r.status==='present'?' • Worked':''}`}else if(holiday){d.innerHTML+=`<span class="pill holiday">Holiday</span>`;d.title=holiday}d.onclick=()=>openDateDetails(r,date);c.appendChild(d)}
 }
 function renderTable(){
   let t=$('records');t.innerHTML='';$('emptyRecords').classList.toggle('hidden',records.length>0);
-  records.forEach(r=>{let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty),tr=document.createElement('tr');tr.innerHTML=`<td>${r.work_date}</td><td>${r.check_in||'-'}</td><td>${r.check_out||'-'}</td><td>${fmt(h)}</td><td><b>${fmt(ot)}</b></td><td class="status ${ot?'ot':r.status==='present'?'normal':'leave'}">${r.status}</td><td><button class="ghost edit" type="button">Edit</button></td>`;tr.querySelector('.edit').onclick=()=>openDialog(r);t.appendChild(tr)})
+  records.forEach(r=>{let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty),tr=document.createElement('tr');tr.innerHTML=`<td>${r.work_date}</td><td>${r.check_in||'-'}</td><td>${r.check_out||'-'}</td><td>${fmt(h)}</td><td><b>${fmt(ot)}</b></td><td class="status ${ot?'ot':r.status==='present'?'normal':'leave'}">${statusLabel(r.status)}</td><td><button class="ghost edit" type="button">Edit</button></td>`;tr.querySelector('.edit').onclick=()=>openDialog(r);t.appendChild(tr)})
 }
 function openDialog(r,date){
-  $('attendanceDialog').showModal();$('recordId').value=r?.id||'';$('date').value=r?.work_date||date||todayKey();$('checkIn').value=r?.check_in||'';$('checkOut').value=r?.check_out||'';$('status').value=r?.status||'present';$('notes').value=r?.notes||'';$('deleteRecord').classList.toggle('hidden',!r);$('dialogTitle').textContent=r?'Edit attendance':'Add attendance';updateTimeRequirement();
+  $('attendanceDialog').showModal();
+  $('recordId').value=r?.id||'';
+  $('date').value=r?.work_date||date||todayKey();
+  $('checkIn').value=r?.check_in||'';
+  $('checkOut').value=r?.check_out||'';
+  $('status').value=r?.status==='leave'?'annual_leave':(r?.status||'present');
+  $('notes').value=r?.notes||'';
+  if($('otReason'))$('otReason').value=r?.ot_reason||'';
+  $('deleteRecord').classList.toggle('hidden',!r);
+  $('dialogTitle').textContent=r?'Edit attendance':'Add attendance';
+  updateTimeRequirement();
 }
-function updateTimeRequirement(){let present=$('status').value==='present';$('checkIn').required=present;$('checkOut').required=present;$('timeHint').textContent=present?'For Present, both check-in and check-out are required.':'For Leave, Off day or Holiday, check-in and check-out can be left blank.'}
+function updateTimeRequirement(){
+  let present=$('status').value==='present';
+  $('checkIn').required=present;
+  $('checkOut').required=present;
+  if($('otReason'))$('otReason').required=false;
+  $('timeHint').textContent=present
+    ?'For Present, both check-in and check-out are required. Add an overtime reason when OT is generated.'
+    :'For leave, off, comp-off, absent or public holiday, check-in and check-out can be left blank.';
+}
 $('status').onchange=updateTimeRequirement;
 $('closeDialog').onclick=()=>{$('attendanceDialog').close()};
 $('attendanceDialog').addEventListener('click',e=>{if(e.target===$('attendanceDialog'))$('attendanceDialog').close()});
-$('attendanceForm').onsubmit=async e=>{e.preventDefault();let id=$('recordId').value,status=$('status').value;if(!$('date').value)return alert('Please select a date.');if(status==='present'&&(!$('checkIn').value||!$('checkOut').value))return alert('Please enter both check-in and check-out times.');let obj={user_id:user.id,work_date:$('date').value,check_in:status==='present'?$('checkIn').value:null,check_out:status==='present'?$('checkOut').value:null,break_minutes:0,status,notes:$('notes').value.trim()||null};let r=id?await sb.from('attendance').update(obj).eq('id',id).eq('user_id',user.id):await sb.from('attendance').insert(obj);if(r.error)alert(r.error.message);else{$('attendanceDialog').close();await load()}};
+$('attendanceForm').onsubmit=async e=>{
+  e.preventDefault();
+
+  let id=$('recordId').value;
+  let status=$('status').value;
+
+  if(!$('date').value)
+    return alert('Please select a date.');
+
+  if(
+    status==='present' &&
+    (!$('checkIn').value||!$('checkOut').value)
+  )
+    return alert('Please enter both check-in and check-out times.');
+
+  let ot=
+    status==='present'
+      ?Math.max(0,hours($('checkIn').value,$('checkOut').value)-duty)
+      :0;
+
+  let otReason=
+    $('otReason')?.value.trim()||null;
+
+  if(ot>0&&!otReason)
+    return alert('Please enter the reason for the overtime.');
+
+  let obj={
+    user_id:user.id,
+    work_date:$('date').value,
+    check_in:status==='present' ? $('checkIn').value : null,
+    check_out:status==='present' ? $('checkOut').value : null,
+    break_minutes:0,
+    status,
+    ot_reason:otReason,
+    notes:$('notes').value.trim()||null
+  };
+
+  let r=id
+    ?await sb.from('attendance').update(obj).eq('id',id).eq('user_id',user.id)
+    :await sb.from('attendance').insert(obj);
+
+  if(r.error)
+    alert(r.error.message);
+  else{
+    $('attendanceDialog').close();
+    await load();
+  }
+};
 $('deleteRecord').onclick=async()=>{let id=$('recordId').value;if(id&&confirm('Delete this attendance record?')){let r=await sb.from('attendance').delete().eq('id',id).eq('user_id',user.id);if(r.error)alert(r.error.message);else{$('attendanceDialog').close();await load()}}};
 $('addToday').onclick=()=>openDialog(null,todayKey());$('prevMonth').onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()-1,1);load()};$('nextMonth').onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()+1,1);load()};$('todayMonth').onclick=()=>{let t=new Date();month=new Date(t.getFullYear(),t.getMonth(),1);load()};
 $('saveSettings').onclick=async()=>{let v=Number($('dutyHours').value);if(v<=0||v>24)return alert('Enter duty hours between 0.25 and 24.');let r=await sb.from('profiles').upsert({id:user.id,duty_hours:v});if(r.error)alert(r.error.message);else{duty=v;render();alert('Settings saved.')}};
@@ -215,7 +472,7 @@ function exportPdf(){
   let y=242;doc.setFontSize(10);summary.forEach(([k,v],i)=>{let x=i%2?310:40;if(i%2===0&&i>0)y+=25;doc.setFont('helvetica','normal');doc.setTextColor(145,160,185);doc.text(k,x,y);doc.setFont('helvetica','bold');doc.setTextColor(235,241,250);doc.text(String(v),x+105,y)});
   y+=40;doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text('Attendance records',40,y);y+=22;
   let headers=['Date','In','Out','Worked','OT','Status'];let xs=[40,105,170,245,315,380];doc.setFontSize(8);doc.setTextColor(120,137,160);headers.forEach((h,i)=>doc.text(h,xs[i],y));y+=14;
-  records.slice().sort((a,b)=>a.work_date.localeCompare(b.work_date)).forEach(r=>{if(y>790){doc.addPage();doc.setFillColor(11,18,32);doc.rect(0,0,595,842,'F');y=45;headers.forEach((h,i)=>doc.text(h,xs[i],y));y+=14}let h=hours(r.check_in,r.check_out),o=Math.max(0,h-duty);doc.setTextColor(205,214,230);doc.setFont('helvetica','normal');[r.work_date,r.check_in||'-',r.check_out||'-',fmt(h),fmt(o),r.status].forEach((v,i)=>doc.text(String(v),xs[i],y));y+=18});
+  records.slice().sort((a,b)=>a.work_date.localeCompare(b.work_date)).forEach(r=>{if(y>790){doc.addPage();doc.setFillColor(11,18,32);doc.rect(0,0,595,842,'F');y=45;headers.forEach((h,i)=>doc.text(h,xs[i],y));y+=14}let h=hours(r.check_in,r.check_out),o=Math.max(0,h-duty);doc.setTextColor(205,214,230);doc.setFont('helvetica','normal');[r.work_date,r.check_in||'-',r.check_out||'-',fmt(h),fmt(o),statusLabel(r.status)].forEach((v,i)=>doc.text(String(v),xs[i],y));y+=18});
   doc.setFontSize(8);doc.setTextColor(100,116,140);doc.text('Generated by WorkTrack',40,820);doc.save(`worktrack-${monthKey()}.pdf`);
 }
 $('exportPdf').onclick=exportPdf;
@@ -250,5 +507,5 @@ function checkReminder(){
 $('reminderEnabled').onchange=saveReminderSettings;$('reminderTime').onchange=saveReminderSettings;$('enableNotifications').onclick=requestNotifications;$('testNotification').onclick=()=>{if('Notification' in window&&Notification.permission==='granted')new Notification('WorkTrack test',{body:'Your attendance reminders are working.'});else showReminderBanner('Your reminder preview is working.');};
 loadReminderSettings();setInterval(checkReminder,30000);
 
-$('exportCsv').onclick=()=>{let rows=[['Date','Check In','Check Out','Worked Hours','Overtime Hours','Status','Notes'],...records.map(r=>{let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty);return[r.work_date,r.check_in||'',r.check_out||'',h.toFixed(2),ot.toFixed(2),r.status,r.notes||'']})];let csv=rows.map(row=>row.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`worktrack-${monthKey()}.csv`;a.click();URL.revokeObjectURL(a.href)};
+$('exportCsv').onclick=()=>{let rows=[['Date','Check In','Check Out','Worked Hours','Overtime Hours','Status','OT Reason','Notes'],...records.map(r=>{let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty);return[r.work_date,r.check_in||'',r.check_out||'',h.toFixed(2),ot.toFixed(2),statusLabel(r.status),r.ot_reason||'',r.notes||'']})];let csv=rows.map(row=>row.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`worktrack-${monthKey()}.csv`;a.click();URL.revokeObjectURL(a.href)};
 setAuthMode();init();

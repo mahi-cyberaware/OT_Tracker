@@ -1,29 +1,20 @@
-WorkTrack V7
+# WorkTrack V10
 
-# WorkTrack — Attendance & Overtime
+WorkTrack V10 is based on the stable V9 project.
 
-A simple multi-user attendance tracker built with HTML, CSS, JavaScript, Supabase and Vercel.
+## V10 additions
+- Present, Absent, Sick Leave, Annual Leave, Comp-Off, Day Off, Public Holiday statuses
+- Overtime reason field
+- Date details popup when clicking a calendar date
+- Notes and OT reason displayed in the date details popup
+- Monthly attendance calculation excludes Off/leave/comp-off and does not count future dates
+- Existing V9 authentication/session approach retained
 
-## Current calculation
-- Worked hours = Check-out minus Check-in.
-- Overnight shifts are supported (for example 18:00 → 04:00 = 10 hours).
-- Overtime = Worked hours minus daily duty hours, never below zero.
-- Break minutes are not used by the current app.
-- Existing `break_minutes` database column is retained for compatibility and is always saved as 0 by the current UI.
+## Supabase migration
+Before deploying V10, run `supabase/v10_migration.sql` once in Supabase SQL Editor.
 
-## Features
-- Email sign up / login with Supabase Auth.
-- Production redirect to the Vercel site after email confirmation.
-- Private records using Supabase Row Level Security.
-- Monthly dashboard and calendar.
-- Present, Leave, Off day and Holiday statuses.
-- Edit and delete attendance.
-- Monthly CSV export.
-- Configurable daily duty hours (default 9).
-- Mobile-friendly responsive layout.
+This migration adds `ot_reason`, converts the old `leave` status to `annual_leave`, and updates the status constraint. Existing attendance records are preserved.
 
-## Deployment
-Static files can be deployed directly to Vercel. Update `app.js` only if the Supabase project credentials or production URL change.
-
-## Security
-Use the Supabase Publishable key in the browser. Never put a Supabase Secret/service-role key in frontend code.
+## Deploy
+Replace the previous V9 project files with the files in this folder and deploy to the existing Vercel project.
+Do not change the Supabase URL/key or authentication storage settings from the working V9 setup.
