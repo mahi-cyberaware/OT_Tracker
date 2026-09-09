@@ -136,11 +136,11 @@
         <label>Date<input id="date" type="date" required></label>
         <div class="two"><label>Check in<input id="checkIn" type="time"></label><label>Check out<input id="checkOut" type="time"></label></div>
       </div>
-      <div class="status-picker"><label>Status<select id="status"><option value="present">Present</option><option value="leave">Leave</option><option value="off">Off day</option><option value="holiday">Holiday</option></select></label><div class="status-note"><span class="status-dot"></span><span id="timeHint">For Present, both check-in and check-out are required.</span></div></div>
-      <label>Notes<textarea id="notes" rows="3" placeholder="Optional note"></textarea></label>
+      <div class="status-picker"><label>Status<select id="status"><option value="present">Present</option><option value="absent">Absent</option><option value="sick_leave">Sick Leave</option><option value="annual_leave">Annual Leave</option><option value="comp_off">Comp-Off</option><option value="off">Day Off</option><option value="holiday">Public Holiday</option></select></label><div class="status-note"><span class="status-dot"></span><span id="timeHint">For Present, both check-in and check-out are required.</span></div></div>
+      <label>Overtime reason<input id="otReason" type="text" maxlength="500" placeholder="Why was overtime required?"></label><label>Notes<textarea id="notes" rows="3" placeholder="Optional note"></textarea></label>
       <div class="dialog-actions"><button class="primary" type="submit">Save attendance</button><button type="button" id="deleteRecord" class="danger hidden">Delete record</button></div>
     </form>
   </dialog>
-  <script src="app.js"></script>
+  <script src="app.js?v=10.1"></script>
 </body>
 </html>

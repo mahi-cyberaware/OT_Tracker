@@ -236,3 +236,13 @@
   }
 }
 
+
+/* V10.1 — robust date-details dialog container */
+#dateDetailsDialog{width:min(560px,calc(100% - 18px));max-width:560px;padding:0;background:transparent;border:0;color:var(--text)}
+#dateDetailsDialog .dialog-card{color:var(--text);background:linear-gradient(145deg,rgba(23,32,51,.96),rgba(10,15,27,.96));border:1px solid rgba(255,255,255,.12);box-shadow:0 28px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.05);}
+#dateDetailsDialog .dialog-head h2,#dateDetailsDialog h2{color:#f5f8ff!important}
+#dateDetailsDialog .detail-row span{color:#aeb9cc!important}
+#dateDetailsDialog .detail-row b{color:#f1f5fd!important}
+#dateDetailsDialog .detail-section p{color:#e8edf7!important}
+#dateDetailsDialog .dialog-actions .ghost{color:#eef3fb!important}
+@media(max-width:640px){#dateDetailsDialog{width:calc(100% - 16px)}#dateDetailsDialog .dialog-card{padding:18px}}

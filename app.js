@@ -165,6 +165,7 @@ function ensureV10UI(){
     dialog.id='dateDetailsDialog';
     dialog.className='glass-dialog';
     dialog.innerHTML=`
+      <div class="dialog-card glass-card">
       <div class="dialog-head">
         <div>
           <div class="eyebrow">DATE DETAILS</div>
@@ -178,6 +179,7 @@ function ensureV10UI(){
       <div class="dialog-actions">
         <button id="editDateDetails" class="primary" type="button">Edit attendance</button>
         <button id="closeDateDetailsBottom" class="ghost" type="button">Close</button>
+      </div>
       </div>
     `;
     document.body.appendChild(dialog);
