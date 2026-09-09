@@ -895,9 +895,10 @@ $('passwordDialog')?.addEventListener('click',e=>{
 setupPasswordToggle('toggleNewPassword','newPassword');
 setupPasswordToggle('toggleConfirmPassword','confirmPassword');
 
-document.querySelectorAll('[data-nav="password"]').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    closeAppMenu();
-    openPasswordDialog();
-  });
-});
+
+
+/* =========================
+   V14 — PASSWORD IN SETTINGS
+   ========================= */
+
+$('settingsPasswordButton')?.addEventListener('click',openPasswordDialog);

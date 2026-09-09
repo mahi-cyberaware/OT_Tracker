@@ -125,6 +125,17 @@
       </section>
 
       <section id="settingsSection" class="panel glass-card settings-panel">
+      <div class="settings-security-card glass-card">
+        <div>
+          <div class="section-kicker">ACCOUNT SECURITY</div>
+          <h3>Change password</h3>
+          <p>Update your WorkTrack account password anytime.</p>
+        </div>
+        <button id="settingsPasswordButton" type="button" class="primary settings-password-button">
+          🔑 Change password
+        </button>
+      </div>
+
         <div><div class="section-kicker">PREFERENCES</div><h2>Settings</h2><p class="muted small">Set the normal daily duty hours used to calculate overtime.</p></div>
         <div class="settings-grid"><label>Daily duty hours<input id="dutyHours" type="number" min="0.25" max="24" step=".25" inputmode="decimal"></label><button id="saveSettings" class="primary" type="button">Save settings</button></div>
       </section>
@@ -171,7 +182,6 @@
 
         <nav class="menu-nav menu-secondary">
           <button type="button" class="menu-item" data-nav="profile">◉ <span>My Profile</span></button>
-<button type="button" class="menu-item" data-nav="password">🔑 <span>Change Password</span></button>
           <button type="button" class="menu-item" data-nav="about">ⓘ <span>About Mahi</span></button>
           <button type="button" class="menu-item" data-nav="contact">✉ <span>Contact</span></button>
           <button type="button" class="menu-item" data-nav="security">✓ <span>Security & Privacy</span></button>
