@@ -29,12 +29,15 @@ Static files can be deployed directly to Vercel. Update `app.js` only if the Sup
 Use the Supabase Publishable key in the browser. Never put a Supabase Secret/service-role key in frontend code.
 
 
-V14 adds a menu-based interface, footer, About, Contact, and Security & Privacy sections.
+V15 adds a menu-based interface, footer, About, Contact, and Security & Privacy sections.
 
-V14 adds a unified clickable WorkTrack logo, centered footer, and repaired reminder controls/notification flow.
-
-
-V14 adds an authenticated Change Password option under the user menu.
+V15 adds a unified clickable WorkTrack logo, centered footer, and repaired reminder controls/notification flow.
 
 
-V14 moves Change Password from the main menu into Settings.
+V15 adds an authenticated Change Password option under the user menu.
+
+
+V15 moves Change Password from the main menu into Settings.
+
+
+V15 adds secure password change: current-password verification or email OTP recovery before setting a new password.

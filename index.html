@@ -201,33 +201,91 @@
           <button id="closePassword" type="button" class="modal-close" aria-label="Close">×</button>
         </div>
 
-        <form id="passwordForm">
-          <div class="form-grid">
+        <div id="passwordStepCurrent">
+          <p class="password-security-note">
+            For your security, enter your current password before setting a new one.
+            If you forgot it, you can verify your email with an OTP instead.
+          </p>
+
+          <form id="passwordForm">
             <label>
-              <span>New password</span>
+              <span>Current password</span>
               <div class="password-field">
-                <input id="newPassword" type="password" minlength="6" autocomplete="new-password" required placeholder="Enter new password">
-                <button id="toggleNewPassword" type="button" class="password-toggle">Show</button>
+                <input id="currentPassword" type="password" autocomplete="current-password" required placeholder="Enter current password">
+                <button id="toggleCurrentPassword" type="button" class="password-toggle">Show</button>
               </div>
             </label>
 
+            <div class="password-divider"><span>OR</span></div>
+
+            <button id="forgotPasswordButton" type="button" class="secondary-action">
+              Forgot current password? Send OTP
+            </button>
+
+            <div id="passwordCurrentMessage" class="message"></div>
+
+            <div class="dialog-actions">
+              <button id="cancelPassword" type="button" class="ghost">Cancel</button>
+              <button id="verifyCurrentPassword" type="submit" class="primary">Verify & Continue</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="passwordStepOtp" class="hidden">
+          <p class="password-security-note">
+            We sent a one-time verification code to your account email.
+            Enter the OTP to continue.
+          </p>
+
+          <form id="otpForm">
             <label>
-              <span>Confirm new password</span>
-              <div class="password-field">
-                <input id="confirmPassword" type="password" minlength="6" autocomplete="new-password" required placeholder="Re-enter new password">
-                <button id="toggleConfirmPassword" type="button" class="password-toggle">Show</button>
-              </div>
+              <span>Email OTP</span>
+              <input id="passwordOtp" type="text" inputmode="numeric" autocomplete="one-time-code"
+                maxlength="8" pattern="[0-9]{6,8}" required placeholder="Enter OTP">
             </label>
-          </div>
 
-          <p class="password-hint">Use at least 6 characters. After changing it, keep the new password private.</p>
-          <div id="passwordMessage" class="message"></div>
+            <div id="otpMessage" class="message"></div>
 
-          <div class="dialog-actions">
-            <button id="cancelPassword" type="button" class="ghost">Cancel</button>
-            <button id="savePassword" type="submit" class="primary">Update password</button>
-          </div>
-        </form>
+            <div class="dialog-actions">
+              <button id="cancelOtp" type="button" class="ghost">Cancel</button>
+              <button id="verifyOtpButton" type="submit" class="primary">Verify OTP</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="passwordStepNew" class="hidden">
+          <p class="password-security-note">
+            Verification successful. Now choose your new password.
+          </p>
+
+          <form id="newPasswordForm">
+            <div class="form-grid">
+              <label>
+                <span>New password</span>
+                <div class="password-field">
+                  <input id="newPassword" type="password" minlength="6" autocomplete="new-password" required placeholder="Enter new password">
+                  <button id="toggleNewPassword" type="button" class="password-toggle">Show</button>
+                </div>
+              </label>
+
+              <label>
+                <span>Confirm new password</span>
+                <div class="password-field">
+                  <input id="confirmPassword" type="password" minlength="6" autocomplete="new-password" required placeholder="Re-enter new password">
+                  <button id="toggleConfirmPassword" type="button" class="password-toggle">Show</button>
+                </div>
+              </label>
+            </div>
+
+            <p class="password-hint">Use at least 6 characters. Do not reuse a password you use elsewhere.</p>
+            <div id="passwordMessage" class="message"></div>
+
+            <div class="dialog-actions">
+              <button id="cancelNewPassword" type="button" class="ghost">Cancel</button>
+              <button id="savePassword" type="submit" class="primary">Update password</button>
+            </div>
+          </form>
+        </div>
       </div>
     </dialog>
 

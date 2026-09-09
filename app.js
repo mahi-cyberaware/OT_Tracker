@@ -812,15 +812,37 @@ showAppSection('home');
 
 
 /* =========================
-   V13 — CHANGE PASSWORD
+   V15 — SECURE CHANGE PASSWORD
    ========================= */
+
+let passwordVerificationMode='current';
+let passwordVerificationEmail='';
+
+function resetPasswordDialog(){
+  passwordVerificationMode='current';
+  passwordVerificationEmail=user?.email||'';
+
+  ['passwordStepCurrent','passwordStepOtp','passwordStepNew'].forEach(id=>{
+    $(id)?.classList.add('hidden');
+  });
+
+  $('passwordStepCurrent')?.classList.remove('hidden');
+
+  ['currentPassword','passwordOtp','newPassword','confirmPassword'].forEach(id=>{
+    if($(id))$(id).value='';
+  });
+
+  ['passwordCurrentMessage','otpMessage','passwordMessage'].forEach(id=>{
+    if($(id)){
+      $(id).textContent='';
+      $(id).className='message';
+    }
+  });
+}
 
 function openPasswordDialog(){
   if(!$('passwordDialog'))return;
-  $('newPassword').value='';
-  $('confirmPassword').value='';
-  $('passwordMessage').textContent='';
-  $('passwordMessage').className='message';
+  resetPasswordDialog();
   $('passwordDialog').showModal();
 }
 
@@ -828,10 +850,16 @@ function closePasswordDialog(){
   if($('passwordDialog')?.open)$('passwordDialog').close();
 }
 
-function passwordMessage(text,isError=false){
-  if(!$('passwordMessage'))return;
-  $('passwordMessage').textContent=text||'';
-  $('passwordMessage').className=`message ${text?(isError?'error':'success'):''}`;
+function showPasswordStep(step){
+  ['passwordStepCurrent','passwordStepOtp','passwordStepNew'].forEach(id=>{
+    $(id)?.classList.toggle('hidden',id!==step);
+  });
+}
+
+function setPasswordMessage(id,text,isError=false){
+  if(!$(id))return;
+  $(id).textContent=text||'';
+  $(id).className=`message ${text?(isError?'error':'success'):''}`;
 }
 
 function setupPasswordToggle(buttonId,inputId){
@@ -843,41 +871,167 @@ function setupPasswordToggle(buttonId,inputId){
   });
 }
 
+// Logged-in user: verify the old password first.
 $('passwordForm')?.addEventListener('submit',async e=>{
+  e.preventDefault();
+
+  let currentPassword=$('currentPassword').value;
+
+  if(!currentPassword){
+    setPasswordMessage('passwordCurrentMessage','Enter your current password.',true);
+    return;
+  }
+
+  $('verifyCurrentPassword').disabled=true;
+  setPasswordMessage('passwordCurrentMessage','Verifying current password…');
+
+  try{
+    let email=user?.email;
+
+    if(!email){
+      setPasswordMessage('passwordCurrentMessage','Your account email could not be found. Please sign in again.',true);
+      return;
+    }
+
+    // Re-authenticate the account using the current password.
+    let result=await sb.auth.signInWithPassword({
+      email,
+      password:currentPassword
+    });
+
+    if(result.error){
+      setPasswordMessage('passwordCurrentMessage','Current password is incorrect.',true);
+      return;
+    }
+
+    passwordVerificationMode='current';
+    showPasswordStep('passwordStepNew');
+  }catch(err){
+    setPasswordMessage(
+      'passwordCurrentMessage',
+      err?.message||'Could not verify your current password.',
+      true
+    );
+  }finally{
+    $('verifyCurrentPassword').disabled=false;
+  }
+});
+
+// Forgot current password: send an email OTP.
+$('forgotPasswordButton')?.addEventListener('click',async()=>{
+  let email=user?.email;
+
+  if(!email){
+    setPasswordMessage('passwordCurrentMessage','Your account email could not be found.',true);
+    return;
+  }
+
+  $('forgotPasswordButton').disabled=true;
+  setPasswordMessage('passwordCurrentMessage','Sending verification OTP…');
+
+  try{
+    let result=await sb.auth.signInWithOtp({
+      email,
+      options:{
+        shouldCreateUser:false
+      }
+    });
+
+    if(result.error){
+      setPasswordMessage('passwordCurrentMessage',result.error.message,true);
+      return;
+    }
+
+    passwordVerificationMode='otp';
+    passwordVerificationEmail=email;
+    showPasswordStep('passwordStepOtp');
+    setPasswordMessage('otpMessage',`OTP sent to ${email}.`);
+  }catch(err){
+    setPasswordMessage(
+      'passwordCurrentMessage',
+      err?.message||'Could not send the OTP.',
+      true
+    );
+  }finally{
+    $('forgotPasswordButton').disabled=false;
+  }
+});
+
+// Verify email OTP.
+$('otpForm')?.addEventListener('submit',async e=>{
+  e.preventDefault();
+
+  let token=$('passwordOtp').value.trim();
+
+  if(!/^\d{6,8}$/.test(token)){
+    setPasswordMessage('otpMessage','Enter the OTP from your email.',true);
+    return;
+  }
+
+  $('verifyOtpButton').disabled=true;
+  setPasswordMessage('otpMessage','Verifying OTP…');
+
+  try{
+    let result=await sb.auth.verifyOtp({
+      email:passwordVerificationEmail,
+      token,
+      type:'email'
+    });
+
+    if(result.error){
+      setPasswordMessage('otpMessage',result.error.message,true);
+      return;
+    }
+
+    passwordVerificationMode='otp';
+    showPasswordStep('passwordStepNew');
+  }catch(err){
+    setPasswordMessage(
+      'otpMessage',
+      err?.message||'Invalid or expired OTP.',
+      true
+    );
+  }finally{
+    $('verifyOtpButton').disabled=false;
+  }
+});
+
+// Set the new password after either current-password or OTP verification.
+$('newPasswordForm')?.addEventListener('submit',async e=>{
   e.preventDefault();
 
   let password=$('newPassword').value;
   let confirm=$('confirmPassword').value;
 
   if(password.length<6){
-    passwordMessage('Password must be at least 6 characters.',true);
+    setPasswordMessage('passwordMessage','Password must be at least 6 characters.',true);
     return;
   }
 
   if(password!==confirm){
-    passwordMessage('Passwords do not match.',true);
+    setPasswordMessage('passwordMessage','Passwords do not match.',true);
     return;
   }
 
   $('savePassword').disabled=true;
-  passwordMessage('Updating password…');
+  setPasswordMessage('passwordMessage','Updating password…');
 
   try{
-    let r=await sb.auth.updateUser({password});
+    let result=await sb.auth.updateUser({password});
 
-    if(r.error){
-      passwordMessage(r.error.message,true);
-    }else{
-      passwordMessage('Password changed successfully.');
-      $('newPassword').value='';
-      $('confirmPassword').value='';
-
-      setTimeout(()=>{
-        closePasswordDialog();
-      },900);
+    if(result.error){
+      setPasswordMessage('passwordMessage',result.error.message,true);
+      return;
     }
+
+    setPasswordMessage('passwordMessage','Password changed successfully.');
+
+    setTimeout(()=>{
+      closePasswordDialog();
+    },1000);
   }catch(err){
-    passwordMessage(
+    setPasswordMessage(
+      'passwordMessage',
       err?.message||'Could not change your password.',
       true
     );
@@ -888,17 +1042,16 @@ $('passwordForm')?.addEventListener('submit',async e=>{
 
 $('closePassword')?.addEventListener('click',closePasswordDialog);
 $('cancelPassword')?.addEventListener('click',closePasswordDialog);
+$('cancelOtp')?.addEventListener('click',closePasswordDialog);
+$('cancelNewPassword')?.addEventListener('click',closePasswordDialog);
+
 $('passwordDialog')?.addEventListener('click',e=>{
   if(e.target===$('passwordDialog'))closePasswordDialog();
 });
 
+setupPasswordToggle('toggleCurrentPassword','currentPassword');
 setupPasswordToggle('toggleNewPassword','newPassword');
 setupPasswordToggle('toggleConfirmPassword','confirmPassword');
 
-
-
-/* =========================
-   V14 — PASSWORD IN SETTINGS
-   ========================= */
-
 $('settingsPasswordButton')?.addEventListener('click',openPasswordDialog);
+
