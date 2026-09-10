@@ -108,6 +108,14 @@
         </div>
         <div class="roster-privacy"><span>👑</span><span>Administrator only. Employee IDs are matched to WorkTrack accounts. Uploading a revised roster replaces the represented employees’ entries only within the uploaded date range.</span></div>
         <div id="adminRosterMessage" class="message"></div>
+        <div class="admin-roster-filters glass-card">
+          <div class="filter-title">🔎 Find roster entries</div>
+          <label>Search by ID or name<input id="adminRosterSearch" type="search" placeholder="e.g. 200396 or Mahesh"></label>
+          <label>Month<select id="adminRosterMonth"><option value="">All months</option></select></label>
+          <label>Status<select id="adminRosterStatus"><option value="">All statuses</option><option value="present">Duty</option><option value="off">Day Off</option><option value="annual_leave">Annual Leave</option><option value="sick_leave">Sick Leave</option><option value="comp_off">Comp-Off</option><option value="holiday">Public Holiday</option></select></label>
+          <button id="clearAdminRosterFilters" class="ghost" type="button">Clear filters</button>
+        </div>
+        <div id="adminRosterFilterSummary" class="muted small"></div>
         <div class="admin-roster-tools">
           <label>Employee ID<input id="adminEditEmployeeId" type="text" inputmode="numeric" placeholder="e.g. 200396"></label>
           <label>Date<input id="adminEditDate" type="date"></label>

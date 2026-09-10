@@ -1394,3 +1394,11 @@
 
 .roster-export-actions{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 10px}
 @media(max-width:640px){.roster-export-actions{display:grid;grid-template-columns:1fr}.roster-export-actions button{width:100%}}
+
+.admin-roster-filters{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:end;margin:14px 0 10px;padding:14px;border:1px solid var(--line,rgba(255,255,255,.08));}
+.admin-roster-filters .filter-title{grid-column:1/-1;font-weight:700;font-size:.82rem;letter-spacing:.04em;text-transform:uppercase;opacity:.78;}
+.admin-roster-filters label{display:flex;flex-direction:column;gap:6px;font-size:.78rem;}
+.admin-roster-filters input,.admin-roster-filters select{width:100%;}
+#adminRosterFilterSummary{margin:0 0 10px 2px;}
+@media(max-width:800px){.admin-roster-filters{grid-template-columns:1fr 1fr;}.admin-roster-filters .filter-title{grid-column:1/-1}.admin-roster-filters label:first-of-type{grid-column:1/-1}.admin-roster-filters button{width:100%;}}
+@media(max-width:520px){.admin-roster-filters{grid-template-columns:1fr;}.admin-roster-filters label:first-of-type{grid-column:auto;}}

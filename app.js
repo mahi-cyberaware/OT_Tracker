@@ -594,12 +594,30 @@ async function loadAdminRoster(){
   if(r.error){adminRosterMessage(r.error.message,true);return}
   adminRosterEntries=r.data||[];renderAdminRoster();
 }
+function adminRosterFiltered(){
+  let q=String($('adminRosterSearch')?.value||'').trim().toLowerCase(),monthKey=String($('adminRosterMonth')?.value||''),status=String($('adminRosterStatus')?.value||'');
+  return adminRosterEntries.filter(r=>{
+    let hay=`${r.employee_id||''} ${r.employee_name||''}`.toLowerCase();
+    return (!q||hay.includes(q))&&(!monthKey||String(r.work_date||'').startsWith(monthKey))&&(!status||r.duty_type===status);
+  });
+}
+function populateAdminRosterMonths(){
+  let sel=$('adminRosterMonth');if(!sel)return;let current=sel.value,months=[...new Set(adminRosterEntries.map(r=>String(r.work_date||'').slice(0,7)).filter(Boolean))].sort();
+  sel.innerHTML=`<option value="">All months</option>`+months.map(m=>{let [y,mo]=m.split('-'),label=new Date(Number(y),Number(mo)-1,1).toLocaleDateString('en',{month:'long',year:'numeric'});return `<option value="${m}">${label}</option>`}).join('');
+  if(months.includes(current))sel.value=current;
+}
 function renderAdminRoster(){
-  let t=$('adminRosterRecords'),empty=$('adminRosterEmpty');if(!t)return;t.innerHTML='';if(empty)empty.classList.toggle('hidden',adminRosterEntries.length>0);
-  adminRosterEntries.forEach(r=>{let tr=document.createElement('tr'),label=r.duty_type==='present'?`${r.duty_start} – ${r.duty_end}`:statusLabel(r.duty_type==='off'?'off':r.duty_type);tr.innerHTML=`<td><span class="admin-roster-id">${esc(r.employee_id)}</span><span class="admin-roster-name">${esc(r.employee_name||'')}</span></td><td>${esc(r.work_date)}</td><td><b>${esc(label)}</b></td><td><div class="admin-roster-action"><button class="ghost" type="button" data-admin-edit="${esc(r.employee_id)}|${esc(r.work_date)}">Edit</button><button class="ghost" type="button" data-admin-delete="${esc(r.employee_id)}|${esc(r.work_date)}">Delete</button></div></td>`;t.appendChild(tr)});
+  let t=$('adminRosterRecords'),empty=$('adminRosterEmpty');if(!t)return;t.innerHTML='';populateAdminRosterMonths();let filtered=adminRosterFiltered();
+  if(empty)empty.classList.toggle('hidden',filtered.length>0);
+  let summary=$('adminRosterFilterSummary');if(summary)summary.textContent=filtered.length===adminRosterEntries.length?`${adminRosterEntries.length} roster entries`:`Showing ${filtered.length} of ${adminRosterEntries.length} roster entries`;
+  filtered.forEach(r=>{let tr=document.createElement('tr'),label=r.duty_type==='present'?`${r.duty_start} – ${r.duty_end}`:statusLabel(r.duty_type==='off'?'off':r.duty_type);tr.innerHTML=`<td><span class="admin-roster-id">${esc(r.employee_id)}</span><span class="admin-roster-name">${esc(r.employee_name||'')}</span></td><td>${esc(r.work_date)}</td><td><b>${esc(label)}</b></td><td><div class="admin-roster-action"><button class="ghost" type="button" data-admin-edit="${esc(r.employee_id)}|${esc(r.work_date)}">Edit</button><button class="ghost" type="button" data-admin-delete="${esc(r.employee_id)}|${esc(r.work_date)}">Delete</button></div></td>`;t.appendChild(tr)});
   t.querySelectorAll('[data-admin-edit]').forEach(b=>b.addEventListener('click',()=>{let [id,date]=b.dataset.adminEdit.split('|');let r=adminRosterEntries.find(x=>x.employee_id===id&&x.work_date===date);if(r)fillAdminEdit(r)}));
   t.querySelectorAll('[data-admin-delete]').forEach(b=>b.addEventListener('click',async()=>{let [id,date]=b.dataset.adminDelete.split('|');if(!confirm(`Delete roster entry for ${id} on ${date}?`))return;let r=await sb.rpc('admin_delete_roster_entry',{p_employee_id:id,p_work_date:date});if(r.error){adminRosterMessage(r.error.message,true);return}adminRosterMessage(`Deleted ${id} • ${date}.`);await loadAdminRoster();if(id===profile().employee_id)await loadRoster()}));
 }
+$('adminRosterSearch')?.addEventListener('input',renderAdminRoster);
+$('adminRosterMonth')?.addEventListener('change',renderAdminRoster);
+$('adminRosterStatus')?.addEventListener('change',renderAdminRoster);
+$('clearAdminRosterFilters')?.addEventListener('click',()=>{if($('adminRosterSearch'))$('adminRosterSearch').value='';if($('adminRosterMonth'))$('adminRosterMonth').value='';if($('adminRosterStatus'))$('adminRosterStatus').value='';renderAdminRoster()});
 function fillAdminEdit(r){$('adminEditEmployeeId').value=r.employee_id||'';$('adminEditDate').value=r.work_date||'';$('adminEditType').value=r.duty_type||'present';$('adminEditStart').value=r.duty_start||'';$('adminEditEnd').value=r.duty_end||'';window.scrollTo({top:document.getElementById('adminRosterSection')?.offsetTop||0,behavior:'smooth'});}
 async function saveAdminEntry(){
   let id=normalizeId($('adminEditEmployeeId')?.value),date=$('adminEditDate')?.value,type=$('adminEditType')?.value||'present',start=$('adminEditStart')?.value||null,end=$('adminEditEnd')?.value||null;
