@@ -483,51 +483,140 @@ $('exportPdf').onclick=exportPdf;
 
 
 /* =========================
-   V17 — PRIVATE DUTY ROSTER
+   V18 — SMART ROSTER & DUTY REMINDER / ADMIN MANAGEMENT
    ========================= */
 const rosterSettingsKey='worktrack-roster-settings';
 let rosterSettings={enabled:false,time:'20:00',wakeLead:60};
+let adminRosterEntries=[];
 function rosterMessage(text,isError=false){let el=$('rosterMessage');if(!el)return;el.textContent=text||'';el.className=`message ${text?(isError?'error':'success'):''}`}
+function adminRosterMessage(text,isError=false){let el=$('adminRosterMessage');if(!el)return;el.textContent=text||'';el.className=`message ${text?(isError?'error':'success'):''}`}
 function normalizeId(v){return String(v??'').trim().replace(/\.0$/,'')}
 function parseShift(value){
-  if(value===null||value===undefined)return null;let s=String(value).trim().toUpperCase().replace(/\s+/g,'');if(!s)return null;
-  if(['OFF','O','AL','SL','S/L','C/O','CO','C/0','HOLIDAY','PH'].includes(s)){let type=s==='OFF'||s==='O'?'off':s==='AL'?'annual_leave':s==='SL'||s==='S/L'?'sick_leave':s==='C/O'||s==='CO'||s==='C/0'?'comp_off':'holiday';return{type,raw:String(value).trim()};}
-  let m=s.match(/^(\d{3,4})[-–—](\d{3,4})$/);if(!m)return null;const fix=x=>{x=x.padStart(4,'0');return`${x.slice(0,2)}:${x.slice(2)}`};return{type:'present',start:fix(m[1]),end:fix(m[2]),raw:String(value).trim()};
+  if(value===null||value===undefined)return null;
+  let s=String(value).trim().toUpperCase().replace(/\s+/g,'');if(!s)return null;
+  if(['OFF','O','AL','SL','S/L','C/O','CO','C/0','HOLIDAY','PH'].includes(s)){
+    let type=s==='OFF'||s==='O'?'off':s==='AL'?'annual_leave':s==='SL'||s==='S/L'?'sick_leave':s==='C/O'||s==='CO'||s==='C/0'?'comp_off':'holiday';
+    return{type,raw:String(value).trim()};
+  }
+  let m=s.match(/^(\d{3,4})[-–—](\d{3,4})$/);if(!m)return null;
+  const fix=x=>{x=x.padStart(4,'0');return`${x.slice(0,2)}:${x.slice(2)}`};
+  return{type:'present',start:fix(m[1]),end:fix(m[2]),raw:String(value).trim()};
 }
 function excelDateToKey(v){
   if(v instanceof Date&&!isNaN(v))return`${v.getFullYear()}-${String(v.getMonth()+1).padStart(2,'0')}-${String(v.getDate()).padStart(2,'0')}`;
   if(typeof v==='number'){let d=new Date(Date.UTC(1899,11,30)+v*86400000);return`${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`}
-  let s=String(v??'').trim(),m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);if(m)return`${m[3]}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;m=s.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);if(m)return`${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;return'';
+  let s=String(v??'').trim(),m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);if(m)return`${m[3]}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
+  m=s.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);if(m)return`${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
+  return'';
 }
-function findRosterRows(rows,employeeId,employeeName){
-  let id=normalizeId(employeeId),wantedName=String(employeeName||'').trim().toLowerCase().replace(/\s+/g,' '),idRow=-1;
-  for(let r=0;r<Math.min(rows.length,60);r++){for(let c=0;c<(rows[r]||[]).length;c++){if(id&&normalizeId(rows[r][c])===id){idRow=r;break}}if(idRow>=0)break}
-  if(idRow<0&&wantedName){for(let r=0;r<Math.min(rows.length,60);r++){for(let c=0;c<(rows[r]||[]).length;c++){if(String(rows[r][c]??'').trim().toLowerCase().replace(/\s+/g,' ')===wantedName){idRow=r;break}}if(idRow>=0)break}}
-  if(idRow<0)return[];
-  let dateCols=[];
-  for(let r=Math.max(0,idRow-6);r<idRow;r++){let cols=[];for(let c=0;c<(rows[r]||[]).length;c++){let key=excelDateToKey(rows[r][c]);if(key)cols.push([c,key])}if(cols.length>=3)dateCols=cols}
-  if(!dateCols.length){
-    let titleText=rows.slice(0,14).flat().map(v=>String(v??'')).join(' '),year=(titleText.match(/\b(20\d{2})\b/)||[])[1],monthNo=(titleText.match(/(?:^|\D)(1[0-2]|0?[1-9])\s*\/\s*\d{1,2}\s*\/\s*20\d{2}/)||[])[1];
-    if(!monthNo){let mon=(titleText.match(/\b(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*\s*20\d{2}/i)||[])[1];let map={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12};if(mon&&year)monthNo=map[mon.slice(0,3).toUpperCase()]}
-    if(year&&monthNo){let best=null;for(let r=0;r<Math.min(rows.length,30);r++){let cols=[];for(let c=0;c<(rows[r]||[]).length;c++){let n=Number(String(rows[r][c]??'').trim());if(Number.isInteger(n)&&n>=1&&n<=31)cols.push([c,n])}let uniq=[...new Set(cols.map(x=>x[1]))];if(uniq.length>=5&&(!best||uniq.length>best[1]))best=[cols,uniq.length,r]}if(best)dateCols=best[0].map(([c,n])=>[c,`${year}-${String(monthNo).padStart(2,'0')}-${String(n).padStart(2,'0')}`])}
+function detectSheetDateColumns(rows){
+  let firstEmployee=-1;
+  for(let r=0;r<Math.min(rows.length,80);r++){
+    let hasId=rows[r]?.some(v=>/^\d{4,8}(?:\.0)?$/.test(String(v??'').trim()));
+    let hasName=rows[r]?.some(v=>/[A-Za-z]{3,}/.test(String(v??'')));
+    if(hasId&&hasName){firstEmployee=r;break}
   }
-  if(!dateCols.length)return[];let out=[];dateCols.forEach(([c,date])=>{let shift=parseShift(rows[idRow]?.[c]);if(shift)out.push({user_id:user.id,employee_id:id||String(employeeName||''),work_date:date,duty_start:shift.start||null,duty_end:shift.end||null,duty_type:shift.type,raw_duty:shift.raw})});return out;
+  let dateCols=[];
+  for(let r=0;r<(firstEmployee>0?firstEmployee:Math.min(rows.length,15));r++){
+    let cols=[];for(let c=0;c<(rows[r]||[]).length;c++){let key=excelDateToKey(rows[r][c]);if(key)cols.push([c,key])}
+    if(cols.length>=3)dateCols=cols;
+  }
+  if(dateCols.length)return dateCols;
+  let titleText=rows.slice(0,14).flat().map(v=>String(v??'')).join(' '),year=(titleText.match(/\b(20\d{2})\b/)||[])[1],monthNo;
+  let m=titleText.match(/(?:^|\D)(1[0-2]|0?[1-9])\s*\/\s*\d{1,2}\s*\/\s*20\d{2}/);if(m)monthNo=Number(m[1]);
+  if(!monthNo){let mon=(titleText.match(/\b(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*\s*20\d{2}/i)||[])[1];let map={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12};if(mon&&year)monthNo=map[mon.slice(0,3).toUpperCase()]}
+  if(year&&monthNo){let best=null;for(let r=0;r<Math.min(rows.length,35);r++){let cols=[];for(let c=0;c<(rows[r]||[]).length;c++){let n=Number(String(rows[r][c]??'').trim());if(Number.isInteger(n)&&n>=1&&n<=31)cols.push([c,n])}let uniq=[...new Set(cols.map(x=>x[1]))];if(uniq.length>=5&&(!best||uniq.length>best[1]))best=[cols,uniq.length,r]}if(best)dateCols=best[0].map(([c,n])=>[c,`${year}-${String(monthNo).padStart(2,'0')}-${String(n).padStart(2,'0')}`])}
+  return dateCols;
+}
+function employeeFromRow(row,dateCols){
+  let dateStart=dateCols.length?Math.min(...dateCols.map(x=>x[0])):row.length;
+  let id='';let idIndex=-1;
+  for(let c=0;c<dateStart;c++){let v=normalizeId(row[c]);if(/^\d{4,8}$/.test(v)){id=v;idIndex=c;break}}
+  if(!id)return null;
+  let name='';
+  for(let c=Math.max(0,idIndex+1);c<dateStart;c++){let v=String(row[c]??'').trim();if(v.length>=3&&/[A-Za-z]/.test(v)&&!parseShift(v)&&!/^(OFF|ERP|NO|NAME|SAT|SUN|MON|TUE|WED|THU|FRI)$/i.test(v)){name=v;break}}
+  return{id,name};
+}
+function findAllRosterRows(rows){
+  let dateCols=detectSheetDateColumns(rows);if(!dateCols.length)return[];
+  let out=[];
+  rows.forEach(row=>{
+    let emp=employeeFromRow(row,dateCols);if(!emp)return;
+    dateCols.forEach(([c,date])=>{let shift=parseShift(row?.[c]);if(shift)out.push({employee_id:emp.id,employee_name:emp.name||emp.id,work_date:date,duty_start:shift.start||null,duty_end:shift.end||null,duty_type:shift.type,raw_duty:shift.raw})});
+  });
+  return out;
 }
 function updateRosterAdminUI(){
-  let controls=$('rosterAdminControls'),notice=$('rosterAdminNotice');
-  if(controls)controls.classList.toggle('hidden',!isAdmin);
-  if(notice){notice.classList.toggle('hidden',isAdmin);notice.textContent='Roster upload is restricted to the WorkTrack administrator. Your account can view only your private roster.';}
+  let controls=$('rosterAdminControls'),notice=$('rosterAdminNotice'),adminSection=$('adminRosterSection');
+  if(controls)controls.classList.add('hidden');
+  if(notice){notice.classList.add('hidden');notice.textContent='';}
+  if(adminSection)adminSection.classList.toggle('hidden',!isAdmin);
 }
-
 async function loadRoster(){
-  if(!user)return;let r=await sb.from('roster_entries').select('*').eq('user_id',user.id).order('work_date',{ascending:true});if(r.error){rosterEntries=[];return}rosterEntries=r.data||[];try{rosterSettings=JSON.parse(localStorage.getItem(rosterSettingsKey)||'{}')||{}}catch(e){rosterSettings={}}rosterSettings={enabled:!!rosterSettings.enabled,time:rosterSettings.time||'20:00',wakeLead:Number(rosterSettings.wakeLead)||60};if($('dutyReminderEnabled'))$('dutyReminderEnabled').checked=rosterSettings.enabled;if($('dutyReminderTime'))$('dutyReminderTime').value=rosterSettings.time;if($('wakeLead'))$('wakeLead').value=String(rosterSettings.wakeLead);renderRoster();
+  if(!user)return;
+  let r=await sb.from('roster_entries').select('*').eq('user_id',user.id).order('work_date',{ascending:true});
+  if(r.error){rosterEntries=[];rosterMessage(r.error.message,true);return}
+  rosterEntries=r.data||[];
+  try{rosterSettings=JSON.parse(localStorage.getItem(rosterSettingsKey)||'{}')||{}}catch(e){rosterSettings={}}
+  rosterSettings={enabled:!!rosterSettings.enabled,time:rosterSettings.time||'20:00',wakeLead:Number(rosterSettings.wakeLead)||60};
+  if($('dutyReminderEnabled'))$('dutyReminderEnabled').checked=rosterSettings.enabled;
+  if($('dutyReminderTime'))$('dutyReminderTime').value=rosterSettings.time;
+  if($('wakeLead'))$('wakeLead').value=String(rosterSettings.wakeLead);
+  renderRoster();
+  if(isAdmin)await loadAdminRoster();
 }
-function renderRoster(){let t=$('rosterRecords');if(!t)return;t.innerHTML='';$('emptyRoster').classList.toggle('hidden',rosterEntries.length>0);rosterEntries.forEach(r=>{let tr=document.createElement('tr'),d=new Date(`${r.work_date}T12:00:00`),label=r.duty_type==='present'?`${r.duty_start} – ${r.duty_end}`:statusLabel(r.duty_type==='off'?'off':r.duty_type);tr.innerHTML=`<td>${r.work_date}</td><td>${d.toLocaleDateString('en',{weekday:'short'})}</td><td><b>${esc(label)}</b></td><td class="status ${r.duty_type==='present'?'normal':'leave'}">${esc(r.duty_type==='present'?'Duty':statusLabel(r.duty_type==='off'?'off':r.duty_type))}</td>`;t.appendChild(tr)});updateNextDuty()}
+function renderRoster(){
+  let t=$('rosterRecords');if(!t)return;t.innerHTML='';$('emptyRoster').classList.toggle('hidden',rosterEntries.length>0);
+  rosterEntries.forEach(r=>{let tr=document.createElement('tr'),d=new Date(`${r.work_date}T12:00:00`),label=r.duty_type==='present'?`${r.duty_start} – ${r.duty_end}`:statusLabel(r.duty_type==='off'?'off':r.duty_type);tr.innerHTML=`<td>${r.work_date}</td><td>${d.toLocaleDateString('en',{weekday:'short'})}</td><td><b>${esc(label)}</b></td><td class="status ${r.duty_type==='present'?'normal':'leave'}">${esc(r.duty_type==='present'?'Duty':statusLabel(r.duty_type==='off'?'off':r.duty_type))}</td>`;t.appendChild(tr)});updateNextDuty();
+}
 function nextDutyEntry(){let d=new Date();d.setDate(d.getDate()+1);let key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;return rosterEntries.find(r=>r.work_date===key)||null}
-function updateNextDuty(){let r=nextDutyEntry();if(!r){setText('nextDutyTitle',rosterEntries.length?'No roster entry for tomorrow':'No roster loaded');setText('nextDutyMeta',rosterEntries.length?'Check your roster or upload the latest version.':'Upload your Excel roster to see tomorrow’s duty.');setText('nextWakeTime','—');setText('wakeMeta','');return}if(r.duty_type!=='present'){setText('nextDutyTitle',statusLabel(r.duty_type==='off'?'off':r.duty_type));setText('nextDutyMeta','No duty reminder is needed for tomorrow.');setText('nextWakeTime','—');setText('wakeMeta','');return}setText('nextDutyTitle',`${r.duty_start} – ${r.duty_end}`);setText('nextDutyMeta','Tomorrow • scheduled duty from your private roster.');let[h,m]=r.duty_start.split(':').map(Number),total=(h*60+m-Number(rosterSettings.wakeLead||60)+1440)%1440;setText('nextWakeTime',`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`);setText('wakeMeta',`${rosterSettings.wakeLead||60} min before duty`)}
-async function importRosterFile(file){if(!file||!user)return;if(!isAdmin){rosterMessage('Only the WorkTrack administrator can upload a roster.',true);return;}if(!window.XLSX){rosterMessage('Excel reader is still loading. Please try again.',true);return}rosterMessage('Reading roster…');try{let buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:'array',cellDates:true}),all=[];wb.SheetNames.forEach(name=>{let rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:'',raw:true});all.push(...findRosterRows(rows,profile().employee_id,displayName()))});let unique=new Map();all.forEach(x=>unique.set(x.work_date,x));all=[...unique.values()].sort((a,b)=>a.work_date.localeCompare(b.work_date));if(!all.length){rosterMessage(`Your Employee ID ${profile().employee_id||'(missing)'} (or your profile name) was not found, or no date/shift columns could be read.`,true);return}let del=await sb.from('roster_entries').delete().eq('user_id',user.id);if(del.error){rosterMessage(del.error.message,true);return}let ins=await sb.from('roster_entries').insert(all);if(ins.error){rosterMessage(ins.error.message,true);return}rosterEntries=all;renderRoster();rosterMessage(`Roster imported successfully. ${all.length} duty entries matched your profile.`)}catch(err){rosterMessage(err?.message||'Could not read this roster file.',true)}}
-$('rosterFile')?.addEventListener('change',e=>{let f=e.target.files?.[0];if(f)importRosterFile(f);e.target.value=''});$('clearRoster')?.addEventListener('click',async()=>{if(!isAdmin){rosterMessage('Only the WorkTrack administrator can clear a roster.',true);return}if(!user||!confirm('Clear only your private roster?'))return;let r=await sb.from('roster_entries').delete().eq('user_id',user.id);if(r.error)rosterMessage(r.error.message,true);else{rosterEntries=[];renderRoster();rosterMessage('Your private roster was cleared.')}});$('wakeLead')?.addEventListener('change',()=>{rosterSettings.wakeLead=Number($('wakeLead').value)||60;updateNextDuty()});$('saveRosterSettings')?.addEventListener('click',()=>{rosterSettings={enabled:$('dutyReminderEnabled').checked,time:$('dutyReminderTime').value||'20:00',wakeLead:Number($('wakeLead').value)||60};localStorage.setItem(rosterSettingsKey,JSON.stringify(rosterSettings));updateNextDuty();rosterMessage('Roster reminder settings saved.')});
-function checkDutyReminder(){if(!user||!rosterSettings.enabled||!rosterEntries.length)return;let now=new Date(),time=rosterSettings.time||'20:00',[hh,mm]=time.split(':').map(Number),current=now.getHours()*60+now.getMinutes(),selected=hh*60+mm;if(current<selected)return;let d=new Date();d.setDate(d.getDate()+1);let key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,r=rosterEntries.find(x=>x.work_date===key);if(!r||r.duty_type!=='present')return;let stamp=`${todayKey()}-${time}-${key}`;if(localStorage.getItem('worktrack-duty-last')===stamp)return;localStorage.setItem('worktrack-duty-last',stamp);let[h,m]=r.duty_start.split(':').map(Number),total=(h*60+m-Number(rosterSettings.wakeLead||60)+1440)%1440,wake=`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`,msg=`Tomorrow duty: ${r.duty_start}–${r.duty_end}. Wake-up reminder: ${wake}.`;if('Notification'in window&&Notification.permission==='granted'){try{new Notification('WorkTrack — Tomorrow’s duty',{body:msg});return}catch(e){}}showReminderBanner(msg)}
+function updateNextDuty(){let r=nextDutyEntry();if(!r){setText('nextDutyTitle',rosterEntries.length?'No roster entry for tomorrow':'No roster loaded');setText('nextDutyMeta',rosterEntries.length?'Check your roster or upload the latest version.':'Your administrator will upload your duty roster.');setText('nextWakeTime','—');setText('wakeMeta','');return}if(r.duty_type!=='present'){setText('nextDutyTitle',statusLabel(r.duty_type==='off'?'off':r.duty_type));setText('nextDutyMeta','No duty reminder is needed for tomorrow.');setText('nextWakeTime','—');setText('wakeMeta','');return}setText('nextDutyTitle',`${r.duty_start} – ${r.duty_end}`);setText('nextDutyMeta','Tomorrow • scheduled duty from your private roster.');let[h,m]=r.duty_start.split(':').map(Number),total=(h*60+m-Number(rosterSettings.wakeLead||60)+1440)%1440;setText('nextWakeTime',`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`);setText('wakeMeta',`${rosterSettings.wakeLead||60} min before duty`)}
+async function importRosterFile(file){
+  if(!file||!user||!isAdmin)return;
+  if(!window.XLSX){rosterMessage('Excel reader is still loading. Please try again.',true);return}
+  adminRosterMessage('Reading roster…');
+  try{
+    let buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:'array',cellDates:true}),all=[];
+    wb.SheetNames.forEach(name=>{let rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:'',raw:true});all.push(...findAllRosterRows(rows))});
+    let unique=new Map();all.forEach(x=>unique.set(`${x.employee_id}|${x.work_date}`,x));all=[...unique.values()].sort((a,b)=>a.work_date.localeCompare(b.work_date)||a.employee_id.localeCompare(b.employee_id));
+    if(!all.length){adminRosterMessage('No employee IDs and date/shift columns could be read from this roster.',true);return}
+    let from=all[0].work_date,to=all[all.length-1].work_date;
+    let payload=all.map(({employee_name,...x})=>x);
+    let r=await sb.rpc('admin_import_roster',{p_rows:payload,p_replace_from:from,p_replace_to:to});
+    if(r.error){adminRosterMessage(r.error.message,true);return}
+    adminRosterMessage(`Roster imported. ${r.data?.upserted_rows||0} entries matched WorkTrack accounts. Range: ${from} to ${to}.`);
+    await loadRoster();
+  }catch(err){adminRosterMessage(err?.message||'Could not read this roster file.',true)}
+}
+async function loadAdminRoster(){
+  if(!isAdmin)return;
+  let r=await sb.rpc('admin_get_roster');
+  if(r.error){adminRosterMessage(r.error.message,true);return}
+  adminRosterEntries=r.data||[];renderAdminRoster();
+}
+function renderAdminRoster(){
+  let t=$('adminRosterRecords'),empty=$('adminRosterEmpty');if(!t)return;t.innerHTML='';if(empty)empty.classList.toggle('hidden',adminRosterEntries.length>0);
+  adminRosterEntries.forEach(r=>{let tr=document.createElement('tr'),label=r.duty_type==='present'?`${r.duty_start} – ${r.duty_end}`:statusLabel(r.duty_type==='off'?'off':r.duty_type);tr.innerHTML=`<td><span class="admin-roster-id">${esc(r.employee_id)}</span><span class="admin-roster-name">${esc(r.employee_name||'')}</span></td><td>${esc(r.work_date)}</td><td><b>${esc(label)}</b></td><td><div class="admin-roster-action"><button class="ghost" type="button" data-admin-edit="${esc(r.employee_id)}|${esc(r.work_date)}">Edit</button><button class="ghost" type="button" data-admin-delete="${esc(r.employee_id)}|${esc(r.work_date)}">Delete</button></div></td>`;t.appendChild(tr)});
+  t.querySelectorAll('[data-admin-edit]').forEach(b=>b.addEventListener('click',()=>{let [id,date]=b.dataset.adminEdit.split('|');let r=adminRosterEntries.find(x=>x.employee_id===id&&x.work_date===date);if(r)fillAdminEdit(r)}));
+  t.querySelectorAll('[data-admin-delete]').forEach(b=>b.addEventListener('click',async()=>{let [id,date]=b.dataset.adminDelete.split('|');if(!confirm(`Delete roster entry for ${id} on ${date}?`))return;let r=await sb.rpc('admin_delete_roster_entry',{p_employee_id:id,p_work_date:date});if(r.error){adminRosterMessage(r.error.message,true);return}adminRosterMessage(`Deleted ${id} • ${date}.`);await loadAdminRoster();if(id===profile().employee_id)await loadRoster()}));
+}
+function fillAdminEdit(r){$('adminEditEmployeeId').value=r.employee_id||'';$('adminEditDate').value=r.work_date||'';$('adminEditType').value=r.duty_type||'present';$('adminEditStart').value=r.duty_start||'';$('adminEditEnd').value=r.duty_end||'';window.scrollTo({top:document.getElementById('adminRosterSection')?.offsetTop||0,behavior:'smooth'});}
+async function saveAdminEntry(){
+  let id=normalizeId($('adminEditEmployeeId')?.value),date=$('adminEditDate')?.value,type=$('adminEditType')?.value||'present',start=$('adminEditStart')?.value||null,end=$('adminEditEnd')?.value||null;
+  if(!id||!date){adminRosterMessage('Employee ID and date are required.',true);return}
+  if(type==='present'&&(!start||!end)){adminRosterMessage('Start and end time are required for a duty.',true);return}
+  if(type!=='present'){start=null;end=null}
+  let raw=type==='present'?`${start.replace(':','')}-${end.replace(':','')}`:type==='off'?'OFF':type;
+  let r=await sb.rpc('admin_upsert_roster_entry',{p_employee_id:id,p_work_date:date,p_duty_start:start,p_duty_end:end,p_duty_type:type,p_raw_duty:raw});
+  if(r.error){adminRosterMessage(r.error.message,true);return}
+  adminRosterMessage(`Roster updated for ${id} on ${date}.`);await loadAdminRoster();if(id===profile().employee_id)await loadRoster();
+}
+async function deleteAdminEntry(){let id=normalizeId($('adminEditEmployeeId')?.value),date=$('adminEditDate')?.value;if(!id||!date){adminRosterMessage('Enter Employee ID and date first.',true);return}if(!confirm(`Delete roster entry for ${id} on ${date}?`))return;let r=await sb.rpc('admin_delete_roster_entry',{p_employee_id:id,p_work_date:date});if(r.error){adminRosterMessage(r.error.message,true);return}adminRosterMessage(`Deleted ${id} • ${date}.`);await loadAdminRoster();if(id===profile().employee_id)await loadRoster()}
+$('adminRosterFile')?.addEventListener('change',e=>{let f=e.target.files?.[0];if(f)importRosterFile(f);e.target.value=''});
+$('adminSaveEntry')?.addEventListener('click',saveAdminEntry);$('adminDeleteEntry')?.addEventListener('click',deleteAdminEntry);
+$('wakeLead')?.addEventListener('change',()=>{rosterSettings.wakeLead=Number($('wakeLead').value)||60;updateNextDuty()});
+$('saveRosterSettings')?.addEventListener('click',()=>{rosterSettings={enabled:$('dutyReminderEnabled').checked,time:$('dutyReminderTime').value||'20:00',wakeLead:Number($('wakeLead').value)||60};localStorage.setItem(rosterSettingsKey,JSON.stringify(rosterSettings));updateNextDuty();rosterMessage('Roster reminder settings saved.')});
+function checkDutyReminder(){if(!user||!rosterSettings.enabled||!rosterEntries.length)return;let now=new Date(),time=rosterSettings.time||'20:00',[hh,mm]=time.split(':').map(Number),current=now.getHours()*60+now.getMinutes(),selected=hh*60+mm;if(current<selected)return;let d=new Date();d.setDate(d.getDate()+1);let key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,r=rosterEntries.find(x=>x.work_date===key);if(!r||r.duty_type!=='present')return;let stamp=`${todayKey()}-${time}-${key}-${r.duty_start}-${r.duty_end}-${rosterSettings.wakeLead}`;if(localStorage.getItem('worktrack-duty-last')===stamp)return;localStorage.setItem('worktrack-duty-last',stamp);let[h,m]=r.duty_start.split(':').map(Number),total=(h*60+m-Number(rosterSettings.wakeLead||60)+1440)%1440,wake=`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`,msg=`Tomorrow duty: ${r.duty_start}–${r.duty_end}. Wake-up reminder: ${wake}.`;if('Notification'in window&&Notification.permission==='granted'){try{new Notification('WorkTrack — Tomorrow’s duty',{body:msg});return}catch(e){}}showReminderBanner(msg)}
 setInterval(checkDutyReminder,30000);
 
 const reminderKey='worktrack-reminder-settings';

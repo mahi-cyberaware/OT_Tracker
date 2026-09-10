@@ -100,6 +100,24 @@
         <div class="table-wrap roster-table-wrap"><table><thead><tr><th>Date</th><th>Day</th><th>Duty</th><th>Status</th></tr></thead><tbody id="rosterRecords"></tbody></table><div id="emptyRoster" class="empty">No roster entries yet.</div></div>
       </section>
 
+      <section id="adminRosterSection" class="panel glass-card roster-panel hidden">
+        <div class="panel-head">
+          <div><div class="section-kicker">ADMIN ROSTER MANAGEMENT</div><h2>Manage team roster</h2><span class="muted small">Upload the latest roster or correct one employee/date. Users only see their own roster.</span></div>
+          <div class="roster-actions"><label class="file-button primary" for="adminRosterFile">Upload latest Excel</label><input id="adminRosterFile" type="file" accept=".xlsx,.xls,.csv" hidden></div>
+        </div>
+        <div class="roster-privacy"><span>👑</span><span>Administrator only. Employee IDs are matched to WorkTrack accounts. Uploading a revised roster replaces the represented employees’ entries only within the uploaded date range.</span></div>
+        <div id="adminRosterMessage" class="message"></div>
+        <div class="admin-roster-tools">
+          <label>Employee ID<input id="adminEditEmployeeId" type="text" inputmode="numeric" placeholder="e.g. 200396"></label>
+          <label>Date<input id="adminEditDate" type="date"></label>
+          <label>Duty<select id="adminEditType"><option value="present">Duty</option><option value="off">OFF</option><option value="annual_leave">Annual Leave</option><option value="sick_leave">Sick Leave</option><option value="comp_off">Comp-Off</option><option value="holiday">Public Holiday</option></select></label>
+          <label>Start<input id="adminEditStart" type="time"></label>
+          <label>End<input id="adminEditEnd" type="time"></label>
+          <div class="admin-roster-buttons"><button id="adminSaveEntry" class="primary" type="button">Save change</button><button id="adminDeleteEntry" class="ghost" type="button">Delete entry</button></div>
+        </div>
+        <div class="table-wrap roster-table-wrap"><table><thead><tr><th>Employee</th><th>Date</th><th>Duty</th><th>Action</th></tr></thead><tbody id="adminRosterRecords"></tbody></table><div id="adminRosterEmpty" class="empty">No roster entries loaded.</div></div>
+      </section>
+
       <section id="calendarSection" class="panel glass-card calendar-panel">
         <div class="panel-head"><div><div class="section-kicker">MONTH VIEW</div><h2 id="monthTitle"></h2><span id="monthMeta" class="muted small"></span></div><div class="month-actions"><button id="todayMonth" class="ghost" type="button">Today</button><button id="prevMonth" class="ghost icon-btn" type="button" aria-label="Previous month">‹</button><button id="nextMonth" class="ghost icon-btn" type="button" aria-label="Next month">›</button></div></div>
         <div id="calendar" class="calendar"></div>
@@ -359,6 +377,6 @@
       <div class="dialog-actions"><button class="primary" type="submit">Save attendance</button><button type="button" id="deleteRecord" class="danger hidden">Delete record</button></div>
     </form>
   </dialog>
-  <script src="app.js?v=17.0"></script>
+  <script src="app.js?v=18.0"></script>
 </body>
 </html>

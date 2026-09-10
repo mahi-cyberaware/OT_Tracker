@@ -1,4 +1,4 @@
-WorkTrack V7
+WorkTrack V18
 
 # WorkTrack — Attendance & Overtime
 
@@ -44,3 +44,12 @@ V16 adds secure password change: current-password verification or email OTP reco
 
 
 V16 adds a polished Home experience with WorkTrack branding, insight slider, today's work card, and quick actions. No database migration is required.
+
+
+## V18 — Smart Roster & Duty Reminder
+- Admin-only full-roster Excel import with Employee ID matching.
+- Revised uploads replace represented employees within the uploaded date range.
+- Admin can edit or delete individual roster entries.
+- Users can view only their own saved roster.
+- Tomorrow duty and wake-up reminder follow roster changes automatically.
+- Overnight duty times are supported.
