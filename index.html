@@ -99,7 +99,7 @@
           <label>Wake up before duty<select id="wakeLead"><option value="30">30 minutes</option><option value="60" selected>1 hour</option><option value="90">1 hour 30 minutes</option><option value="120">2 hours</option><option value="180">3 hours</option></select></label>
           <label>Duty reminder time<input id="dutyReminderTime" type="time" value="20:00"></label>
           <label class="switch-line roster-switch"><input id="dutyReminderEnabled" type="checkbox"><span>Tomorrow duty notification</span></label>
-          <button id="saveRosterSettings" class="primary" type="button">Save reminder settings</button>
+          <button id="saveRosterSettings" class="primary" type="button">Save reminder settings</button><button id="testDutyAlert" class="ghost" type="button">Test duty alert</button>
         </div>
         <div class="roster-export-actions"><button id="exportRosterPdf" class="primary" type="button">Download Roster PDF</button><button id="exportRosterExcel" class="ghost" type="button">Download Roster Excel</button></div>
         <div class="table-wrap roster-table-wrap"><table><thead><tr><th>Date</th><th>Day</th><th>Duty</th><th>Status</th></tr></thead><tbody id="rosterRecords"></tbody></table><div id="emptyRoster" class="empty">No roster entries yet.</div></div>

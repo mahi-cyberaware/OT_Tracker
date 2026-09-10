@@ -665,7 +665,40 @@ $('exportRosterPdf')?.addEventListener('click',exportRosterPdf);
 $('adminSaveEntry')?.addEventListener('click',saveAdminEntry);$('adminDeleteEntry')?.addEventListener('click',deleteAdminEntry);
 $('wakeLead')?.addEventListener('change',()=>{rosterSettings.wakeLead=Number($('wakeLead').value)||60;updateNextDuty()});
 $('saveRosterSettings')?.addEventListener('click',()=>{rosterSettings={enabled:$('dutyReminderEnabled').checked,time:$('dutyReminderTime').value||'20:00',wakeLead:Number($('wakeLead').value)||60};localStorage.setItem(rosterSettingsKey,JSON.stringify(rosterSettings));updateNextDuty();rosterMessage('Roster reminder settings saved.')});
-function checkDutyReminder(){if(!user||!rosterSettings.enabled||!rosterEntries.length)return;let now=new Date(),time=rosterSettings.time||'20:00',[hh,mm]=time.split(':').map(Number),current=now.getHours()*60+now.getMinutes(),selected=hh*60+mm;if(current<selected)return;let d=new Date();d.setDate(d.getDate()+1);let key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,r=rosterEntries.find(x=>x.work_date===key);if(!r||r.duty_type!=='present')return;let stamp=`${todayKey()}-${time}-${key}-${r.duty_start}-${r.duty_end}-${rosterSettings.wakeLead}`;if(localStorage.getItem('worktrack-duty-last')===stamp)return;localStorage.setItem('worktrack-duty-last',stamp);let[h,m]=r.duty_start.split(':').map(Number),total=(h*60+m-Number(rosterSettings.wakeLead||60)+1440)%1440,wake=`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`,msg=`Tomorrow duty: ${r.duty_start}–${r.duty_end}. Wake-up reminder: ${wake}.`;if('Notification'in window&&Notification.permission==='granted'){try{new Notification('WorkTrack — Tomorrow’s duty',{body:msg});return}catch(e){}}showReminderBanner(msg)}
+$('testDutyAlert')?.addEventListener('click',showTomorrowDutyTest);
+function showDutyAlert(r,wake,isWake=false){
+  let existing=$('dutyAlert');
+  if(existing)existing.remove();
+  let modal=document.createElement('div');
+  modal.id='dutyAlert';
+  modal.className='duty-alert-overlay';
+  let dateText=r.work_date?new Date(`${r.work_date}T00:00:00`).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'Tomorrow';
+  modal.innerHTML=`
+    <div class="duty-alert-dialog" role="dialog" aria-modal="true" aria-labelledby="dutyAlertTitle">
+      <div class="duty-alert-icon">🚨</div>
+      <div class="section-kicker">${isWake?'WAKE-UP ALERT':'TOMORROW’S DUTY'}</div>
+      <h2 id="dutyAlertTitle">${isWake?'Wake up! Your duty starts soon.':'Don’t forget your duty tomorrow.'}</h2>
+      <div class="duty-alert-duty">${esc(r.duty_start)} – ${esc(r.duty_end)}</div>
+      <div class="duty-alert-date">📅 ${esc(dateText)}</div>
+      <div class="duty-alert-wake">⏰ <b>Wake-up: ${esc(wake)}</b><span>${Number(rosterSettings.wakeLead||60)} min before duty</span></div>
+      <button type="button" class="primary duty-alert-ok">OK, GOT IT</button>
+    </div>`;
+  modal.querySelector('.duty-alert-ok').onclick=()=>modal.remove();
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove()});
+  document.body.appendChild(modal);
+}
+
+function showTomorrowDutyTest(){
+  let r=nextDutyEntry();
+  if(!r||r.duty_type!=='present'){
+    showReminderBanner('No duty is scheduled for tomorrow.');
+    return;
+  }
+  let[h,m]=r.duty_start.split(':').map(Number),total=(h*60+m-Number(rosterSettings.wakeLead||60)+1440)%1440,wake=`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;
+  showDutyAlert(r,wake,false);
+}
+
+function checkDutyReminder(){if(!user||!rosterSettings.enabled||!rosterEntries.length)return;let now=new Date(),time=rosterSettings.time||'20:00',[hh,mm]=time.split(':').map(Number),current=now.getHours()*60+now.getMinutes(),selected=hh*60+mm;if(current<selected)return;let d=new Date();d.setDate(d.getDate()+1);let key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,r=rosterEntries.find(x=>x.work_date===key);if(!r||r.duty_type!=='present')return;let stamp=`${todayKey()}-${time}-${key}-${r.duty_start}-${r.duty_end}-${rosterSettings.wakeLead}`;if(localStorage.getItem('worktrack-duty-last')===stamp)return;localStorage.setItem('worktrack-duty-last',stamp);let[h,m]=r.duty_start.split(':').map(Number),total=(h*60+m-Number(rosterSettings.wakeLead||60)+1440)%1440,wake=`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`,msg=`Tomorrow duty: ${r.duty_start}–${r.duty_end}. Wake-up reminder: ${wake}.`;showDutyAlert(r,wake,false);if('Notification'in window&&Notification.permission==='granted'){try{new Notification('🚨 WorkTrack — Tomorrow’s duty',{body:msg});}catch(e){}}}
 setInterval(checkDutyReminder,30000);
 
 const reminderKey='worktrack-reminder-settings';
@@ -891,24 +924,27 @@ function openAppMenu(){
 }
 
 function showAppSection(name){
+  const target = appSections[name] ? name : 'home';
 
+  // Hide every main application section first. Use both the class and the
+  // hidden property so navigation remains reliable on mobile/PWA browsers.
   Object.values(appSections).flat().forEach(id=>{
-    let el=$(id);
-    if(el)el.classList.add('menu-hidden-section');
+    const el=$(id);
+    if(el){ el.classList.add('menu-hidden-section'); el.hidden=true; }
   });
 
-  let ids=appSections[name]||appSections.home;
-  ids.forEach(id=>{
-    let el=$(id);
-    if(el)el.classList.remove('menu-hidden-section');
+  // Show only the requested section.
+  (appSections[target]||[]).forEach(id=>{
+    const el=$(id);
+    if(el){ el.classList.remove('menu-hidden-section'); el.hidden=false; }
   });
 
   document.querySelectorAll('.menu-item[data-nav]').forEach(btn=>{
-    btn.classList.toggle('active',btn.dataset.nav===name);
+    btn.classList.toggle('active',btn.dataset.nav===target);
   });
 
   closeAppMenu();
-
+  window.__worktrackSection=target;
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -971,25 +1007,19 @@ $('menuLogout')?.addEventListener('click',async()=>{
   await sb.auth.signOut();
 });
 
-document.querySelectorAll('[data-nav]').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    let target=btn.dataset.nav;
+// One delegated navigation handler prevents duplicate/competing handlers
+// when the app is installed as a PWA or refreshed from the service worker.
+document.addEventListener('click',e=>{
+  const btn=e.target.closest?.('[data-nav]');
+  if(!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const target=btn.dataset.nav;
 
-    if(target==='profile'){
-      closeAppMenu();
-      openProfile();
-      return;
-    }
-
-    if(['about','contact','security'].includes(target)){
-      closeAppMenu();
-      showInfo(target);
-      return;
-    }
-
-    showAppSection(target);
-  });
-});
+  if(target==='profile'){ closeAppMenu(); openProfile(); return; }
+  if(['about','contact','security'].includes(target)){ closeAppMenu(); showInfo(target); return; }
+  showAppSection(target);
+}, true);
 
 $('closeInfo')?.addEventListener('click',()=>$('infoDialog').close());
 $('closeInfoBottom')?.addEventListener('click',()=>$('infoDialog').close());
@@ -1490,7 +1520,7 @@ $('installApp')?.addEventListener('click',async()=>{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js?v=19.0').then(()=>{
+    navigator.serviceWorker.register('./sw.js?v=19.2').then(()=>{
       console.info('WorkTrack V19 service worker ready');
     }).catch(err=>console.warn('WorkTrack PWA service worker:',err));
   });
