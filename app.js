@@ -1459,3 +1459,39 @@ setTimeout(()=>{
     if(typeof user!=='undefined'&&user)v16UpdateHomeFromRecords([]);
   }catch(e){}
 },250);
+
+
+/* V19 — Progressive Web App / install support */
+let v19DeferredInstallPrompt=null;
+function v19SetInstallButton(show){
+  const b=$('installApp');
+  if(b)b.classList.toggle('hidden',!show);
+}
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  v19DeferredInstallPrompt=e;
+  v19SetInstallButton(true);
+});
+window.addEventListener('appinstalled',()=>{
+  v19DeferredInstallPrompt=null;
+  v19SetInstallButton(false);
+  try{localStorage.setItem('worktrack-pwa-installed','1')}catch(e){}
+});
+$('installApp')?.addEventListener('click',async()=>{
+  if(!v19DeferredInstallPrompt){
+    alert('If Install WorkTrack is not offered, open your browser menu and choose “Add to Home screen” or “Install app”.');
+    return;
+  }
+  v19DeferredInstallPrompt.prompt();
+  try{await v19DeferredInstallPrompt.userChoice}catch(e){}
+  v19DeferredInstallPrompt=null;
+  v19SetInstallButton(false);
+});
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js?v=19.0').then(()=>{
+      console.info('WorkTrack V19 service worker ready');
+    }).catch(err=>console.warn('WorkTrack PWA service worker:',err));
+  });
+}
