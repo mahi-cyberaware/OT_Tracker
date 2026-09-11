@@ -53,3 +53,14 @@ V16 adds a polished Home experience with WorkTrack branding, insight slider, tod
 - Users can view only their own saved roster.
 - Tomorrow duty and wake-up reminder follow roster changes automatically.
 - Overnight duty times are supported.
+
+
+## V19.2.1 Smart Duty Alerts
+
+- Prominent in-app 🚨 dialog for tomorrow's scheduled duty.
+- Shows duty date, duty time, and calculated wake-up time.
+- Optional device notification is also sent when browser notification permission is granted.
+- Includes a **Test duty alert** button.
+- Day Off and non-duty entries do not trigger a duty alert.
+
+> Web/PWA alerts are subject to Android/browser background restrictions; a web app cannot guarantee a native alarm after the operating system has fully stopped the app.

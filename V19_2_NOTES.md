@@ -1,0 +1,1 @@
+WorkTrack V19.2 — Fixed menu navigation for all main sections; retained V19.1 smart duty alerts, PWA, roster privacy, filters and exports. No database migration required.
