@@ -1405,23 +1405,13 @@
 .menu-hidden-section{display:none!important;}
 
 
-/* V22.1 — account contact settings */
-.settings-contact-card{
-  grid-column:1/-1;
-  margin-bottom:18px;
-  padding:18px;
-  border-radius:18px;
-  background:rgba(124,156,255,.055);
-  border:1px solid rgba(124,156,255,.13);
-}
-.settings-contact-head h3{margin:4px 0 5px;color:#eef3fd;font-size:16px}
-.settings-contact-head p{margin:0;color:#8492a8;font-size:11px;line-height:1.5}
-.settings-contact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
-.settings-contact-actions{display:flex;align-items:center;gap:12px;margin-top:14px}
-.settings-contact-actions .message{margin:0;flex:1}
-.settings-contact-note{margin-top:10px;color:#68768d;font-size:10px}
-@media(max-width:640px){
-  .settings-contact-grid{grid-template-columns:1fr}
-  .settings-contact-actions{flex-direction:column;align-items:stretch}
-  .settings-contact-actions .primary{width:100%}
-}
+/* V22.1 — account email & mobile settings */
+.settings-contact-card{grid-column:1/-1;padding:20px;border-radius:18px;margin-top:8px}
+.settings-contact-card h3{margin:4px 0 5px;font-size:17px}
+.settings-contact-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px}
+.settings-contact-card input[readonly]{opacity:.62;cursor:not-allowed}
+.settings-contact-actions{justify-content:flex-start;margin-top:14px}
+.settings-contact-actions button{width:auto}
+.settings-contact-note{margin:10px 0 0}
+@media(max-width:900px){.settings-contact-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.settings-contact-card{padding:17px}.settings-contact-grid{grid-template-columns:1fr}.settings-contact-actions{flex-direction:column}.settings-contact-actions button{width:100%}}

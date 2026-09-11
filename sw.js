@@ -1,4 +1,4 @@
-const CACHE = 'worktrack-v22.1-shell-v1';
+const CACHE = 'worktrack-v22-2.1-shell-v1';
 const APP_SHELL = [
   './',
   './index.html',

@@ -46,9 +46,6 @@ function showApp(){
   let p=profile(),name=displayName(),initial=(name.trim()[0]||'W').toUpperCase();
   setText('headerName',name);setText('headerEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('heroName',name.split(' ')[0]);setText('avatarInitial',initial);
   setTag('profileCompany',p.company_name);setTag('profilePosition',p.position);setTag('profileEmployee',p.employee_id?`Employee ID • ${p.employee_id}`:'');
-  if($('settingsCurrentEmail')) $('settingsCurrentEmail').value=user?.email||'';
-  if($('settingsNewEmail')) $('settingsNewEmail').value='';
-  if($('settingsMobile')) $('settingsMobile').value=p.mobile_number||'';
 }
 function setTag(id,text){$(id).textContent=text||'';$(id).classList.toggle('hidden',!text)}
 function authMessage(text,isError=false){$('authMessage').textContent=text;$('authMessage').className=`message ${text?(isError?'error':'success'):''}`}
@@ -460,6 +457,45 @@ $('attendanceForm').onsubmit=async e=>{
 $('deleteRecord').onclick=async()=>{let id=$('recordId').value;if(id&&confirm('Delete this attendance record?')){let r=await sb.from('attendance').delete().eq('id',id).eq('user_id',user.id);if(r.error)alert(r.error.message);else{$('attendanceDialog').close();await load()}}};
 $('addToday').onclick=()=>openDialog(null,todayKey());$('prevMonth').onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()-1,1);load()};$('nextMonth').onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()+1,1);load()};$('todayMonth').onclick=()=>{let t=new Date();month=new Date(t.getFullYear(),t.getMonth(),1);load()};
 $('saveSettings').onclick=async()=>{let v=Number($('dutyHours').value);if(v<=0||v>24)return alert('Enter duty hours between 0.25 and 24.');let r=await sb.from('profiles').upsert({id:user.id,duty_hours:v});if(r.error)alert(r.error.message);else{duty=v;render();alert('Settings saved.')}};
+
+function contactSettingsMessage(text,isError=false){const el=$('contactSettingsMessage');if(!el)return;el.textContent=text||'';el.className=`message ${text?(isError?'error':'success'):''}`}
+function loadContactSettings(){
+  const p=profile();
+  if($('settingsCurrentEmail'))$('settingsCurrentEmail').value=user?.email||'';
+  if($('settingsNewEmail'))$('settingsNewEmail').value='';
+  if($('settingsMobile'))$('settingsMobile').value=p.mobile||p.mobile_number||'';
+  contactSettingsMessage('');
+}
+$('saveContactSettings')?.addEventListener('click',async()=>{
+  if(!user)return;
+  const newEmail=$('settingsNewEmail').value.trim().toLowerCase();
+  const mobile=$('settingsMobile').value.trim();
+  if(newEmail && newEmail===String(user.email||'').toLowerCase()){
+    contactSettingsMessage('The new email is the same as your current email.',true);
+    return;
+  }
+  const btn=$('saveContactSettings'); btn.disabled=true; contactSettingsMessage('Saving contact details…');
+  try{
+    const data={mobile};
+    if(newEmail){
+      const emailResult=await sb.auth.updateUser({email:newEmail});
+      if(emailResult.error){contactSettingsMessage(emailResult.error.message,true);return;}
+      user=emailResult.data.user||user;
+    }
+    const metaResult=await sb.auth.updateUser({data});
+    if(metaResult.error){contactSettingsMessage(metaResult.error.message,true);return;}
+    user=metaResult.data.user||user;
+    $('settingsCurrentEmail').value=user?.email||newEmail||'';
+    $('settingsNewEmail').value='';
+    $('settingsMobile').value=profile().mobile||'';
+    showApp();
+    if(newEmail) contactSettingsMessage('Mobile number saved. Check your email inbox to confirm the email change.');
+    else contactSettingsMessage('Mobile number saved successfully.');
+    render();
+  }catch(err){contactSettingsMessage(err?.message||'Could not save contact details.',true)}
+  finally{btn.disabled=false}
+});
+
 function reportTotals(){
   let present=records.filter(x=>x.status==='present'),worked=present.reduce((sum,x)=>sum+hours(x.check_in,x.check_out),0),ot=present.reduce((sum,x)=>sum+Math.max(0,hours(x.check_in,x.check_out)-duty),0);
   return {present,worked,ot,regular:Math.max(0,worked-ot),off:records.filter(x=>x.status==='off').length,leave:records.filter(x=>x.status==='leave').length,holidayWorked:records.filter(x=>x.status==='present'&&publicHolidayName(x.work_date)).length};
@@ -575,8 +611,10 @@ function renderRoster(){
   let t=$('rosterRecords');if(!t)return;t.innerHTML='';$('emptyRoster').classList.toggle('hidden',rosterEntries.length>0);
   rosterEntries.forEach(r=>{let tr=document.createElement('tr'),d=new Date(`${r.work_date}T12:00:00`),label=r.duty_type==='present'?`${r.duty_start} – ${r.duty_end}`:statusLabel(r.duty_type==='off'?'off':r.duty_type);tr.innerHTML=`<td>${r.work_date}</td><td>${d.toLocaleDateString('en',{weekday:'short'})}</td><td><b>${esc(label)}</b></td><td class="status ${r.duty_type==='present'?'normal':'leave'}">${esc(r.duty_type==='present'?'Duty':statusLabel(r.duty_type==='off'?'off':r.duty_type))}</td>`;t.appendChild(tr)});updateNextDuty();
 }
-function nextDutyEntry(){let d=new Date();d.setDate(d.getDate()+1);let key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;return rosterEntries.find(r=>r.work_date===key)||null}
-function updateNextDuty(){let r=nextDutyEntry();if(!r){setText('nextDutyTitle',rosterEntries.length?'No roster entry for tomorrow':'No roster loaded');setText('nextDutyMeta',rosterEntries.length?'Check your roster or upload the latest version.':'Your administrator will upload your duty roster.');setText('nextWakeTime','—');setText('wakeMeta','');return}if(r.duty_type!=='present'){setText('nextDutyTitle',statusLabel(r.duty_type==='off'?'off':r.duty_type));setText('nextDutyMeta','No duty reminder is needed for tomorrow.');setText('nextWakeTime','—');setText('wakeMeta','');return}setText('nextDutyTitle',`${r.duty_start} – ${r.duty_end}`);setText('nextDutyMeta','Tomorrow • scheduled duty from your private roster.');let[h,m]=r.duty_start.split(':').map(Number),total=(h*60+m-Number(rosterSettings.wakeLead||60)+1440)%1440;setText('nextWakeTime',`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`);setText('wakeMeta',`${rosterSettings.wakeLead||60} min before duty`)}
+function tomorrowKey(){let d=new Date();d.setDate(d.getDate()+1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function nextDutyEntry(){let key=tomorrowKey();return rosterEntries.find(r=>r.work_date===key)||null}
+function paintNextDuty(r){if(!r){setText('nextDutyTitle',rosterEntries.length?'No roster entry for tomorrow':'No roster loaded');setText('nextDutyMeta',rosterEntries.length?'Check your roster or upload the latest version.':'Your administrator will upload your duty roster.');setText('nextWakeTime','—');setText('wakeMeta','');return}if(r.duty_type!=='present'){setText('nextDutyTitle',statusLabel(r.duty_type==='off'?'off':r.duty_type));setText('nextDutyMeta','No duty reminder is needed for tomorrow.');setText('nextWakeTime','—');setText('wakeMeta','');return}setText('nextDutyTitle',`${r.duty_start} – ${r.duty_end}`);setText('nextDutyMeta','Tomorrow • scheduled duty from your private roster.');let[h,m]=r.duty_start.split(':').map(Number),total=(h*60+m-Number(rosterSettings.wakeLead||60)+1440)%1440;setText('nextWakeTime',`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`);setText('wakeMeta',`${rosterSettings.wakeLead||60} min before duty`)}
+async function updateNextDuty(){let local=nextDutyEntry();paintNextDuty(local);if(!user)return;let key=tomorrowKey();try{let q=await sb.from('roster_entries').select('work_date,duty_start,duty_end,duty_type').eq('user_id',user.id).eq('work_date',key).maybeSingle();if(q.error)return;let fresh=q.data||null;if(fresh){let idx=rosterEntries.findIndex(x=>x.work_date===key);if(idx>=0)rosterEntries[idx]={...rosterEntries[idx],...fresh};else rosterEntries.push(fresh)}else{rosterEntries=rosterEntries.filter(x=>x.work_date!==key)}paintNextDuty(fresh)}catch(e){}}
 async function importRosterFile(file){
   if(!file||!user||!isAdmin)return;
   if(!window.XLSX){rosterMessage('Excel reader is still loading. Please try again.',true);return}
@@ -705,7 +743,7 @@ function showTomorrowDutyTest(){
   showDutyAlert(r,wake,false);
 }
 
-function checkDutyReminder(){if(!user||!rosterSettings.enabled||!rosterEntries.length)return;let now=new Date(),time=rosterSettings.time||'20:00',[hh,mm]=time.split(':').map(Number),current=now.getHours()*60+now.getMinutes(),selected=hh*60+mm;if(current<selected)return;let d=new Date();d.setDate(d.getDate()+1);let key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,r=rosterEntries.find(x=>x.work_date===key);if(!r||r.duty_type!=='present')return;let stamp=`${todayKey()}-${time}-${key}-${r.duty_start}-${r.duty_end}-${rosterSettings.wakeLead}`;if(localStorage.getItem('worktrack-duty-last')===stamp)return;localStorage.setItem('worktrack-duty-last',stamp);let[h,m]=r.duty_start.split(':').map(Number),total=(h*60+m-Number(rosterSettings.wakeLead||60)+1440)%1440,wake=`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`,msg=`Tomorrow duty: ${r.duty_start}–${r.duty_end}. Wake-up reminder: ${wake}.`;showDutyAlert(r,wake,false);if('Notification'in window&&Notification.permission==='granted'){try{new Notification('🚨 WorkTrack — Tomorrow’s duty',{body:msg});}catch(e){}}}
+async function checkDutyReminder(){if(!user||!rosterSettings.enabled)return;let now=new Date(),time=rosterSettings.time||'20:00',[hh,mm]=time.split(':').map(Number),current=now.getHours()*60+now.getMinutes(),selected=hh*60+mm;if(current<selected)return;let key=tomorrowKey(),r=rosterEntries.find(x=>x.work_date===key)||null;try{let q=await sb.from('roster_entries').select('work_date,duty_start,duty_end,duty_type').eq('user_id',user.id).eq('work_date',key).maybeSingle();if(!q.error)r=q.data||null}catch(e){}if(!r||r.duty_type!=='present')return;let stamp=`${todayKey()}-${time}-${key}-${r.duty_start}-${r.duty_end}-${rosterSettings.wakeLead}`;if(localStorage.getItem('worktrack-duty-last')===stamp)return;localStorage.setItem('worktrack-duty-last',stamp);let[h,m]=r.duty_start.split(':').map(Number),total=(h*60+m-Number(rosterSettings.wakeLead||60)+1440)%1440,wake=`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`,msg=`Tomorrow duty: ${r.duty_start}–${r.duty_end}. Wake-up reminder: ${wake}.`;showDutyAlert(r,wake,false);if('Notification'in window&&Notification.permission==='granted'){try{new Notification('🚨 WorkTrack — Tomorrow’s duty',{body:msg});}catch(e){}}}
 setInterval(checkDutyReminder,30000);
 
 const reminderKey='worktrack-reminder-settings';
@@ -932,6 +970,8 @@ function openAppMenu(){
 
 function showAppSection(name){
   const target = Object.prototype.hasOwnProperty.call(appSections,name) ? name : 'home';
+  if(target==='settings') loadContactSettings();
+  if(target==='home') updateNextDuty();
   Object.entries(appSections).forEach(([key,ids])=>ids.forEach(id=>{
     const el=$(id); if(!el)return;
     const active=key===target;
@@ -1031,6 +1071,7 @@ $('infoDialog')?.addEventListener('click',e=>{
 let initialSection='home';
 try { initialSection=sessionStorage.getItem('worktrack-section')||'home'; } catch(e) {}
 showAppSection(initialSection);
+loadContactSettings();
 
 
 
@@ -1277,45 +1318,6 @@ setupPasswordToggle('toggleNewPassword','newPassword');
 setupPasswordToggle('toggleConfirmPassword','confirmPassword');
 
 $('settingsPasswordButton')?.addEventListener('click',openPasswordDialog);
-
-function contactSettingsMessage(text,isError=false){
-  const el=$('contactSettingsMessage');
-  if(!el)return;
-  el.textContent=text||'';
-  el.className=`message ${text?(isError?'error':'success'):''}`;
-}
-
-$('saveContactSettings')?.addEventListener('click',async()=>{
-  const newEmail=$('settingsNewEmail')?.value.trim().toLowerCase()||'';
-  const mobile=$('settingsMobile')?.value.trim()||'';
-  const currentEmail=(user?.email||'').toLowerCase();
-  const emailChanged=!!newEmail && newEmail!==currentEmail;
-  if(newEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)){
-    contactSettingsMessage('Enter a valid email address.',true);return;
-  }
-  const btn=$('saveContactSettings');
-  if(btn)btn.disabled=true;
-  contactSettingsMessage('Saving contact details…');
-  try{
-    let messages=[];
-    if(emailChanged){
-      const r=await sb.auth.updateUser({email:newEmail});
-      if(r.error){contactSettingsMessage(r.error.message,true);return;}
-      user=r.data.user||user;
-      messages.push('Email change requested. Check the new email for confirmation.');
-    }
-    const r2=await sb.auth.updateUser({data:{mobile_number:mobile}});
-    if(r2.error){contactSettingsMessage(r2.error.message,true);return;}
-    user=r2.data.user||user;
-    if(!emailChanged)messages.push('Mobile number updated.');
-    else messages.push('Mobile number updated.');
-    if($('settingsCurrentEmail'))$('settingsCurrentEmail').value=user?.email||currentEmail;
-    if($('settingsNewEmail'))$('settingsNewEmail').value='';
-    contactSettingsMessage(messages.join(' '));
-    showApp();
-  }catch(err){contactSettingsMessage(err?.message||'Could not update contact details.',true)}
-  finally{if(btn)btn.disabled=false}
-});
 
 
 

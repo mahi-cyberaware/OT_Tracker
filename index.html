@@ -179,26 +179,6 @@
       </section>
 
       <section id="settingsSection" class="panel glass-card settings-panel" hidden>
-      <div class="settings-contact-card glass-card">
-        <div class="settings-contact-head">
-          <div>
-            <div class="section-kicker">ACCOUNT CONTACT</div>
-            <h3>Email &amp; mobile number</h3>
-            <p>Change your WorkTrack login email or add/update your mobile number.</p>
-          </div>
-        </div>
-        <div class="settings-contact-grid">
-          <label>Current email<input id="settingsCurrentEmail" type="email" readonly></label>
-          <label>New email<input id="settingsNewEmail" type="email" placeholder="new@email.com" autocomplete="email"></label>
-          <label>Mobile number<input id="settingsMobile" type="tel" placeholder="+971 50 123 4567" autocomplete="tel" inputmode="tel"></label>
-        </div>
-        <div class="settings-contact-actions">
-          <button id="saveContactSettings" class="primary" type="button">Save email &amp; mobile</button>
-          <div id="contactSettingsMessage" class="message" role="status"></div>
-        </div>
-        <div class="settings-contact-note">Changing your email may require confirmation through the new email address.</div>
-      </div>
-
       <div class="settings-security-card glass-card">
         <div>
           <div class="section-kicker">ACCOUNT SECURITY</div>
@@ -212,6 +192,20 @@
 
         <div><div class="section-kicker">PREFERENCES</div><h2>Settings</h2><p class="muted small">Set the normal daily duty hours used to calculate overtime.</p></div>
         <div class="settings-grid"><label>Daily duty hours<input id="dutyHours" type="number" min="0.25" max="24" step=".25" inputmode="decimal"></label><button id="saveSettings" class="primary" type="button">Save settings</button></div>
+
+        <div class="settings-contact-card glass-card">
+          <div class="section-kicker">ACCOUNT CONTACT</div>
+          <h3>Email & mobile number</h3>
+          <p class="muted small">Change your WorkTrack login email or add/update your mobile number.</p>
+          <div id="contactSettingsMessage" class="message"></div>
+          <div class="settings-contact-grid">
+            <label>Current email<input id="settingsCurrentEmail" type="email" readonly></label>
+            <label>New email<input id="settingsNewEmail" type="email" placeholder="Leave blank to keep current email" autocomplete="email"></label>
+            <label>Mobile number<input id="settingsMobile" type="tel" inputmode="tel" placeholder="e.g. +971 50 123 4567" autocomplete="tel"></label>
+          </div>
+          <div class="dialog-actions settings-contact-actions"><button id="saveContactSettings" class="primary" type="button">Save email & mobile</button></div>
+          <p class="muted small settings-contact-note">If you change the email, Supabase may require email confirmation before the new address becomes active.</p>
+        </div>
       </section>
 
       <footer class="app-footer">
@@ -411,7 +405,7 @@
       <div class="dialog-actions"><button class="primary" type="submit">Save attendance</button><button type="button" id="deleteRecord" class="danger hidden">Delete record</button></div>
     </form>
   </dialog>
-  <script src="app-v22.js?v=22.1"></script>
+  <script src="app-v22.js?v=22.2"></script>
 
 <script>
 (function(){
