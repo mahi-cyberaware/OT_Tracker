@@ -274,20 +274,21 @@
 }
 
 .menu-backdrop{
+  will-change:opacity;
   position:absolute;
   inset:0;
   background:rgba(1,4,10,.72);
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
   opacity:0;
-  transition:opacity .2s ease;
+  transition:opacity .08s ease;
 }
 
 .app-menu.open .menu-backdrop{
+  will-change:opacity;
   opacity:1;
 }
 
 .menu-panel{
+  will-change:transform;
   position:absolute;
   top:0;
   right:0;
@@ -299,10 +300,11 @@
   border-left:1px solid rgba(255,255,255,.10);
   box-shadow:-25px 0 70px rgba(0,0,0,.38);
   transform:translateX(100%);
-  transition:transform .22s ease;
+  transition:transform .10s ease;
 }
 
 .app-menu.open .menu-panel{
+  will-change:transform;
   transform:translateX(0);
 }
 
