@@ -926,29 +926,31 @@ function openAppMenu(){
 function showAppSection(name){
   const target = Object.prototype.hasOwnProperty.call(appSections,name) ? name : 'home';
 
-  // Deterministic section switching: hide only the known app sections.
+  // V20 navigation: use inline display as the source of truth. This avoids
+  // conflicts between the HTML hidden attribute, .hidden, and menu CSS.
   Object.entries(appSections).forEach(([key, ids])=>{
     ids.forEach(id=>{
       const el=$(id);
       if(!el)return;
-      const isTarget = key===target;
-      el.classList.toggle('menu-hidden-section', !isTarget);
-      el.hidden = !isTarget;
-      el.setAttribute('aria-hidden', String(!isTarget));
+      const active = key===target;
+      el.hidden = !active;
+      el.classList.toggle('menu-hidden-section', !active);
+      el.style.setProperty('display', active ? '' : 'none', 'important');
+      el.setAttribute('aria-hidden', String(!active));
     });
   });
 
-  document.querySelectorAll('.menu-item[data-nav]').forEach(btn=>{
-    btn.classList.toggle('active', btn.dataset.nav===target);
+  document.querySelectorAll('[data-nav]').forEach(btn=>{
+    const nav=btn.dataset.nav;
+    btn.classList.toggle('active', nav===target);
   });
 
   closeAppMenu();
   window.__worktrackSection=target;
-  if(history.replaceState){
-    history.replaceState(null,'',target==='home' ? location.pathname+location.search : '#'+target);
-  }
+  try { sessionStorage.setItem('worktrack-section', target); } catch(e) {}
   window.scrollTo({top:0,behavior:'smooth'});
 }
+
 
 function showInfo(type){
 
@@ -1029,8 +1031,10 @@ $('infoDialog')?.addEventListener('click',e=>{
   if(e.target===$('infoDialog'))$('infoDialog').close();
 });
 
-// Home is the quiet default view; other sections are opened from the menu.
-showAppSection('home');
+// Restore the last section after refresh; default to Home.
+let initialSection='home';
+try { initialSection=sessionStorage.getItem('worktrack-section')||'home'; } catch(e) {}
+showAppSection(initialSection);
 
 
 
@@ -1522,7 +1526,7 @@ $('installApp')?.addEventListener('click',async()=>{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js?v=19.3').then(()=>{
+    navigator.serviceWorker.register('./sw.js?v=20').then(()=>{
       console.info('WorkTrack V19 service worker ready');
     }).catch(err=>console.warn('WorkTrack PWA service worker:',err));
   });
