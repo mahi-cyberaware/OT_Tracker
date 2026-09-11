@@ -17,5 +17,3 @@ A PWA/browser cannot guarantee a true Android alarm at an exact future time afte
 
 ## Database
 No new database migration is required for the PWA changes.
-
-V19.1: Added prominent tomorrow-duty alert dialog and Test duty alert button. No database migration required.
