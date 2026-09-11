@@ -594,12 +594,30 @@ async function loadAdminRoster(){
   if(r.error){adminRosterMessage(r.error.message,true);return}
   adminRosterEntries=r.data||[];renderAdminRoster();
 }
+function adminRosterFiltered(){
+  let q=String($('adminRosterSearch')?.value||'').trim().toLowerCase(),monthKey=String($('adminRosterMonth')?.value||''),status=String($('adminRosterStatus')?.value||'');
+  return adminRosterEntries.filter(r=>{
+    let hay=`${r.employee_id||''} ${r.employee_name||''}`.toLowerCase();
+    return (!q||hay.includes(q))&&(!monthKey||String(r.work_date||'').startsWith(monthKey))&&(!status||r.duty_type===status);
+  });
+}
+function populateAdminRosterMonths(){
+  let sel=$('adminRosterMonth');if(!sel)return;let current=sel.value,months=[...new Set(adminRosterEntries.map(r=>String(r.work_date||'').slice(0,7)).filter(Boolean))].sort();
+  sel.innerHTML=`<option value="">All months</option>`+months.map(m=>{let [y,mo]=m.split('-'),label=new Date(Number(y),Number(mo)-1,1).toLocaleDateString('en',{month:'long',year:'numeric'});return `<option value="${m}">${label}</option>`}).join('');
+  if(months.includes(current))sel.value=current;
+}
 function renderAdminRoster(){
-  let t=$('adminRosterRecords'),empty=$('adminRosterEmpty');if(!t)return;t.innerHTML='';if(empty)empty.classList.toggle('hidden',adminRosterEntries.length>0);
-  adminRosterEntries.forEach(r=>{let tr=document.createElement('tr'),label=r.duty_type==='present'?`${r.duty_start} – ${r.duty_end}`:statusLabel(r.duty_type==='off'?'off':r.duty_type);tr.innerHTML=`<td><span class="admin-roster-id">${esc(r.employee_id)}</span><span class="admin-roster-name">${esc(r.employee_name||'')}</span></td><td>${esc(r.work_date)}</td><td><b>${esc(label)}</b></td><td><div class="admin-roster-action"><button class="ghost" type="button" data-admin-edit="${esc(r.employee_id)}|${esc(r.work_date)}">Edit</button><button class="ghost" type="button" data-admin-delete="${esc(r.employee_id)}|${esc(r.work_date)}">Delete</button></div></td>`;t.appendChild(tr)});
+  let t=$('adminRosterRecords'),empty=$('adminRosterEmpty');if(!t)return;t.innerHTML='';populateAdminRosterMonths();let filtered=adminRosterFiltered();
+  if(empty)empty.classList.toggle('hidden',filtered.length>0);
+  let summary=$('adminRosterFilterSummary');if(summary)summary.textContent=filtered.length===adminRosterEntries.length?`${adminRosterEntries.length} roster entries`:`Showing ${filtered.length} of ${adminRosterEntries.length} roster entries`;
+  filtered.forEach(r=>{let tr=document.createElement('tr'),label=r.duty_type==='present'?`${r.duty_start} – ${r.duty_end}`:statusLabel(r.duty_type==='off'?'off':r.duty_type);tr.innerHTML=`<td><span class="admin-roster-id">${esc(r.employee_id)}</span><span class="admin-roster-name">${esc(r.employee_name||'')}</span></td><td>${esc(r.work_date)}</td><td><b>${esc(label)}</b></td><td><div class="admin-roster-action"><button class="ghost" type="button" data-admin-edit="${esc(r.employee_id)}|${esc(r.work_date)}">Edit</button><button class="ghost" type="button" data-admin-delete="${esc(r.employee_id)}|${esc(r.work_date)}">Delete</button></div></td>`;t.appendChild(tr)});
   t.querySelectorAll('[data-admin-edit]').forEach(b=>b.addEventListener('click',()=>{let [id,date]=b.dataset.adminEdit.split('|');let r=adminRosterEntries.find(x=>x.employee_id===id&&x.work_date===date);if(r)fillAdminEdit(r)}));
   t.querySelectorAll('[data-admin-delete]').forEach(b=>b.addEventListener('click',async()=>{let [id,date]=b.dataset.adminDelete.split('|');if(!confirm(`Delete roster entry for ${id} on ${date}?`))return;let r=await sb.rpc('admin_delete_roster_entry',{p_employee_id:id,p_work_date:date});if(r.error){adminRosterMessage(r.error.message,true);return}adminRosterMessage(`Deleted ${id} • ${date}.`);await loadAdminRoster();if(id===profile().employee_id)await loadRoster()}));
 }
+$('adminRosterSearch')?.addEventListener('input',renderAdminRoster);
+$('adminRosterMonth')?.addEventListener('change',renderAdminRoster);
+$('adminRosterStatus')?.addEventListener('change',renderAdminRoster);
+$('clearAdminRosterFilters')?.addEventListener('click',()=>{if($('adminRosterSearch'))$('adminRosterSearch').value='';if($('adminRosterMonth'))$('adminRosterMonth').value='';if($('adminRosterStatus'))$('adminRosterStatus').value='';renderAdminRoster()});
 function fillAdminEdit(r){$('adminEditEmployeeId').value=r.employee_id||'';$('adminEditDate').value=r.work_date||'';$('adminEditType').value=r.duty_type||'present';$('adminEditStart').value=r.duty_start||'';$('adminEditEnd').value=r.duty_end||'';window.scrollTo({top:document.getElementById('adminRosterSection')?.offsetTop||0,behavior:'smooth'});}
 async function saveAdminEntry(){
   let id=normalizeId($('adminEditEmployeeId')?.value),date=$('adminEditDate')?.value,type=$('adminEditType')?.value||'present',start=$('adminEditStart')?.value||null,end=$('adminEditEnd')?.value||null;
@@ -613,6 +631,37 @@ async function saveAdminEntry(){
 }
 async function deleteAdminEntry(){let id=normalizeId($('adminEditEmployeeId')?.value),date=$('adminEditDate')?.value;if(!id||!date){adminRosterMessage('Enter Employee ID and date first.',true);return}if(!confirm(`Delete roster entry for ${id} on ${date}?`))return;let r=await sb.rpc('admin_delete_roster_entry',{p_employee_id:id,p_work_date:date});if(r.error){adminRosterMessage(r.error.message,true);return}adminRosterMessage(`Deleted ${id} • ${date}.`);await loadAdminRoster();if(id===profile().employee_id)await loadRoster()}
 $('adminRosterFile')?.addEventListener('change',e=>{let f=e.target.files?.[0];if(f)importRosterFile(f);e.target.value=''});
+function exportRosterExcel(){
+  if(!rosterEntries.length){alert('No roster entries to export.');return}
+  if(!window.XLSX){alert('Excel generator is still loading. Please try again.');return}
+  let name=displayName()||'Employee';
+  let rows=[['Employee Name','Employee ID','Date','Day','Duty','Status']];
+  rosterEntries.forEach(r=>{
+    let d=new Date(`${r.work_date}T12:00:00`), duty=r.duty_type==='present'?`${r.duty_start} - ${r.duty_end}`:statusLabel(r.duty_type==='off'?'off':r.duty_type);
+    rows.push([name,profile().employee_id||'',r.work_date,d.toLocaleDateString('en',{weekday:'long'}),duty,r.duty_type==='present'?'Duty':statusLabel(r.duty_type==='off'?'off':r.duty_type)]);
+  });
+  let ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:24},{wch:14},{wch:14},{wch:14},{wch:22},{wch:18}];
+  let wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'My Roster');
+  XLSX.writeFile(wb,`worktrack-roster-${monthKey()}.xlsx`);
+}
+function exportRosterPdf(){
+  if(!rosterEntries.length){alert('No roster entries to export.');return}
+  if(!window.jspdf?.jsPDF){alert('PDF generator is still loading. Please try again.');return}
+  let {jsPDF}=window.jspdf,doc=new jsPDF({unit:'pt',format:'a4'}),name=displayName()||'Employee',id=profile().employee_id||'';
+  doc.setFontSize(18);doc.text('WorkTrack — My Duty Roster',40,45);
+  doc.setFontSize(10);doc.text(`${name} • Employee ID: ${id}`,40,63);doc.text(`Generated: ${new Date().toLocaleString()}`,40,79);
+  let y=105,cols=[40,125,195,280,400],heads=['Date','Day','Duty','Status'];
+  doc.setFontSize(9);doc.setFont(undefined,'bold');heads.forEach((h,i)=>doc.text(h,cols[i],y));doc.setFont(undefined,'normal');y+=18;
+  rosterEntries.forEach(r=>{
+    if(y>770){doc.addPage();y=45;doc.setFont(undefined,'bold');heads.forEach((h,i)=>doc.text(h,cols[i],y));doc.setFont(undefined,'normal');y+=18}
+    let d=new Date(`${r.work_date}T12:00:00`),duty=r.duty_type==='present'?`${r.duty_start} - ${r.duty_end}`:statusLabel(r.duty_type==='off'?'off':r.duty_type),status=r.duty_type==='present'?'Duty':statusLabel(r.duty_type==='off'?'off':r.duty_type);
+    doc.text(String(r.work_date),cols[0],y);doc.text(d.toLocaleDateString('en',{weekday:'short'}),cols[1],y);doc.text(duty,cols[2],y);doc.text(status,cols[3],y);y+=16;
+  });
+  doc.setFontSize(8);doc.text('Private roster • WorkTrack',40,805);doc.save(`worktrack-roster-${monthKey()}.pdf`);
+}
+$('exportRosterExcel')?.addEventListener('click',exportRosterExcel);
+$('exportRosterPdf')?.addEventListener('click',exportRosterPdf);
+
 $('adminSaveEntry')?.addEventListener('click',saveAdminEntry);$('adminDeleteEntry')?.addEventListener('click',deleteAdminEntry);
 $('wakeLead')?.addEventListener('change',()=>{rosterSettings.wakeLead=Number($('wakeLead').value)||60;updateNextDuty()});
 $('saveRosterSettings')?.addEventListener('click',()=>{rosterSettings={enabled:$('dutyReminderEnabled').checked,time:$('dutyReminderTime').value||'20:00',wakeLead:Number($('wakeLead').value)||60};localStorage.setItem(rosterSettingsKey,JSON.stringify(rosterSettings));updateNextDuty();rosterMessage('Roster reminder settings saved.')});
