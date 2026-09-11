@@ -83,7 +83,7 @@
         <div class="stat glass-card stat-holiday"><span>Holiday worked</span><b id="holidayWorkedCount">0</b><small>Public holidays worked</small></div>
       </section>
 
-      <section id="rosterSection" class="panel glass-card roster-panel">
+      <section id="rosterSection" class="panel glass-card roster-panel" hidden>
         <div class="panel-head">
           <div><div class="section-kicker">MY ROSTER</div><h2>Duty roster</h2><span class="muted small">Your private duty schedule. Roster uploads are controlled by the WorkTrack administrator.</span></div>
           <div id="rosterAdminControls" class="roster-actions hidden"><label class="file-button primary" for="rosterFile">Upload Excel</label><input id="rosterFile" type="file" accept=".xlsx,.xls,.csv" hidden><button id="clearRoster" class="ghost" type="button">Clear roster</button></div>
@@ -105,7 +105,7 @@
         <div class="table-wrap roster-table-wrap"><table><thead><tr><th>Date</th><th>Day</th><th>Duty</th><th>Status</th></tr></thead><tbody id="rosterRecords"></tbody></table><div id="emptyRoster" class="empty">No roster entries yet.</div></div>
       </section>
 
-      <section id="adminRosterSection" class="panel glass-card roster-panel hidden">
+      <section id="adminRosterSection" class="panel glass-card roster-panel hidden" hidden>
         <div class="panel-head">
           <div><div class="section-kicker">ADMIN ROSTER MANAGEMENT</div><h2>Manage team roster</h2><span class="muted small">Upload the latest roster or correct one employee/date. Users only see their own roster.</span></div>
           <div class="roster-actions"><label class="file-button primary" for="adminRosterFile">Upload latest Excel</label><input id="adminRosterFile" type="file" accept=".xlsx,.xls,.csv" hidden></div>
@@ -116,7 +116,7 @@
           <div class="filter-title">🔎 Find roster entries</div>
           <label>Search by ID or name<input id="adminRosterSearch" type="search" placeholder="e.g. 200396 or Mahesh"></label>
           <label>Month<select id="adminRosterMonth"><option value="">All months</option></select></label>
-          <label>Status<select id="adminRosterStatus"><option value="">All statuses</option><option value="present">Duty</option><option value="off">Day Off</option><option value="annual_leave">Annual Leave</option><option value="sick_leave">Sick Leave</option><option value="comp_off">Comp-Off</option><option value="holiday">Public Holiday</option></select></label>
+          <label>Status<select id="adminRosterStatus"><option value="">All statuses</option><option value="present">Duty</option><option value="off">Day Off</option><option value="annual_leave">Annual Leave</option><option value="sick_leave">Sick Leave</option><option value="comp_off">Comp-Off</option><option value="holiday">Public Holiday</option><option value="__none__">None</option></select></label>
           <button id="clearAdminRosterFilters" class="ghost" type="button">Clear filters</button>
         </div>
         <div id="adminRosterFilterSummary" class="muted small"></div>
@@ -131,13 +131,13 @@
         <div class="table-wrap roster-table-wrap"><table><thead><tr><th>Employee</th><th>Date</th><th>Duty</th><th>Action</th></tr></thead><tbody id="adminRosterRecords"></tbody></table><div id="adminRosterEmpty" class="empty">No roster entries loaded.</div></div>
       </section>
 
-      <section id="calendarSection" class="panel glass-card calendar-panel">
+      <section id="calendarSection" class="panel glass-card calendar-panel" hidden>
         <div class="panel-head"><div><div class="section-kicker">MONTH VIEW</div><h2 id="monthTitle"></h2><span id="monthMeta" class="muted small"></span></div><div class="month-actions"><button id="todayMonth" class="ghost" type="button">Today</button><button id="prevMonth" class="ghost icon-btn" type="button" aria-label="Previous month">‹</button><button id="nextMonth" class="ghost icon-btn" type="button" aria-label="Next month">›</button></div></div>
         <div id="calendar" class="calendar"></div>
         <div class="legend"><span><i class="dot normal-dot"></i>Present</span><span><i class="dot ot-dot"></i>Overtime</span><span><i class="dot holiday-dot"></i>UAE Public Holiday</span><span><i class="dot leave-dot"></i>Leave / Off</span></div>
       </section>
 
-      <section id="analyticsSection" class="panel glass-card analytics-panel">
+      <section id="analyticsSection" class="panel glass-card analytics-panel" hidden>
         <div class="panel-head"><div><div class="section-kicker">ANALYTICS</div><h2>Monthly insights</h2><span class="muted small">A quick view of your hours, overtime and attendance pattern</span></div><div class="analytics-summary"><span id="analyticsWorked">0h worked</span><span id="analyticsOt">0h OT</span></div></div>
         <div class="analytics-grid">
           <div class="chart-card"><div class="chart-title"><strong>Worked hours</strong><span>by day</span></div><div id="hoursChart" class="bar-chart"></div></div>
@@ -146,16 +146,16 @@
         </div>
       </section>
 
-      <section id="reportsSection" class="panel glass-card">
+      <section id="reportsSection" class="panel glass-card" hidden>
         <div class="panel-head"><div><div class="section-kicker">REPORTS</div><h2>Monthly report</h2><span class="muted small">Generate a professional PDF or CSV for the selected month</span></div><div class="report-actions"><button id="exportPdf" class="primary" type="button">Download PDF</button><button id="exportCsv" class="ghost" type="button">Export CSV</button></div></div>
       </section>
 
-      <section id="recordsSection" class="panel glass-card">
+      <section id="recordsSection" class="panel glass-card" hidden>
         <div class="panel-head"><div><div class="section-kicker">RECORDS</div><h2>Attendance history</h2><span class="muted small">Your records for the selected month</span></div></div>
         <div class="table-wrap"><table><thead><tr><th>Date</th><th>In</th><th>Out</th><th>Worked</th><th>OT</th><th>Status</th><th></th></tr></thead><tbody id="records"></tbody></table><div id="emptyRecords" class="empty hidden">No attendance records for this month.</div></div>
       </section>
 
-      <section id="payrollSection" class="panel glass-card payroll-panel">
+      <section id="payrollSection" class="panel glass-card payroll-panel" hidden>
         <div class="panel-head"><div><div class="section-kicker">PAYROLL ESTIMATE</div><h2>Overtime pay</h2><span class="muted small">Estimated using your normal OT rate of AED 8.94/hour. Public Holiday (PH) pay is kept separate.</span></div><div class="payroll-rate"><span>Normal OT rate</span><strong>AED 8.94<span>/h</span></strong></div></div>
         <div class="payroll-grid">
           <div class="payroll-item"><span>Normal OT hours</span><b id="payrollOtHours">0h</b></div>
@@ -164,7 +164,7 @@
         </div>
       </section>
 
-      <section id="remindersSection" class="panel glass-card reminder-panel">
+      <section id="remindersSection" class="panel glass-card reminder-panel" hidden>
         <div><div class="section-kicker">REMINDERS</div><h2>Attendance reminder</h2><p class="muted small">Get a browser reminder if today's attendance has not been added. Reminders work while WorkTrack is open.</p></div>
         <div class="reminder-controls">
           <label class="switch-line"><input id="reminderEnabled" type="checkbox"><span>Enable daily reminder</span></label>
@@ -178,7 +178,7 @@
         </div>
       </section>
 
-      <section id="settingsSection" class="panel glass-card settings-panel">
+      <section id="settingsSection" class="panel glass-card settings-panel" hidden>
       <div class="settings-security-card glass-card">
         <div>
           <div class="section-kicker">ACCOUNT SECURITY</div>
@@ -391,6 +391,33 @@
       <div class="dialog-actions"><button class="primary" type="submit">Save attendance</button><button type="button" id="deleteRecord" class="danger hidden">Delete record</button></div>
     </form>
   </dialog>
-  <script src="app-v21.js?v=21.0"></script>
+  <script src="app-v22.js?v=22.0"></script>
+
+<script>
+(function(){
+  const map={home:['homeSection','homeStats'],roster:['rosterSection'],calendar:['calendarSection'],analytics:['analyticsSection'],reports:['reportsSection'],records:['recordsSection'],payroll:['payrollSection'],reminders:['remindersSection'],settings:['settingsSection']};
+  window.worktrackNavigate=function(name){
+    const target=Object.prototype.hasOwnProperty.call(map,name)?name:'home';
+    Object.entries(map).forEach(([key,ids])=>ids.forEach(id=>{
+      const el=document.getElementById(id); if(!el)return;
+      const on=key===target; el.hidden=!on; el.classList.toggle('hidden',!on); el.style.display=on?'':'none';
+      if(on) el.setAttribute('aria-hidden','false'); else el.setAttribute('aria-hidden','true');
+    }));
+    document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===target));
+    const menu=document.getElementById('appMenu'); if(menu){menu.classList.remove('open');menu.setAttribute('aria-hidden','true');}
+    const mb=document.getElementById('menuButton'); if(mb)mb.setAttribute('aria-expanded','false');
+    try{sessionStorage.setItem('worktrack-section',target)}catch(e){}
+    window.__worktrackSection=target; window.scrollTo(0,0);
+  };
+  document.addEventListener('click',function(e){
+    const b=e.target.closest && e.target.closest('[data-nav]'); if(!b)return;
+    const n=b.dataset.nav;
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    if(n==='profile'){ if(window.closeAppMenu) window.closeAppMenu(); if(window.openProfile) window.openProfile(); return; }
+    if(['about','contact','security'].includes(n)){ if(window.closeAppMenu) window.closeAppMenu(); if(window.showInfo) window.showInfo(n); return; }
+    window.worktrackNavigate(n);
+  },true);
+})();
+</script>
 </body>
 </html>

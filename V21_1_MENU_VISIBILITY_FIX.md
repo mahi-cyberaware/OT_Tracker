@@ -1,0 +1,1 @@
+V21.1: Non-home sections are hidden on first paint; a capture-phase navigation router prevents stale/duplicate menu handlers from sending menu clicks to Home. No Supabase migration required.
