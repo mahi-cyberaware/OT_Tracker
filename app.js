@@ -924,27 +924,29 @@ function openAppMenu(){
 }
 
 function showAppSection(name){
-  const target = appSections[name] ? name : 'home';
+  const target = Object.prototype.hasOwnProperty.call(appSections,name) ? name : 'home';
 
-  // Hide every main application section first. Use both the class and the
-  // hidden property so navigation remains reliable on mobile/PWA browsers.
-  Object.values(appSections).flat().forEach(id=>{
-    const el=$(id);
-    if(el){ el.classList.add('menu-hidden-section'); el.hidden=true; }
-  });
-
-  // Show only the requested section.
-  (appSections[target]||[]).forEach(id=>{
-    const el=$(id);
-    if(el){ el.classList.remove('menu-hidden-section'); el.hidden=false; }
+  // Deterministic section switching: hide only the known app sections.
+  Object.entries(appSections).forEach(([key, ids])=>{
+    ids.forEach(id=>{
+      const el=$(id);
+      if(!el)return;
+      const isTarget = key===target;
+      el.classList.toggle('menu-hidden-section', !isTarget);
+      el.hidden = !isTarget;
+      el.setAttribute('aria-hidden', String(!isTarget));
+    });
   });
 
   document.querySelectorAll('.menu-item[data-nav]').forEach(btn=>{
-    btn.classList.toggle('active',btn.dataset.nav===target);
+    btn.classList.toggle('active', btn.dataset.nav===target);
   });
 
   closeAppMenu();
   window.__worktrackSection=target;
+  if(history.replaceState){
+    history.replaceState(null,'',target==='home' ? location.pathname+location.search : '#'+target);
+  }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1520,7 +1522,7 @@ $('installApp')?.addEventListener('click',async()=>{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js?v=19.2').then(()=>{
+    navigator.serviceWorker.register('./sw.js?v=19.3').then(()=>{
       console.info('WorkTrack V19 service worker ready');
     }).catch(err=>console.warn('WorkTrack PWA service worker:',err));
   });
