@@ -46,6 +46,9 @@ function showApp(){
   let p=profile(),name=displayName(),initial=(name.trim()[0]||'W').toUpperCase();
   setText('headerName',name);setText('headerEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('heroName',name.split(' ')[0]);setText('avatarInitial',initial);
   setTag('profileCompany',p.company_name);setTag('profilePosition',p.position);setTag('profileEmployee',p.employee_id?`Employee ID • ${p.employee_id}`:'');
+  if($('settingsCurrentEmail')) $('settingsCurrentEmail').value=user?.email||'';
+  if($('settingsNewEmail')) $('settingsNewEmail').value='';
+  if($('settingsMobile')) $('settingsMobile').value=p.mobile_number||'';
 }
 function setTag(id,text){$(id).textContent=text||'';$(id).classList.toggle('hidden',!text)}
 function authMessage(text,isError=false){$('authMessage').textContent=text;$('authMessage').className=`message ${text?(isError?'error':'success'):''}`}
@@ -1274,6 +1277,45 @@ setupPasswordToggle('toggleNewPassword','newPassword');
 setupPasswordToggle('toggleConfirmPassword','confirmPassword');
 
 $('settingsPasswordButton')?.addEventListener('click',openPasswordDialog);
+
+function contactSettingsMessage(text,isError=false){
+  const el=$('contactSettingsMessage');
+  if(!el)return;
+  el.textContent=text||'';
+  el.className=`message ${text?(isError?'error':'success'):''}`;
+}
+
+$('saveContactSettings')?.addEventListener('click',async()=>{
+  const newEmail=$('settingsNewEmail')?.value.trim().toLowerCase()||'';
+  const mobile=$('settingsMobile')?.value.trim()||'';
+  const currentEmail=(user?.email||'').toLowerCase();
+  const emailChanged=!!newEmail && newEmail!==currentEmail;
+  if(newEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)){
+    contactSettingsMessage('Enter a valid email address.',true);return;
+  }
+  const btn=$('saveContactSettings');
+  if(btn)btn.disabled=true;
+  contactSettingsMessage('Saving contact details…');
+  try{
+    let messages=[];
+    if(emailChanged){
+      const r=await sb.auth.updateUser({email:newEmail});
+      if(r.error){contactSettingsMessage(r.error.message,true);return;}
+      user=r.data.user||user;
+      messages.push('Email change requested. Check the new email for confirmation.');
+    }
+    const r2=await sb.auth.updateUser({data:{mobile_number:mobile}});
+    if(r2.error){contactSettingsMessage(r2.error.message,true);return;}
+    user=r2.data.user||user;
+    if(!emailChanged)messages.push('Mobile number updated.');
+    else messages.push('Mobile number updated.');
+    if($('settingsCurrentEmail'))$('settingsCurrentEmail').value=user?.email||currentEmail;
+    if($('settingsNewEmail'))$('settingsNewEmail').value='';
+    contactSettingsMessage(messages.join(' '));
+    showApp();
+  }catch(err){contactSettingsMessage(err?.message||'Could not update contact details.',true)}
+  finally{if(btn)btn.disabled=false}
+});
 
 
 

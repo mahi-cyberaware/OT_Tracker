@@ -1403,3 +1403,25 @@
 \n\n/* V19.1 — Smart duty alert dialog */\n.duty-alert-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(2,6,18,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);animation:dutyAlertFade .18s ease-out}.duty-alert-dialog{width:min(460px,100%);padding:28px;border:1px solid rgba(132,157,255,.28);border-radius:26px;background:linear-gradient(145deg,rgba(22,32,58,.98),rgba(7,12,26,.98));box-shadow:0 28px 80px rgba(0,0,0,.55),0 0 45px rgba(96,124,255,.16);text-align:center}.duty-alert-icon{font-size:44px;margin-bottom:6px;filter:drop-shadow(0 0 14px rgba(255,100,80,.25))}.duty-alert-dialog h2{margin:8px 0 14px;font-size:22px;line-height:1.25;color:#eef3ff}.duty-alert-duty{font-size:30px;font-weight:800;letter-spacing:.02em;color:#cbd5ff;margin:8px 0}.duty-alert-date{font-size:13px;color:#9aa8c2;margin-bottom:16px}.duty-alert-wake{display:flex;flex-direction:column;gap:4px;padding:13px;border-radius:15px;background:rgba(124,156,255,.08);border:1px solid rgba(124,156,255,.15);color:#d8e0ff}.duty-alert-wake span{font-size:11px;color:#8190aa}.duty-alert-ok{width:100%;margin-top:18px;min-height:48px;font-weight:800}.duty-alert-overlay .section-kicker{letter-spacing:.14em;color:#8fa3ff}@keyframes dutyAlertFade{from{opacity:0}to{opacity:1}}\n@media(max-width:520px){.duty-alert-dialog{padding:23px 18px;border-radius:22px}.duty-alert-duty{font-size:25px}.duty-alert-dialog h2{font-size:20px}}\n
 /* V21.1 hard navigation visibility fix */
 .menu-hidden-section{display:none!important;}
+
+
+/* V22.1 — account contact settings */
+.settings-contact-card{
+  grid-column:1/-1;
+  margin-bottom:18px;
+  padding:18px;
+  border-radius:18px;
+  background:rgba(124,156,255,.055);
+  border:1px solid rgba(124,156,255,.13);
+}
+.settings-contact-head h3{margin:4px 0 5px;color:#eef3fd;font-size:16px}
+.settings-contact-head p{margin:0;color:#8492a8;font-size:11px;line-height:1.5}
+.settings-contact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.settings-contact-actions{display:flex;align-items:center;gap:12px;margin-top:14px}
+.settings-contact-actions .message{margin:0;flex:1}
+.settings-contact-note{margin-top:10px;color:#68768d;font-size:10px}
+@media(max-width:640px){
+  .settings-contact-grid{grid-template-columns:1fr}
+  .settings-contact-actions{flex-direction:column;align-items:stretch}
+  .settings-contact-actions .primary{width:100%}
+}
