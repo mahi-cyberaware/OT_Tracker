@@ -243,6 +243,7 @@
           <button type="button" class="menu-item" data-nav="analytics">◫ <span>Analytics</span></button>
           <button type="button" class="menu-item" data-nav="reports">▤ <span>Reports</span></button>
           <button type="button" class="menu-item" data-nav="records">☷ <span>Attendance history</span></button>
+          <button type="button" class="menu-item" data-nav="writtenStatement"><span>Written Statement</span></button>
           <button type="button" class="menu-item" data-nav="payroll">₹ <span>Payroll estimate</span></button>
           <button type="button" class="menu-item" data-nav="reminders">◷ <span>Reminders</span></button>
           <button type="button" class="menu-item" data-nav="settings">⚙ <span>Settings</span></button>
@@ -543,10 +544,17 @@
   <link rel="stylesheet" href="written-statement.css">
   <script src="written-statement-module.js"></script>
   <script src="app-v22-6.js?v=22.6"></script>
+  <script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.initWrittenStatementModule) {
+    window.initWrittenStatementModule();
+  }
+});
+</script>
 
 <script>
 (function(){
-  const map={home:['homeSection','homeStats'],roster:['rosterSection'],calendar:['calendarSection'],analytics:['analyticsSection'],reports:['reportsSection'],records:['recordsSection'],payroll:['payrollSection'],reminders:['remindersSection'],settings:['settingsSection']};
+  const map={home:['homeSection','homeStats'],roster:['rosterSection'],calendar:['calendarSection'],analytics:['analyticsSection'],reports:['reportsSection'],records:['recordsSection'],writtenStatement:['writtenStatementSection'],payroll:['payrollSection'],reminders:['remindersSection'],settings:['settingsSection']};
   window.worktrackNavigate=function(name){
     const target=Object.prototype.hasOwnProperty.call(map,name)?name:'home';
     Object.entries(map).forEach(([key,ids])=>ids.forEach(id=>{
