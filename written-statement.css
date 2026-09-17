@@ -64,12 +64,8 @@
 @media print{
   body{background:#fff!important}
   body>*{display:none!important}
-  #appView{display:block!important}
-  #appView main{display:block!important}
-  #writtenStatementSection{display:block!important;visibility:visible!important}
-  #writtenStatementSection>.panel-head,
-  #writtenStatementSection>.ws-workspace>.ws-input-panel{display:none!important}
-  #writtenStatementSection>.ws-workspace{display:block!important}
+  #writtenStatementSection{display:block!important}
+  #writtenStatementSection>*:not(.ws-preview-wrap){display:none!important}
   .ws-preview-wrap{display:block!important}
   .ws-preview-toolbar{display:none!important}
   .written-paper{box-shadow:none;width:210mm;max-width:none;min-height:297mm;margin:0;padding:8mm 10mm 7mm}
@@ -88,5 +84,3 @@
   .ws-page-footer{left:10mm;bottom:4mm}
   @page{size:A4 portrait;margin:0}
 }
-
-.ws-logo{object-fit:contain;object-position:right center;}

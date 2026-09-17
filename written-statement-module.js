@@ -27,12 +27,6 @@
     el.className="message "+(error?"error":"success");
   }
 
-  function formatDate(v){
-    if(!v)return "";
-    const p=v.split("-");
-    return p.length===3 ? `${p[2]}/${p[1]}/${p[0]}` : v;
-  }
-
   function bind(name,value){
     const el=document.querySelector(`[data-bind="${name}"]`);
     if(el) el.textContent=value||"";
@@ -41,7 +35,7 @@
   function renderPreview(statement=""){
     const d=formData();
     bind("incidentTitle",d.incidentTitle);
-    bind("dateIncident",formatDate(d.dateIncident));
+    bind("dateIncident",d.dateIncident);
     bind("locationIncident",d.locationIncident);
     bind("timeIncident",d.timeIncident);
     bind("flightEtd",d.flightEtd);
@@ -71,29 +65,6 @@
     }catch(e){setStatus(e.message||"OCR failed.",true);}
   }
 
-  function resizeImage(file){
-    return new Promise((resolve,reject)=>{
-      const reader=new FileReader();
-      reader.onerror=reject;
-      reader.onload=()=>{
-        const img=new Image();
-        img.onerror=reject;
-        img.onload=()=>{
-          const max=1600;
-          const scale=Math.min(1,max/Math.max(img.width,img.height));
-          const canvas=document.createElement("canvas");
-          canvas.width=Math.max(1,Math.round(img.width*scale));
-          canvas.height=Math.max(1,Math.round(img.height*scale));
-          const ctx=canvas.getContext("2d");
-          ctx.drawImage(img,0,0,canvas.width,canvas.height);
-          resolve(canvas.toDataURL("image/jpeg",0.82));
-        };
-        img.src=reader.result;
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-
   async function generate(){
     const d=formData();
     if(!d.reason)return setStatus("Enter your reason / explanation first.",true);
@@ -101,7 +72,9 @@
     try{
       const file=$ws("wsReportImage").files[0];
       let imageData=null;
-      if(file)imageData=await resizeImage(file);
+      if(file)imageData=await new Promise((resolve,reject)=>{
+        const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file);
+      });
       const res=await fetch(WS_API,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
