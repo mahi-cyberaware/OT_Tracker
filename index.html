@@ -343,6 +343,7 @@
   </div>
 </section>
 
+
       <footer class="app-footer">
         <div class="footer-brand">
           <strong>WorkTrack</strong>
@@ -541,7 +542,6 @@
       <div class="dialog-actions"><button class="primary" type="submit">Save attendance</button><button type="button" id="deleteRecord" class="danger hidden">Delete record</button></div>
     </form>
   </dialog>
-
   <link rel="stylesheet" href="written-statement.css">
   <script src="written-statement-module.js"></script>
   <script src="app-v22-6.js?v=22.6"></script>
@@ -553,122 +553,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
-<script>
-(function () {
-  'use strict';
-
-  const map = {
-    home: ['homeSection', 'homeStats'],
-    roster: ['rosterSection'],
-    calendar: ['calendarSection'],
-    analytics: ['analyticsSection'],
-    reports: ['reportsSection'],
-    records: ['recordsSection'],
-    writtenStatement: ['writtenStatementSection'],
-    payroll: ['payrollSection'],
-    reminders: ['remindersSection'],
-    settings: ['settingsSection']
-  };
-
-  const sectionIds = Object.values(map).flat();
-
-  function get(id) {
-    return document.getElementById(id);
-  }
-
-  function closeMenu() {
-    const menu = get('appMenu');
-    const button = get('menuButton');
-
-    if (menu) {
-      menu.classList.remove('open');
-      menu.setAttribute('aria-hidden', 'true');
-    }
-
-    if (button) {
-      button.setAttribute('aria-expanded', 'false');
-    }
-  }
-
-  function openMenu() {
-    const menu = get('appMenu');
-    const button = get('menuButton');
-
-    if (menu) {
-      menu.classList.add('open');
-      menu.setAttribute('aria-hidden', 'false');
-    }
-
-    if (button) {
-      button.setAttribute('aria-expanded', 'true');
-    }
-  }
-
-  function setSectionVisible(el, visible) {
-    if (!el) return;
-
-    if (visible) {
-      el.hidden = false;
-      el.classList.remove('hidden');
-      el.style.removeProperty('display');
-      el.setAttribute('aria-hidden', 'false');
-    } else {
-      el.hidden = true;
-      el.classList.add('hidden');
-      el.style.removeProperty('display');
-      el.setAttribute('aria-hidden', 'true');
-    }
-  }
-
-  function navigate(name) {
-    const target = Object.prototype.hasOwnProperty.call(map, name)
-      ? name
-      : 'home';
-
-    sectionIds.forEach(function (id) {
-      const el = get(id);
-      if (!el) return;
-
-      setSectionVisible(el, map[target].includes(id));
-    });
-
-    document.querySelectorAll('.menu-item[data-nav]').forEach(function (button) {
-      button.classList.toggle('active', button.dataset.nav === target);
-    });
-
-    closeMenu();
-
-    try {
-      sessionStorage.setItem('worktrack-section', target);
-    } catch (e) {}
-
-    window.__worktrackSection = target;
-
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  }
-
-  window.worktrackNavigate = navigate;
-
-  document.addEventListener('DOMContentLoaded', function () {
-    const menuButton = get('menuButton');
-    const closeMenuButton = get('closeMenu');
-    const backdrop = get('menuBackdrop');
-    const homeLogo = get('homeLogo');
-
-    if (menuButton) {
-      menuButton.addEventListener('click', function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        const menu = get('appMenu');
-        if (menu && menu.classList.contains('open')) {
-          closeMenu();
-        } else {
-          openMenu();
-        }
 <script>
 (function () {
   'use strict';
@@ -686,230 +570,131 @@ document.addEventListener('DOMContentLoaded', function () {
     settings: ['settingsSection']
   };
 
-  function $(id) {
-    return document.getElementById(id);
-  }
+  const get = id => document.getElementById(id);
 
   function openMenu() {
-    const menu = $('appMenu');
-    const button = $('menuButton');
-
-    if (!menu) {
-      console.error('WorkTrack: appMenu not found');
-      return;
-    }
-
+    const menu = get('appMenu');
+    const button = get('menuButton');
+    if (!menu) return;
     menu.classList.add('open');
     menu.setAttribute('aria-hidden', 'false');
-
-    if (button) {
-      button.setAttribute('aria-expanded', 'true');
-    }
+    if (button) button.setAttribute('aria-expanded', 'true');
   }
 
   function closeMenu() {
-    const menu = $('appMenu');
-    const button = $('menuButton');
-
+    const menu = get('appMenu');
+    const button = get('menuButton');
     if (menu) {
       menu.classList.remove('open');
       menu.setAttribute('aria-hidden', 'true');
     }
-
-    if (button) {
-      button.setAttribute('aria-expanded', 'false');
-    }
-  }
-
-  function toggleMenu() {
-    const menu = $('appMenu');
-
-    if (!menu) {
-      console.error('WorkTrack: appMenu not found');
-      return;
-    }
-
-    if (menu.classList.contains('open')) {
-      closeMenu();
-    } else {
-      openMenu();
-    }
+    if (button) button.setAttribute('aria-expanded', 'false');
   }
 
   function navigate(name) {
-    if (!sections[name]) {
-      name = 'home';
-    }
+    const target = Object.prototype.hasOwnProperty.call(sections, name) ? name : 'home';
 
-    Object.keys(sections).forEach(function (sectionName) {
-      sections[sectionName].forEach(function (id) {
-        const el = $(id);
+    Object.keys(sections).forEach(key => {
+      sections[key].forEach(id => {
+        const el = get(id);
         if (!el) return;
-
-        const active = sectionName === name;
-
+        const active = key === target;
         el.hidden = !active;
         el.classList.toggle('hidden', !active);
+        el.style.removeProperty('display');
         el.setAttribute('aria-hidden', active ? 'false' : 'true');
-
-        if (active) {
-          el.style.removeProperty('display');
-        } else {
-          el.style.removeProperty('display');
-        }
       });
     });
 
-    document.querySelectorAll('.menu-item[data-nav]').forEach(function (item) {
-      item.classList.toggle('active', item.dataset.nav === name);
+    document.querySelectorAll('.menu-item[data-nav]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.nav === target);
     });
 
     closeMenu();
+    window.__worktrackSection = target;
 
     try {
-      sessionStorage.setItem('worktrack-section', name);
+      sessionStorage.setItem('worktrack-section', target);
     } catch (e) {}
 
-    window.__worktrackSection = name;
-
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   window.worktrackNavigate = navigate;
   window.openAppMenu = openMenu;
   window.closeAppMenu = closeMenu;
 
-  function initNavigation() {
+  function init() {
+    const menuButton = get('menuButton');
+    const closeButton = get('closeMenu');
+    const backdrop = get('menuBackdrop');
+    const homeLogo = get('homeLogo');
 
-    /* MENU BUTTON */
-    const menuButton = $('menuButton');
+    if (menuButton) menuButton.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      const menu = get('appMenu');
+      if (menu && menu.classList.contains('open')) closeMenu();
+      else openMenu();
+    });
 
-    if (menuButton) {
-      menuButton.addEventListener('click', function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        toggleMenu();
-      });
-    }
+    if (closeButton) closeButton.addEventListener('click', e => {
+      e.preventDefault();
+      closeMenu();
+    });
 
-    /* CLOSE BUTTON */
-    const closeButton = $('closeMenu');
+    if (backdrop) backdrop.addEventListener('click', closeMenu);
 
-    if (closeButton) {
-      closeButton.addEventListener('click', function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        closeMenu();
-      });
-    }
+    if (homeLogo) homeLogo.addEventListener('click', e => {
+      e.preventDefault();
+      navigate('home');
+    });
 
-    /* BACKDROP */
-    const backdrop = $('menuBackdrop');
-
-    if (backdrop) {
-      backdrop.addEventListener('click', function () {
-        closeMenu();
-      });
-    }
-
-    /* HOME LOGO */
-    const homeLogo = $('homeLogo');
-
-    if (homeLogo) {
-      homeLogo.addEventListener('click', function (event) {
-        event.preventDefault();
-        navigate('home');
-      });
-    }
-
-    /* MENU ITEMS */
-    document.querySelectorAll('[data-nav]').forEach(function (button) {
-
-      button.addEventListener('click', function (event) {
-
+    document.querySelectorAll('[data-nav]').forEach(button => {
+      button.addEventListener('click', e => {
         const name = button.dataset.nav;
-
         if (!name) return;
 
-        /* Profile */
         if (name === 'profile') {
-          event.preventDefault();
-          event.stopPropagation();
+          e.preventDefault();
           closeMenu();
-
-          if (typeof window.openProfile === 'function') {
-            window.openProfile();
-          }
-
+          if (typeof window.openProfile === 'function') window.openProfile();
           return;
         }
 
-        /* About / Contact / Security */
-        if (
-          name === 'about' ||
-          name === 'contact' ||
-          name === 'security'
-        ) {
-          event.preventDefault();
-          event.stopPropagation();
+        if (name === 'about' || name === 'contact' || name === 'security') {
+          e.preventDefault();
           closeMenu();
-
-          if (typeof window.showInfo === 'function') {
-            window.showInfo(name);
-          }
-
+          if (typeof window.showInfo === 'function') window.showInfo(name);
           return;
         }
 
-        /* Normal sections */
         if (sections[name]) {
-          event.preventDefault();
-          event.stopPropagation();
+          e.preventDefault();
           navigate(name);
         }
-
       });
-
     });
 
-    /* ESC KEY CLOSES MENU */
-    document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape') {
-        closeMenu();
-      }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeMenu();
     });
 
-    /* RESTORE LAST PAGE */
-    let savedSection = 'home';
-
+    let initial = 'home';
     try {
       const saved = sessionStorage.getItem('worktrack-section');
-
-      if (saved && sections[saved]) {
-        savedSection = saved;
-      }
+      if (saved && sections[saved]) initial = saved;
     } catch (e) {}
 
-    navigate(savedSection);
+    navigate(initial);
   }
 
-  /*
-   * Wait until the complete HTML is ready.
-   */
   if (document.readyState === 'loading') {
-    document.addEventListener(
-      'DOMContentLoaded',
-      initNavigation,
-      { once: true }
-    );
+    document.addEventListener('DOMContentLoaded', init, { once: true });
   } else {
-    initNavigation();
+    init();
   }
-
 })();
 </script>
 </body>
-</html>
+  </html>
