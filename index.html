@@ -669,19 +669,154 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
           openMenu();
         }
+<script>
+(function () {
+  'use strict';
+
+  const sections = {
+    home: ['homeSection', 'homeStats'],
+    roster: ['rosterSection'],
+    calendar: ['calendarSection'],
+    analytics: ['analyticsSection'],
+    reports: ['reportsSection'],
+    records: ['recordsSection'],
+    writtenStatement: ['writtenStatementSection'],
+    payroll: ['payrollSection'],
+    reminders: ['remindersSection'],
+    settings: ['settingsSection']
+  };
+
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function openMenu() {
+    const menu = $('appMenu');
+    const button = $('menuButton');
+
+    if (!menu) {
+      console.error('WorkTrack: appMenu not found');
+      return;
+    }
+
+    menu.classList.add('open');
+    menu.setAttribute('aria-hidden', 'false');
+
+    if (button) {
+      button.setAttribute('aria-expanded', 'true');
+    }
+  }
+
+  function closeMenu() {
+    const menu = $('appMenu');
+    const button = $('menuButton');
+
+    if (menu) {
+      menu.classList.remove('open');
+      menu.setAttribute('aria-hidden', 'true');
+    }
+
+    if (button) {
+      button.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  function toggleMenu() {
+    const menu = $('appMenu');
+
+    if (!menu) {
+      console.error('WorkTrack: appMenu not found');
+      return;
+    }
+
+    if (menu.classList.contains('open')) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  }
+
+  function navigate(name) {
+    if (!sections[name]) {
+      name = 'home';
+    }
+
+    Object.keys(sections).forEach(function (sectionName) {
+      sections[sectionName].forEach(function (id) {
+        const el = $(id);
+        if (!el) return;
+
+        const active = sectionName === name;
+
+        el.hidden = !active;
+        el.classList.toggle('hidden', !active);
+        el.setAttribute('aria-hidden', active ? 'false' : 'true');
+
+        if (active) {
+          el.style.removeProperty('display');
+        } else {
+          el.style.removeProperty('display');
+        }
+      });
+    });
+
+    document.querySelectorAll('.menu-item[data-nav]').forEach(function (item) {
+      item.classList.toggle('active', item.dataset.nav === name);
+    });
+
+    closeMenu();
+
+    try {
+      sessionStorage.setItem('worktrack-section', name);
+    } catch (e) {}
+
+    window.__worktrackSection = name;
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
+
+  window.worktrackNavigate = navigate;
+  window.openAppMenu = openMenu;
+  window.closeAppMenu = closeMenu;
+
+  function initNavigation() {
+
+    /* MENU BUTTON */
+    const menuButton = $('menuButton');
+
+    if (menuButton) {
+      menuButton.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleMenu();
       });
     }
 
-    if (closeMenuButton) {
-      closeMenuButton.addEventListener('click', function (event) {
+    /* CLOSE BUTTON */
+    const closeButton = $('closeMenu');
+
+    if (closeButton) {
+      closeButton.addEventListener('click', function (event) {
         event.preventDefault();
+        event.stopPropagation();
         closeMenu();
       });
     }
 
+    /* BACKDROP */
+    const backdrop = $('menuBackdrop');
+
     if (backdrop) {
-      backdrop.addEventListener('click', closeMenu);
+      backdrop.addEventListener('click', function () {
+        closeMenu();
+      });
     }
+
+    /* HOME LOGO */
+    const homeLogo = $('homeLogo');
 
     if (homeLogo) {
       homeLogo.addEventListener('click', function (event) {
@@ -690,56 +825,90 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
 
-    document.addEventListener('click', function (event) {
-      const button = event.target.closest
-        ? event.target.closest('[data-nav]')
-        : null;
+    /* MENU ITEMS */
+    document.querySelectorAll('[data-nav]').forEach(function (button) {
 
-      if (!button) return;
+      button.addEventListener('click', function (event) {
 
-      const name = button.dataset.nav;
+        const name = button.dataset.nav;
 
-      if (name === 'profile') {
-        event.preventDefault();
-        closeMenu();
+        if (!name) return;
 
-        if (typeof window.openProfile === 'function') {
-          window.openProfile();
+        /* Profile */
+        if (name === 'profile') {
+          event.preventDefault();
+          event.stopPropagation();
+          closeMenu();
+
+          if (typeof window.openProfile === 'function') {
+            window.openProfile();
+          }
+
+          return;
         }
-        return;
-      }
 
-      if (name === 'about' || name === 'contact' || name === 'security') {
-        event.preventDefault();
-        closeMenu();
+        /* About / Contact / Security */
+        if (
+          name === 'about' ||
+          name === 'contact' ||
+          name === 'security'
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          closeMenu();
 
-        if (typeof window.showInfo === 'function') {
-          window.showInfo(name);
+          if (typeof window.showInfo === 'function') {
+            window.showInfo(name);
+          }
+
+          return;
         }
-        return;
-      }
 
-      if (Object.prototype.hasOwnProperty.call(map, name)) {
-        event.preventDefault();
-        navigate(name);
+        /* Normal sections */
+        if (sections[name]) {
+          event.preventDefault();
+          event.stopPropagation();
+          navigate(name);
+        }
+
+      });
+
+    });
+
+    /* ESC KEY CLOSES MENU */
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeMenu();
       }
     });
 
-    let initialSection = 'home';
+    /* RESTORE LAST PAGE */
+    let savedSection = 'home';
 
     try {
       const saved = sessionStorage.getItem('worktrack-section');
 
-      if (
-        saved &&
-        Object.prototype.hasOwnProperty.call(map, saved)
-      ) {
-        initialSection = saved;
+      if (saved && sections[saved]) {
+        savedSection = saved;
       }
     } catch (e) {}
 
-    navigate(initialSection);
-  });
+    navigate(savedSection);
+  }
+
+  /*
+   * Wait until the complete HTML is ready.
+   */
+  if (document.readyState === 'loading') {
+    document.addEventListener(
+      'DOMContentLoaded',
+      initNavigation,
+      { once: true }
+    );
+  } else {
+    initNavigation();
+  }
+
 })();
 </script>
 </body>
