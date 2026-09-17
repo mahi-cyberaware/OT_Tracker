@@ -209,140 +209,6 @@
         </div>
       </section>
 
-  <section id="writtenStatementSection" class="panel glass-card ws-module" hidden>
-  <div class="panel-head">
-    <div>
-      <div class="section-kicker">DOCUMENT</div>
-      <h2>Written Statement</h2>
-      <p class="muted small">Prepare the written statement using the company form layout.</p>
-    </div>
-    <button id="wsNew" class="ghost" type="button">New Statement</button>
-  </div>
-
-  <div class="ws-workspace">
-    <div class="ws-input-panel">
-      <div class="ws-card">
-        <div class="ws-card-title">ONBOARD CREW REPORT</div>
-        <label>Upload report image
-          <input id="wsReportImage" type="file" accept="image/*">
-        </label>
-        <div class="ws-actions">
-          <button id="wsOcr" class="ghost" type="button">Extract OCR</button>
-          <button id="wsClearOcr" class="ghost" type="button">Clear</button>
-        </div>
-        <label>OCR text
-          <textarea id="wsOcrText" rows="8" placeholder="Extracted report text appears here. Check it and correct any OCR mistakes."></textarea>
-        </label>
-      </div>
-
-      <div class="ws-card">
-        <div class="ws-card-title">INCIDENT DETAILS</div>
-        <div class="ws-grid-2">
-          <label>Incident Title<input id="wsIncidentTitle" type="text"></label>
-          <label>Date of Incident<input id="wsDateIncident" type="date"></label>
-          <label>Location of Incident<input id="wsLocationIncident" type="text"></label>
-          <label>Time of Incident<input id="wsTimeIncident" type="time"></label>
-          <label>Flight No & ETD<input id="wsFlightEtd" type="text"></label>
-          <label>Staff No<input id="wsStaffNo" type="text"></label>
-          <label>Staff Name<input id="wsStaffName" type="text"></label>
-          <label>Staff Mob No<input id="wsStaffMob" type="tel"></label>
-          <label>Staff Designation<input id="wsStaffDesignation" type="text"></label>
-        </div>
-        <div class="ws-checks">
-          <label><input id="wsInvolved" type="checkbox"> Involved</label>
-          <label><input id="wsWitness" type="checkbox"> Witness</label>
-          <label><input id="wsInjured" type="checkbox"> Injured Party</label>
-        </div>
-      </div>
-
-      <div class="ws-card">
-        <div class="ws-card-title">YOUR REASON / EXPLANATION</div>
-        <label>Explain what happened in your own words
-          <textarea id="wsReason" rows="7" placeholder="Write the facts simply. The generated statement must not add facts that you did not provide."></textarea>
-        </label>
-        <button id="wsGenerate" class="primary full" type="button">Generate Staff Statement</button>
-        <div id="wsStatus" class="message"></div>
-      </div>
-    </div>
-
-    <div class="ws-preview-wrap">
-      <div class="ws-preview-toolbar">
-        <span>COMPANY FORM PREVIEW</span>
-        <div>
-          <button id="wsPrint" class="ghost" type="button">Print / Save PDF</button>
-          <button id="wsSave" class="ghost" type="button">Save Draft</button>
-        </div>
-      </div>
-
-      <div id="writtenStatementPaper" class="written-paper">
-        <div class="ws-brand-row">
-          <div class="ws-brand-pattern"></div>
-          <img src="/capital-catering-logo.jpg" alt="Capital Catering" class="ws-logo">
-        </div>
-
-        <div class="ws-page-title">WRITTEN STATEMENT</div>
-
-        <div class="ws-section-heading">INCIDENT DETAILS</div>
-        <table class="ws-incident-table">
-          <tr>
-            <td colspan="4"><b>Incident Title</b><span data-bind="incidentTitle"></span></td>
-          </tr>
-          <tr>
-            <td><b>Date of Incident</b><span data-bind="dateIncident"></span></td>
-            <td><span></span></td>
-            <td><b>Time of Incident</b><span data-bind="timeIncident"></span></td>
-            <td><span></span></td>
-          </tr>
-          <tr>
-            <td><b>Location of Incident</b><span data-bind="locationIncident"></span></td>
-            <td><span></span></td>
-            <td><b>Flight No & ETD</b><span data-bind="flightEtd"></span></td>
-            <td><span></span></td>
-          </tr>
-          <tr>
-            <td><b>Staff Name</b><span data-bind="staffName"></span></td>
-            <td><span></span></td>
-            <td><b>Staff No</b><span data-bind="staffNo"></span></td>
-            <td><span></span></td>
-          </tr>
-          <tr>
-            <td><b>Staff Designation</b><span data-bind="staffDesignation"></span></td>
-            <td><span></span></td>
-            <td><b>Staff Mob No</b><span data-bind="staffMob"></span></td>
-            <td><span></span></td>
-          </tr>
-          <tr>
-            <td><b>Type of Involvement</b></td>
-            <td><span class="ws-check"><i data-check="involved">□</i> Involved</span></td>
-            <td><span class="ws-check"><i data-check="witness">□</i> Witness</span></td>
-            <td><span class="ws-check"><i data-check="injured">□</i> Injured Party</span></td>
-          </tr>
-        </table>
-
-        <table class="ws-statement-table">
-          <tr><th>STAFF STATEMENT</th></tr>
-          <tr><td class="ws-statement-cell" data-bind="staffStatement"></td></tr>
-          <tr><td class="ws-sign-cell">Staff Signature:<span></span></td></tr>
-        </table>
-
-        <table class="ws-comments-table">
-          <tr><th>Duty Officers Comments</th></tr>
-          <tr><td class="ws-comments-cell"></td></tr>
-          <tr class="ws-footer-fields">
-            <td>
-              <div><b>Name:</b><span></span></div>
-              <div><b>ERP:</b><span></span></div>
-              <div><b>Signature:</b><span></span></div>
-            </td>
-          </tr>
-        </table>
-
-        <div class="ws-page-footer">Page 1 of 1</div>
-      </div>
-    </div>
-  </div>
-</section>
-
       <footer class="app-footer">
         <div class="footer-brand">
           <strong>WorkTrack</strong>
@@ -541,6 +407,140 @@
       <div class="dialog-actions"><button class="primary" type="submit">Save attendance</button><button type="button" id="deleteRecord" class="danger hidden">Delete record</button></div>
     </form>
   </dialog>
+  <section id="writtenStatementSection" class="panel glass-card ws-module" hidden>
+  <div class="panel-head">
+    <div>
+      <div class="section-kicker">DOCUMENT</div>
+      <h2>Written Statement</h2>
+      <p class="muted small">Prepare the written statement using the company form layout.</p>
+    </div>
+    <button id="wsNew" class="ghost" type="button">New Statement</button>
+  </div>
+
+  <div class="ws-workspace">
+    <div class="ws-input-panel">
+      <div class="ws-card">
+        <div class="ws-card-title">ONBOARD CREW REPORT</div>
+        <label>Upload report image
+          <input id="wsReportImage" type="file" accept="image/*">
+        </label>
+        <div class="ws-actions">
+          <button id="wsOcr" class="ghost" type="button">Extract OCR</button>
+          <button id="wsClearOcr" class="ghost" type="button">Clear</button>
+        </div>
+        <label>OCR text
+          <textarea id="wsOcrText" rows="8" placeholder="Extracted report text appears here. Check it and correct any OCR mistakes."></textarea>
+        </label>
+      </div>
+
+      <div class="ws-card">
+        <div class="ws-card-title">INCIDENT DETAILS</div>
+        <div class="ws-grid-2">
+          <label>Incident Title<input id="wsIncidentTitle" type="text"></label>
+          <label>Date of Incident<input id="wsDateIncident" type="date"></label>
+          <label>Location of Incident<input id="wsLocationIncident" type="text"></label>
+          <label>Time of Incident<input id="wsTimeIncident" type="time"></label>
+          <label>Flight No & ETD<input id="wsFlightEtd" type="text"></label>
+          <label>Staff No<input id="wsStaffNo" type="text"></label>
+          <label>Staff Name<input id="wsStaffName" type="text"></label>
+          <label>Staff Mob No<input id="wsStaffMob" type="tel"></label>
+          <label>Staff Designation<input id="wsStaffDesignation" type="text"></label>
+        </div>
+        <div class="ws-checks">
+          <label><input id="wsInvolved" type="checkbox"> Involved</label>
+          <label><input id="wsWitness" type="checkbox"> Witness</label>
+          <label><input id="wsInjured" type="checkbox"> Injured Party</label>
+        </div>
+      </div>
+
+      <div class="ws-card">
+        <div class="ws-card-title">YOUR REASON / EXPLANATION</div>
+        <label>Explain what happened in your own words
+          <textarea id="wsReason" rows="7" placeholder="Write the facts simply. The generated statement must not add facts that you did not provide."></textarea>
+        </label>
+        <button id="wsGenerate" class="primary full" type="button">Generate Staff Statement</button>
+        <div id="wsStatus" class="message"></div>
+      </div>
+    </div>
+
+    <div class="ws-preview-wrap">
+      <div class="ws-preview-toolbar">
+        <span>COMPANY FORM PREVIEW</span>
+        <div>
+          <button id="wsPrint" class="ghost" type="button">Print / Save PDF</button>
+          <button id="wsSave" class="ghost" type="button">Save Draft</button>
+        </div>
+      </div>
+
+      <div id="writtenStatementPaper" class="written-paper">
+        <div class="ws-brand-row">
+          <div class="ws-brand-pattern"></div>
+          <img src="/capital-catering-logo.jpg" alt="Capital Catering" class="ws-logo">
+        </div>
+
+        <div class="ws-page-title">WRITTEN STATEMENT</div>
+
+        <div class="ws-section-heading">INCIDENT DETAILS</div>
+        <table class="ws-incident-table">
+          <tr>
+            <td colspan="4"><b>Incident Title</b><span data-bind="incidentTitle"></span></td>
+          </tr>
+          <tr>
+            <td><b>Date of Incident</b><span data-bind="dateIncident"></span></td>
+            <td><span></span></td>
+            <td><b>Time of Incident</b><span data-bind="timeIncident"></span></td>
+            <td><span></span></td>
+          </tr>
+          <tr>
+            <td><b>Location of Incident</b><span data-bind="locationIncident"></span></td>
+            <td><span></span></td>
+            <td><b>Flight No & ETD</b><span data-bind="flightEtd"></span></td>
+            <td><span></span></td>
+          </tr>
+          <tr>
+            <td><b>Staff Name</b><span data-bind="staffName"></span></td>
+            <td><span></span></td>
+            <td><b>Staff No</b><span data-bind="staffNo"></span></td>
+            <td><span></span></td>
+          </tr>
+          <tr>
+            <td><b>Staff Designation</b><span data-bind="staffDesignation"></span></td>
+            <td><span></span></td>
+            <td><b>Staff Mob No</b><span data-bind="staffMob"></span></td>
+            <td><span></span></td>
+          </tr>
+          <tr>
+            <td><b>Type of Involvement</b></td>
+            <td><span class="ws-check"><i data-check="involved">□</i> Involved</span></td>
+            <td><span class="ws-check"><i data-check="witness">□</i> Witness</span></td>
+            <td><span class="ws-check"><i data-check="injured">□</i> Injured Party</span></td>
+          </tr>
+        </table>
+
+        <table class="ws-statement-table">
+          <tr><th>STAFF STATEMENT</th></tr>
+          <tr><td class="ws-statement-cell" data-bind="staffStatement"></td></tr>
+          <tr><td class="ws-sign-cell">Staff Signature:<span></span></td></tr>
+        </table>
+
+        <table class="ws-comments-table">
+          <tr><th>Duty Officers Comments</th></tr>
+          <tr><td class="ws-comments-cell"></td></tr>
+          <tr class="ws-footer-fields">
+            <td>
+              <div><b>Name:</b><span></span></div>
+              <div><b>ERP:</b><span></span></div>
+              <div><b>Signature:</b><span></span></div>
+            </td>
+          </tr>
+        </table>
+
+        <div class="ws-page-footer">Page 1 of 1</div>
+      </div>
+    </div>
+  </div>
+</section>
+
   <link rel="stylesheet" href="written-statement.css">
   <script src="written-statement-module.js"></script>
   <script src="app-v22-6.js?v=22.6"></script>
@@ -550,35 +550,6 @@ document.addEventListener('DOMContentLoaded', function () {
     window.initWrittenStatementModule();
   }
 });
-</script>
-
-<script>
-(function () {
-  const menuButton = document.getElementById('menuButton');
-  const appMenu = document.getElementById('appMenu');
-  const closeMenu = document.getElementById('closeMenu');
-  const menuBackdrop = document.getElementById('menuBackdrop');
-
-  if (menuButton && appMenu) {
-    menuButton.addEventListener('click', function (event) {
-      event.preventDefault();
-      event.stopPropagation();
-      appMenu.classList.add('open');
-      appMenu.setAttribute('aria-hidden', 'false');
-      menuButton.setAttribute('aria-expanded', 'true');
-    });
-  }
-
-  function closeWorkTrackMenu() {
-    if (!appMenu) return;
-    appMenu.classList.remove('open');
-    appMenu.setAttribute('aria-hidden', 'true');
-    if (menuButton) menuButton.setAttribute('aria-expanded', 'false');
-  }
-
-  if (closeMenu) closeMenu.addEventListener('click', closeWorkTrackMenu);
-  if (menuBackdrop) menuBackdrop.addEventListener('click', closeWorkTrackMenu);
-})();
 </script>
 
 <script>
