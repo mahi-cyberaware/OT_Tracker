@@ -1,167 +1,59 @@
-// WorkTrack V23 — Written Statement AI Generator
-// Vercel Serverless Function
-//
-// IMPORTANT:
-// OPENAI_API_KEY must be stored in Vercel Environment Variables.
-// Never put the API key in index.html or browser JavaScript.
+// Vercel Serverless Function: /api/statement
+// Keep OPENAI_API_KEY only in Vercel Environment Variables.
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({
-      error: "Method not allowed"
-    });
-  }
-
-  try {
+export default async function handler(req,res){
+  if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});
+  try{
     const {
-      incidentTitle,
-      dateIncident,
-      locationIncident,
-      timeIncident,
-      flightEtd,
-      staffNo,
-      staffName,
-      staffMob,
-      staffDesignation,
-      involved,
-      witness,
-      injured,
-      reason,
-      ocrText,
-      imageData
-    } = req.body || {};
+      incidentTitle,dateIncident,locationIncident,timeIncident,flightEtd,
+      staffNo,staffName,staffMob,staffDesignation,involved,witness,injured,
+      reason,ocrText,imageData
+    }=req.body||{};
+    if(!reason?.trim())return res.status(400).json({error:"Reason / explanation is required."});
 
-    if (!reason || !reason.trim()) {
-      return res.status(400).json({
-        error: "Reason / explanation is required."
-      });
-    }
+    const instructions=`
+Prepare ONLY the Staff Statement text for a formal workplace written statement.
 
-    const instructions = `
-You are helping prepare a formal workplace Written Statement.
-
-Your job is to convert the employee's simple explanation into a clear,
-professional and factual Staff Statement.
-
-STRICT RULES:
-
-1. Use ONLY information supplied in the form, OCR text, image and employee explanation.
-2. NEVER invent facts.
-3. NEVER invent names, times, flight numbers, locations, actions, causes or outcomes.
-4. Do not guess missing information.
-5. Do not exaggerate.
-6. Do not add accusations or blame unless the supplied information explicitly states them.
-7. Preserve the actual meaning of the employee's explanation.
-8. Write professional workplace English.
-9. The statement should explain what happened, what the staff member knew/did,
-   and any relevant reason supplied by the employee.
-10. If information is uncertain, use neutral wording instead of guessing.
-11. Return ONLY the Staff Statement.
-12. Do not return a heading.
-13. Do not return signatures.
-14. Do not return Duty Officer comments.
-15. Do not return analysis or explanations.
-
-The final text will be placed inside the STAFF STATEMENT section
-of the official company Written Statement form.
+Rules:
+- Use only supplied facts from the form, OCR text, image, and employee explanation.
+- Never invent a fact, time, flight number, action, cause, person, or outcome.
+- If something is unclear or missing, do not guess.
+- Rewrite the employee's simple words into clear, professional, factual English.
+- Do not assign blame or make accusations unless the supplied facts explicitly do so.
+- Return only the statement paragraph(s), with no title, signature, comments, or form fields.
 `;
 
-    const formInformation = {
-      incidentTitle: incidentTitle || "",
-      dateIncident: dateIncident || "",
-      locationIncident: locationIncident || "",
-      timeIncident: timeIncident || "",
-      flightEtd: flightEtd || "",
-      staffNo: staffNo || "",
-      staffName: staffName || "",
-      staffMob: staffMob || "",
-      staffDesignation: staffDesignation || "",
-      involvement: {
-        involved: !!involved,
-        witness: !!witness,
-        injuredParty: !!injured
+    const content=[{
+      type:"input_text",
+      text:`${instructions}\n\nFORM DATA:\n${JSON.stringify({
+        incidentTitle,dateIncident,locationIncident,timeIncident,flightEtd,
+        staffNo,staffName,staffMob,staffDesignation,involved,witness,injured,
+        employeeReason:reason,ocrText:ocrText||""
+      },null,2)}`
+    }];
+
+    if(imageData&&/^data:image\//.test(imageData))
+      content.push({type:"input_image",image_url:imageData});
+
+    const response=await fetch("https://api.openai.com/v1/responses",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":`Bearer ${process.env.OPENAI_API_KEY}`
       },
-      employeeReason: reason.trim(),
-      onboardCrewReportOCR: ocrText || ""
-    };
-
-    const content = [
-      {
-        type: "input_text",
-        text:
-          instructions +
-          "\n\nSUPPLIED INFORMATION:\n" +
-          JSON.stringify(formInformation, null, 2)
-      }
-    ];
-
-    // If the user uploaded the onboard crew report,
-    // allow the AI to inspect the original image as well.
-    if (
-      imageData &&
-      typeof imageData === "string" &&
-      imageData.startsWith("data:image/")
-    ) {
-      content.push({
-        type: "input_image",
-        image_url: imageData
-      });
-    }
-
-    const response = await fetch(
-      "https://api.openai.com/v1/responses",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "gpt-5.6-luna",
-
-          input: [
-            {
-              role: "user",
-              content
-            }
-          ],
-
-          max_output_tokens: 1200
-        })
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error:
-          data?.error?.message ||
-          "OpenAI request failed."
-      });
-    }
-
-    const statement =
-      data?.output_text?.trim() || "";
-
-    if (!statement) {
-      return res.status(502).json({
-        error: "No statement was returned by the AI."
-      });
-    }
-
-    return res.status(200).json({
-      statement
+      body:JSON.stringify({
+        model:"gpt-5.6-luna",
+        input:[{role:"user",content}],
+        max_output_tokens:900
+      })
     });
 
-  } catch (error) {
-
-    console.error("Written Statement API error:", error);
-
-    return res.status(500).json({
-      error:
-        error?.message ||
-        "Internal server error."
-    });
+    const data=await response.json();
+    if(!response.ok)return res.status(response.status).json({error:data?.error?.message||"AI request failed."});
+    const statement=data.output_text?.trim();
+    if(!statement)return res.status(502).json({error:"No statement was returned."});
+    return res.status(200).json({statement});
+  }catch(e){
+    return res.status(500).json({error:e?.message||"Server error"});
   }
-        }
+}
