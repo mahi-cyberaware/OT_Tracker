@@ -110,3 +110,64 @@
 .ws-incident-table td span:not(.ws-check){display:inline-block;min-height:11px}
 @media(max-width:900px){.settings-contact-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.settings-contact-grid{grid-template-columns:1fr}}
+
+
+/* V23.4 — exact Capital Catering incident-details grid */
+.written-paper{
+  width:210mm;
+  max-width:210mm;
+  min-height:297mm;
+  box-sizing:border-box;
+  padding:12mm 12mm 10mm;
+  color:#222;
+  background:#fff;
+  font-family:Arial,Helvetica,sans-serif;
+}
+.ws-brand-row{height:24mm;position:relative;display:flex;align-items:flex-start;justify-content:space-between}
+.ws-brand-pattern{width:58%;height:18mm;position:relative;overflow:hidden}
+.ws-brand-pattern:before,.ws-brand-pattern:after{content:"";position:absolute;display:block;transform:skewX(-28deg)}
+.ws-brand-pattern:before{left:0;top:1mm;width:7mm;height:7mm;border:1.4mm solid #d8d8d8;box-shadow:12mm 3mm 0 -1mm #e5e5e5,25mm -1mm 0 -1mm #d2d2d2,39mm 2mm 0 -1mm #dedede}
+.ws-brand-pattern:after{left:18mm;top:0;width:4mm;height:11mm;background:#d8d8d8;box-shadow:18mm 2mm 0 #d6d6d6,32mm -1mm 0 #dedede,46mm 2mm 0 #d2d2d2}
+.ws-logo{width:38mm;height:17mm;object-fit:contain;object-position:right top;mix-blend-mode:multiply}
+.ws-page-title{font-size:14pt;font-weight:700;text-align:center;margin:0 0 7mm}
+.ws-section-heading{font-size:11pt;font-weight:700;text-align:center;border:1px solid #8b8b8b;border-bottom:0;padding:1.8mm 0 1.5mm;margin:0}
+.ws-incident-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.5pt;margin:0}
+.ws-incident-table td{border:1px solid #8b8b8b;height:8.8mm;padding:1.8mm 2.2mm;vertical-align:middle;box-sizing:border-box}
+.ws-incident-table td:nth-child(1),.ws-incident-table td:nth-child(3){width:25%}
+.ws-incident-table td:nth-child(2),.ws-incident-table td:nth-child(4){width:25%}
+.ws-incident-table .ws-label{font-weight:700}
+.ws-incident-table .ws-label b{font-size:8.5pt;font-weight:400;display:block;white-space:nowrap}
+.ws-incident-table .ws-value span{display:block;min-height:4mm;font-size:8.5pt;line-height:1.2;overflow-wrap:anywhere}
+.ws-incident-table .ws-involvement-row td{height:7.8mm}
+.ws-incident-table .ws-involvement-row .ws-label b{font-weight:400}
+.ws-check{display:flex;align-items:center;gap:1.5mm;font-size:8.5pt;white-space:nowrap}
+.ws-check i{font-style:normal;font-size:10pt;line-height:1}
+.ws-statement-table{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:7mm}
+.ws-statement-table th{height:8mm;border:1px solid #8b8b8b;text-align:center;font-size:11pt;font-weight:700;padding:0}
+.ws-statement-cell{height:72mm;border:1px solid #8b8b8b;border-top:0;vertical-align:top;padding:3mm;font-size:9pt;line-height:1.45;white-space:pre-wrap;overflow:hidden}
+.ws-sign-cell{height:9mm;border:1px solid #8b8b8b;text-align:left;padding:2mm;font-size:8.5pt}
+.ws-sign-cell span{display:inline-block;border-bottom:1px solid #777;width:82%;margin-left:3mm;vertical-align:middle;height:4mm}
+.ws-comments-table{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:7mm}
+.ws-comments-table th{height:8mm;border:1px solid #8b8b8b;text-align:center;font-size:11pt;font-weight:700;padding:0}
+.ws-comments-cell{height:34mm;border:1px solid #8b8b8b;border-top:0}
+.ws-footer-fields td{border:1px solid #8b8b8b;height:10mm;padding:0}
+.ws-footer-fields td>div{display:inline-flex;align-items:center;height:100%;padding:0 2.2mm;font-size:8.5pt;box-sizing:border-box}
+.ws-footer-fields td>div:nth-child(1){width:39%}.ws-footer-fields td>div:nth-child(2){width:24%}.ws-footer-fields td>div:nth-child(3){width:37%}
+.ws-footer-fields span{border-bottom:1px solid #777;height:4mm;flex:1;margin-left:2mm}
+.ws-page-footer{left:12mm;bottom:5mm;font-size:8pt}
+
+@media(max-width:640px){
+  .written-paper{width:210mm;max-width:none;min-height:297mm;padding:12mm 12mm 10mm;transform-origin:top left}
+  .ws-preview-wrap{overflow-x:auto}
+}
+@media print{
+  #wsPrintRoot .written-paper{width:210mm;max-width:210mm;min-height:297mm;height:297mm;padding:12mm 12mm 10mm;box-sizing:border-box}
+  #wsPrintRoot .ws-brand-row{height:24mm}
+  #wsPrintRoot .ws-page-title{font-size:14pt;margin-bottom:7mm}
+  #wsPrintRoot .ws-incident-table{font-size:8.5pt}
+  #wsPrintRoot .ws-incident-table td{height:8.8mm;padding:1.8mm 2.2mm}
+  #wsPrintRoot .ws-statement-table{margin-top:7mm}
+  #wsPrintRoot .ws-statement-cell{height:72mm}
+  #wsPrintRoot .ws-comments-table{margin-top:7mm}
+  #wsPrintRoot .ws-comments-cell{height:34mm}
+}

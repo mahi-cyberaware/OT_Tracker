@@ -285,33 +285,38 @@
               <div class="ws-section-heading">INCIDENT DETAILS</div>
               <table class="ws-incident-table">
                 <tr>
-                  <td><b>Incident Title</b><span data-bind="incidentTitle"></span></td>
-                  <td><b>Time of Incident</b><span data-bind="timeIncident"></span></td>
+                  <td class="ws-label"><b>Incident Title</b></td>
+                  <td class="ws-value" colspan="3"><span data-bind="incidentTitle"></span></td>
                 </tr>
                 <tr>
-                  <td><b>Date of Incident</b><span data-bind="dateIncident"></span></td>
-                  <td><b>Flight No & ETD</b><span data-bind="flightEtd"></span></td>
+                  <td class="ws-label"><b>Date of Incident</b></td>
+                  <td class="ws-value"><span data-bind="dateIncident"></span></td>
+                  <td class="ws-label"><b>Time of Incident</b></td>
+                  <td class="ws-value"><span data-bind="timeIncident"></span></td>
                 </tr>
                 <tr>
-                  <td><b>Location of Incident</b><span data-bind="locationIncident"></span></td>
-                  <td><b>Staff No</b><span data-bind="staffNo"></span></td>
+                  <td class="ws-label"><b>Location of Incident</b></td>
+                  <td class="ws-value"><span data-bind="locationIncident"></span></td>
+                  <td class="ws-label"><b>Flight No & ETD</b></td>
+                  <td class="ws-value"><span data-bind="flightEtd"></span></td>
                 </tr>
                 <tr>
-                  <td><b>Staff Name</b><span data-bind="staffName"></span></td>
-                  <td rowspan="3">
-                    <b>Staff Mob No</b><span data-bind="staffMob"></span>
-                    <div class="ws-checks-paper">
-                      <span class="ws-check"><i data-check="involved">□</i> Involved</span>
-                      <span class="ws-check"><i data-check="witness">□</i> Witness</span>
-                      <span class="ws-check"><i data-check="injured">□</i> Injured Party</span>
-                    </div>
-                  </td>
+                  <td class="ws-label"><b>Staff Name</b></td>
+                  <td class="ws-value"><span data-bind="staffName"></span></td>
+                  <td class="ws-label"><b>Staff No</b></td>
+                  <td class="ws-value"><span data-bind="staffNo"></span></td>
                 </tr>
                 <tr>
-                  <td><b>Staff Designation</b><span data-bind="staffDesignation"></span></td>
+                  <td class="ws-label"><b>Staff Designation</b></td>
+                  <td class="ws-value"><span data-bind="staffDesignation"></span></td>
+                  <td class="ws-label"><b>Staff Mob No</b></td>
+                  <td class="ws-value"><span data-bind="staffMob"></span></td>
                 </tr>
-                <tr>
-                  <td><b>Type of Involvement</b></td>
+                <tr class="ws-involvement-row">
+                  <td class="ws-label"><b>Type of Involvement</b></td>
+                  <td><span class="ws-check"><i data-check="involved">□</i> Involved</span></td>
+                  <td><span class="ws-check"><i data-check="witness">□</i> Witness</span></td>
+                  <td><span class="ws-check"><i data-check="injured">□</i> Injured Party</span></td>
                 </tr>
               </table>
       
@@ -551,7 +556,7 @@
     window.__worktrackInstantMenu={open,close};
   })();
   </script>
-  <script src="app-v22.js?v=23.2"></script>
+  <script src="app-v22.js?v=23.4"></script>
   <script>
   (function(){
     function initContactSettings(){
