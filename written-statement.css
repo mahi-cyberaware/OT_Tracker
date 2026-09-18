@@ -84,3 +84,16 @@
   .ws-page-footer{left:10mm;bottom:4mm}
   @page{size:A4 portrait;margin:0}
 }
+
+
+/* V23 targeted fixes — preserve V22.6 visual system */
+.settings-contact-card{grid-column:1/-1;padding:18px;border-radius:20px}
+.settings-contact-card h3{margin:4px 0 4px;font-size:16px}
+.settings-contact-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px}
+.settings-contact-actions{margin-top:14px}
+.settings-contact-note{margin:10px 0 0}
+.ws-incident-table td:nth-child(1),.ws-incident-table td:nth-child(3){width:25%}
+.ws-incident-table td:nth-child(2),.ws-incident-table td:nth-child(4){width:25%}
+.ws-incident-table td span:not(.ws-check){display:inline-block;min-height:11px}
+@media(max-width:900px){.settings-contact-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.settings-contact-grid{grid-template-columns:1fr}}

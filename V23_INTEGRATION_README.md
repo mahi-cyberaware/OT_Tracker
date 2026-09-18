@@ -22,6 +22,3 @@ Use ONLY on `V23-integration`. Do not replace `main`.
 - API endpoint under `api/statement.js`
 
 The `supabase/written_statements.sql` file is included for reference. It has already been run and should NOT be rerun unless the database is intentionally reset.
-
-
-V23 final integration fix: V22.6 menu/navigation preserved; Written Statement is a single added app section. Removed competing navigation controller and bumped JS/service-worker cache versions to prevent stale first-load behavior. Deploy this package only to V23-integration.
