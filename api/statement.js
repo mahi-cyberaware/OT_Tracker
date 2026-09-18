@@ -2,10 +2,13 @@
 // Keep OPENAI_API_KEY only in Vercel Environment Variables.
 
 export default async function handler(req,res){
+  // Safe health check: never returns the secret itself.
+  if(req.method==="GET")return res.status(200).json({ok:true,openaiConfigured:!!process.env.OPENAI_API_KEY});
   if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});
   try{
-    if(!process.env.OPENAI_API_KEY){
-      return res.status(500).json({error:"OPENAI_API_KEY is not configured for this Vercel deployment."});
+    const apiKey=(process.env.OPENAI_API_KEY||"").trim();
+    if(!apiKey){
+      return res.status(500).json({error:"OPENAI_API_KEY is not configured for this Vercel deployment. Enable the key for Preview and redeploy V23-integration."});
     }
     const {
       incidentTitle,dateIncident,locationIncident,timeIncident,flightEtd,
@@ -42,7 +45,7 @@ Rules:
       method:"POST",
       headers:{
         "Content-Type":"application/json",
-        "Authorization":`Bearer ${process.env.OPENAI_API_KEY}`
+        "Authorization":`Bearer ${apiKey}`
       },
       body:JSON.stringify({
         model:"gpt-5.6-luna",
@@ -52,7 +55,13 @@ Rules:
     });
 
     const data=await response.json();
-    if(!response.ok)return res.status(response.status).json({error:data?.error?.message||"AI request failed."});
+    if(!response.ok){
+      const apiMessage=data?.error?.message||"AI request failed.";
+      if(response.status===401){
+        return res.status(502).json({error:"OpenAI rejected the API key. Check OPENAI_API_KEY in Vercel Preview and redeploy."});
+      }
+      return res.status(response.status).json({error:apiMessage});
+    }
     const statement=data.output_text?.trim();
     if(!statement)return res.status(502).json({error:"No statement was returned."});
     return res.status(200).json({statement});
