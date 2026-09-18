@@ -1521,8 +1521,8 @@ $('installApp')?.addEventListener('click',async()=>{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js?v=22').then(()=>{
-      console.info('WorkTrack V22 service worker ready');
+    navigator.serviceWorker.register('./sw.js?v=23.3').then(()=>{
+      console.info('WorkTrack V23 service worker ready');
     }).catch(err=>console.warn('WorkTrack PWA service worker:',err));
   });
 }

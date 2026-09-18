@@ -152,14 +152,34 @@
     renderPreview($ws("wsStatementDraft")?.value||"");
     const paper=$ws("writtenStatementPaper");
     if(!paper)return;
-    const win=window.open("","_blank","noopener,noreferrer");
-    if(!win){setStatus("Allow pop-ups for WorkTrack to print/save the statement.",true);return;}
-    let cssText="";
-    try{cssText=await fetch("/written-statement.css",{cache:"no-store"}).then(r=>r.text());}catch(e){}
-    win.document.open();
-    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Written Statement</title><style>${cssText}</style><style>html,body{margin:0;padding:0;background:#fff!important}.written-paper{box-shadow:none!important;margin:0 auto!important}</style></head><body>${paper.outerHTML}</body></html>`);
-    win.document.close();
-    setTimeout(()=>{try{win.focus();win.print();}catch(e){}},500);
+
+    // Print directly from the current page. This avoids mobile popup blockers
+    // and prevents the blank new-window print page seen in the previous build.
+    document.getElementById("wsPrintRoot")?.remove();
+    const root=document.createElement("div");
+    root.id="wsPrintRoot";
+    root.className="ws-print-root";
+    root.appendChild(paper.cloneNode(true));
+    document.body.appendChild(root);
+
+    const cleanup=()=>{
+      root.remove();
+      window.removeEventListener("afterprint",cleanup);
+    };
+    window.addEventListener("afterprint",cleanup);
+
+    // Give the browser one paint cycle so images/layout are ready before print.
+    requestAnimationFrame(()=>{
+      setTimeout(()=>{
+        try{
+          window.focus();
+          window.print();
+        }catch(e){
+          cleanup();
+          setStatus(e?.message||"Could not open the print dialog.",true);
+        }
+      },120);
+    });
   }
 
   window.initWrittenStatementModule=function(){
