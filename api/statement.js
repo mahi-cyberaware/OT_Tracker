@@ -8,7 +8,7 @@ export default async function handler(req,res){
   try{
     const apiKey=(process.env.OPENAI_API_KEY||"").trim();
     if(!apiKey){
-      return res.status(500).json({error:"OPENAI_API_KEY is not configured for this Vercel deployment. Enable the key for Preview and redeploy V23-integration."});
+      return res.status(500).json({error:"OPENAI_API_KEY is not configured for this Vercel deployment. Enable OPENAI_API_KEY for the Vercel environment serving this request and redeploy."});
     }
     const {
       incidentTitle,dateIncident,locationIncident,timeIncident,flightEtd,
@@ -58,7 +58,7 @@ Rules:
     if(!response.ok){
       const apiMessage=data?.error?.message||"AI request failed.";
       if(response.status===401){
-        return res.status(502).json({error:"OpenAI rejected the API key. Check OPENAI_API_KEY in Vercel Preview and redeploy."});
+        return res.status(502).json({error:"OpenAI rejected the API key. Check OPENAI_API_KEY in the Vercel environment serving this request and redeploy."});
       }
       return res.status(response.status).json({error:apiMessage});
     }
