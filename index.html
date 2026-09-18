@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="written-statement.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -96,7 +97,7 @@
           <div class="wake-box"><span>Wake-up</span><b id="nextWakeTime">—</b><small id="wakeMeta">Set your wake-up lead time below.</small></div>
         </div>
         <div class="roster-settings">
-          <label>Wake up before duty<select id="wakeLead"><option value="30">30 minutes</option><option value="60">1 hour</option><option value="90">1 hour 30 minutes</option><option value="120" selected>2 hours</option><option value="180">3 hours</option></select></label>
+          <label>Wake up before duty<select id="wakeLead"><option value="30">30 minutes</option><option value="60" selected>1 hour</option><option value="90">1 hour 30 minutes</option><option value="120">2 hours</option><option value="180">3 hours</option></select></label>
           <label>Duty reminder time<input id="dutyReminderTime" type="time" value="20:00"></label>
           <label class="switch-line roster-switch"><input id="dutyReminderEnabled" type="checkbox"><span>Tomorrow duty notification</span></label>
           <button id="saveRosterSettings" class="primary" type="button">Save reminder settings</button><button id="testDutyAlert" class="ghost" type="button">Test duty alert</button>
@@ -208,6 +209,136 @@
         </div>
       </section>
 
+      <section id="writtenStatementSection" class="panel glass-card ws-module" hidden>
+        <div class="panel-head">
+          <div>
+            <div class="section-kicker">DOCUMENT</div>
+            <h2>Written Statement</h2>
+            <p class="muted small">Prepare the written statement using the company form layout.</p>
+          </div>
+          <button id="wsNew" class="ghost" type="button">New Statement</button>
+        </div>
+      
+        <div class="ws-workspace">
+          <div class="ws-input-panel">
+            <div class="ws-card">
+              <div class="ws-card-title">ONBOARD CREW REPORT</div>
+              <label>Upload report image
+                <input id="wsReportImage" type="file" accept="image/*">
+              </label>
+              <div class="ws-actions">
+                <button id="wsOcr" class="ghost" type="button">Extract OCR</button>
+                <button id="wsClearOcr" class="ghost" type="button">Clear</button>
+              </div>
+              <label>OCR text
+                <textarea id="wsOcrText" rows="8" placeholder="Extracted report text appears here. Check it and correct any OCR mistakes."></textarea>
+              </label>
+            </div>
+      
+            <div class="ws-card">
+              <div class="ws-card-title">INCIDENT DETAILS</div>
+              <div class="ws-grid-2">
+                <label>Incident Title<input id="wsIncidentTitle" type="text"></label>
+                <label>Date of Incident<input id="wsDateIncident" type="date"></label>
+                <label>Location of Incident<input id="wsLocationIncident" type="text"></label>
+                <label>Time of Incident<input id="wsTimeIncident" type="time"></label>
+                <label>Flight No & ETD<input id="wsFlightEtd" type="text"></label>
+                <label>Staff No<input id="wsStaffNo" type="text"></label>
+                <label>Staff Name<input id="wsStaffName" type="text"></label>
+                <label>Staff Mob No<input id="wsStaffMob" type="tel"></label>
+                <label>Staff Designation<input id="wsStaffDesignation" type="text"></label>
+              </div>
+              <div class="ws-checks">
+                <label><input id="wsInvolved" type="checkbox"> Involved</label>
+                <label><input id="wsWitness" type="checkbox"> Witness</label>
+                <label><input id="wsInjured" type="checkbox"> Injured Party</label>
+              </div>
+            </div>
+      
+            <div class="ws-card">
+              <div class="ws-card-title">YOUR REASON / EXPLANATION</div>
+              <label>Explain what happened in your own words
+                <textarea id="wsReason" rows="7" placeholder="Write the facts simply. The generated statement must not add facts that you did not provide."></textarea>
+              </label>
+              <button id="wsGenerate" class="primary full" type="button">Generate Staff Statement</button>
+              <div id="wsStatus" class="message"></div>
+            </div>
+          </div>
+      
+          <div class="ws-preview-wrap">
+            <div class="ws-preview-toolbar">
+              <span>COMPANY FORM PREVIEW</span>
+              <div>
+                <button id="wsPrint" class="ghost" type="button">Print / Save PDF</button>
+                <button id="wsSave" class="ghost" type="button">Save Draft</button>
+              </div>
+            </div>
+      
+            <div id="writtenStatementPaper" class="written-paper">
+              <div class="ws-brand-row">
+                <div class="ws-brand-pattern"></div>
+                <img src="/capital-catering-logo.jpg" alt="Capital Catering" class="ws-logo">
+              </div>
+      
+              <div class="ws-page-title">WRITTEN STATEMENT</div>
+      
+              <div class="ws-section-heading">INCIDENT DETAILS</div>
+              <table class="ws-incident-table">
+                <tr>
+                  <td><b>Incident Title</b><span data-bind="incidentTitle"></span></td>
+                  <td><b>Time of Incident</b><span data-bind="timeIncident"></span></td>
+                </tr>
+                <tr>
+                  <td><b>Date of Incident</b><span data-bind="dateIncident"></span></td>
+                  <td><b>Flight No & ETD</b><span data-bind="flightEtd"></span></td>
+                </tr>
+                <tr>
+                  <td><b>Location of Incident</b><span data-bind="locationIncident"></span></td>
+                  <td><b>Staff No</b><span data-bind="staffNo"></span></td>
+                </tr>
+                <tr>
+                  <td><b>Staff Name</b><span data-bind="staffName"></span></td>
+                  <td rowspan="3">
+                    <b>Staff Mob No</b><span data-bind="staffMob"></span>
+                    <div class="ws-checks-paper">
+                      <span class="ws-check"><i data-check="involved">□</i> Involved</span>
+                      <span class="ws-check"><i data-check="witness">□</i> Witness</span>
+                      <span class="ws-check"><i data-check="injured">□</i> Injured Party</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><b>Staff Designation</b><span data-bind="staffDesignation"></span></td>
+                </tr>
+                <tr>
+                  <td><b>Type of Involvement</b></td>
+                </tr>
+              </table>
+      
+              <table class="ws-statement-table">
+                <tr><th>STAFF STATEMENT</th></tr>
+                <tr><td class="ws-statement-cell" data-bind="staffStatement"></td></tr>
+                <tr><td class="ws-sign-cell">Staff Signature:<span></span></td></tr>
+              </table>
+      
+              <table class="ws-comments-table">
+                <tr><th>Duty Officers Comments</th></tr>
+                <tr><td class="ws-comments-cell"></td></tr>
+                <tr class="ws-footer-fields">
+                  <td>
+                    <div><b>Name:</b><span></span></div>
+                    <div><b>ERP:</b><span></span></div>
+                    <div><b>Signature:</b><span></span></div>
+                  </td>
+                </tr>
+              </table>
+      
+              <div class="ws-page-footer">Page 1 of 1</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <footer class="app-footer">
         <div class="footer-brand">
           <strong>WorkTrack</strong>
@@ -242,6 +373,7 @@
           <button type="button" class="menu-item" data-nav="analytics">◫ <span>Analytics</span></button>
           <button type="button" class="menu-item" data-nav="reports">▤ <span>Reports</span></button>
           <button type="button" class="menu-item" data-nav="records">☷ <span>Attendance history</span></button>
+          <button type="button" class="menu-item" data-nav="writtenStatement"><span>Written Statement</span></button>
           <button type="button" class="menu-item" data-nav="payroll">₹ <span>Payroll estimate</span></button>
           <button type="button" class="menu-item" data-nav="reminders">◷ <span>Reminders</span></button>
           <button type="button" class="menu-item" data-nav="settings">⚙ <span>Settings</span></button>
@@ -405,33 +537,77 @@
       <div class="dialog-actions"><button class="primary" type="submit">Save attendance</button><button type="button" id="deleteRecord" class="danger hidden">Delete record</button></div>
     </form>
   </dialog>
-  <script src="app-v22-6.js?v=22.6"></script>
+  <script>
+  // V23 instant menu bootstrap: bind before the main app bundle so the menu is responsive immediately.
+  (function(){
+    const b=document.getElementById('menuButton');
+    const m=document.getElementById('appMenu');
+    const backdrop=document.getElementById('menuBackdrop');
+    if(!b||!m)return;
+    const open=()=>{m.classList.add('open');m.setAttribute('aria-hidden','false');b.setAttribute('aria-expanded','true');};
+    const close=()=>{m.classList.remove('open');m.setAttribute('aria-hidden','true');b.setAttribute('aria-expanded','false');};
+    b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();open();},{capture:true});
+    backdrop?.addEventListener('click',close,{capture:true});
+    window.__worktrackInstantMenu={open,close};
+  })();
+  </script>
+  <script src="app-v22.js?v=23.2"></script>
+  <script>
+  (function(){
+    function initContactSettings(){
+      const emailEl=document.getElementById('settingsCurrentEmail');
+      const newEmailEl=document.getElementById('settingsNewEmail');
+      const mobileEl=document.getElementById('settingsMobile');
+      const saveEl=document.getElementById('saveContactSettings');
+      const msgEl=document.getElementById('contactSettingsMessage');
+      if(!emailEl||!newEmailEl||!mobileEl||!saveEl||!msgEl)return;
 
-<script>
-(function(){
-  const map={home:['homeSection','homeStats'],roster:['rosterSection'],calendar:['calendarSection'],analytics:['analyticsSection'],reports:['reportsSection'],records:['recordsSection'],payroll:['payrollSection'],reminders:['remindersSection'],settings:['settingsSection']};
-  window.worktrackNavigate=function(name){
-    const target=Object.prototype.hasOwnProperty.call(map,name)?name:'home';
-    Object.entries(map).forEach(([key,ids])=>ids.forEach(id=>{
-      const el=document.getElementById(id); if(!el)return;
-      const on=key===target; el.hidden=!on; el.classList.toggle('hidden',!on); el.style.display=on?'':'none';
-      if(on) el.setAttribute('aria-hidden','false'); else el.setAttribute('aria-hidden','true');
-    }));
-    document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===target));
-    const menu=document.getElementById('appMenu'); if(menu){menu.classList.remove('open');menu.setAttribute('aria-hidden','true');}
-    const mb=document.getElementById('menuButton'); if(mb)mb.setAttribute('aria-expanded','false');
-    try{sessionStorage.setItem('worktrack-section',target)}catch(e){}
-    window.__worktrackSection=target; window.scrollTo(0,0);
-  };
-  document.addEventListener('click',function(e){
-    const b=e.target.closest && e.target.closest('[data-nav]'); if(!b)return;
-    const n=b.dataset.nav;
-    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
-    if(n==='profile'){ if(window.closeAppMenu) window.closeAppMenu(); if(window.openProfile) window.openProfile(); return; }
-    if(['about','contact','security'].includes(n)){ if(window.closeAppMenu) window.closeAppMenu(); if(window.showInfo) window.showInfo(n); return; }
-    window.worktrackNavigate(n);
-  },true);
-})();
-</script>
+      function message(text,error){
+        msgEl.textContent=text||'';
+        msgEl.className='message '+(text?(error?'error':'success'):'');
+      }
+      function loadValues(){
+        try{
+          emailEl.value=(typeof user!=='undefined'&&user?.email)||'';
+          mobileEl.value=(typeof user!=='undefined'&&user?.user_metadata?.mobile_number)||'';
+        }catch(e){}
+      }
+      loadValues();
+
+      saveEl.addEventListener('click',async function(){
+        const newEmail=newEmailEl.value.trim().toLowerCase();
+        const mobile=mobileEl.value.trim();
+        if(!newEmail && !mobile){
+          message('Enter a new email or mobile number to save.',true);
+          return;
+        }
+        saveEl.disabled=true;
+        message('Saving contact details…');
+        try{
+          const metadata={...(typeof user!=='undefined'&&user?.user_metadata||{}),mobile_number:mobile};
+          const payload={data:metadata};
+          if(newEmail)payload.email=newEmail;
+          const result=await sb.auth.updateUser(payload);
+          if(result.error)throw result.error;
+          if(typeof user!=='undefined'&&result.data?.user)user=result.data.user;
+          loadValues();
+          newEmailEl.value='';
+          message(newEmail ? 'Saved. Check your email if Supabase requires confirmation.' : 'Mobile number updated successfully.');
+        }catch(err){
+          message(err?.message||'Could not update contact details.',true);
+        }finally{
+          saveEl.disabled=false;
+        }
+      });
+
+      document.addEventListener('worktrack:app-ready',loadValues);
+    }
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initContactSettings,{once:true});
+    else initContactSettings();
+  })();
+  </script>
+  <script src="written-statement-module.js"></script>
+  <script>document.addEventListener("DOMContentLoaded",function(){if(window.initWrittenStatementModule)window.initWrittenStatementModule();});</script>
+
 </body>
 </html>
