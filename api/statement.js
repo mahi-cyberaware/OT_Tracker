@@ -62,8 +62,16 @@ Rules:
       }
       return res.status(response.status).json({error:apiMessage});
     }
-    const statement=data.output_text?.trim();
-    if(!statement)return res.status(502).json({error:"No statement was returned."});
+    const statement=(
+      data?.output_text?.trim() ||
+      (Array.isArray(data?.output)?data.output.flatMap(item=>Array.isArray(item?.content)?item.content:[])
+        .filter(part=>part?.type==="output_text" && typeof part?.text==="string")
+        .map(part=>part.text).join("\n").trim():"")
+    );
+    if(!statement){
+      console.error("OpenAI response contained no output text", JSON.stringify({id:data?.id,status:data?.status,outputTypes:Array.isArray(data?.output)?data.output.map(x=>x?.type):[]}));
+      return res.status(502).json({error:"OpenAI returned no statement text. Please try again."});
+    }
     return res.status(200).json({statement});
   }catch(e){
     return res.status(500).json({error:e?.message||"Server error"});
