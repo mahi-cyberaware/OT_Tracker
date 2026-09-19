@@ -1,0 +1,24 @@
+WorkTrack V23 — Written Statement FORM + API + OCR Fix
+
+Based on the supplied Written_Statement_Form.pdf and Written_Statement_Form.docx.
+
+Fixed:
+1. Preview form rebuilt from the supplied Word/PDF table structure.
+   - Incident Details: 4-column table, exact row order.
+   - Incident Title full value row.
+   - Date/Time, Location/Flight, Staff Name/Staff No, Staff Designation/Staff Mob No.
+   - Type of Involvement with three separate checkbox cells.
+   - Staff Statement, Staff Signature, Duty Officers Comments, Name/ERP/Signature.
+   - A4 portrait sizing and Word-derived row heights.
+   - Removed the incorrect decorative pattern and cropped logo.
+2. Date/time formatting fixed in the preview.
+3. OCR fixed by loading Tesseract on demand with CDN fallback instead of assuming window.Tesseract already exists.
+4. OpenAI Responses API output parsing fixed. The raw Responses API output can be read from output[].content[] when output_text is not present.
+5. API errors remain safe and do not expose OPENAI_API_KEY.
+6. Service-worker cache version bumped to force the new files to load.
+
+Deployment:
+- Test on V23-integration first.
+- Vercel Environment Variables must contain OPENAI_API_KEY for Preview while testing and Production after approval.
+- Never put the API key in browser code.
+- Do not merge to main until the Preview test is successful.

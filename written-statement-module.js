@@ -24,13 +24,13 @@
 
   function formatDate(value){
     if(!value)return "";
-    const m=/^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(value);
+    const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
     return m?`${m[3]}/${m[2]}/${m[1]}`:value;
   }
 
   function formatTime(value){
     if(!value)return "";
-    const m=/^(\\d{2}):(\\d{2})$/.exec(value);
+    const m=/^(\d{2}):(\d{2})$/.exec(value);
     if(!m)return value;
     let h=Number(m[1]);
     const suffix=h>=12?"PM":"AM";
@@ -67,17 +67,40 @@
     });
   }
 
+  let tesseractPromise=null;
+  function loadTesseract(){
+    if(window.Tesseract)return Promise.resolve(window.Tesseract);
+    if(tesseractPromise)return tesseractPromise;
+    tesseractPromise=new Promise((resolve,reject)=>{
+      const s=document.createElement("script");
+      s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+      s.async=true;
+      s.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error("OCR library loaded but Tesseract is unavailable."));
+      s.onerror=()=>{
+        const fallback=document.createElement("script");
+        fallback.src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js";
+        fallback.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error("OCR library could not be loaded."));
+        fallback.onerror=()=>reject(new Error("OCR library could not be loaded. Check your internet connection and try again."));
+        document.head.appendChild(fallback);
+      };
+      document.head.appendChild(s);
+    });
+    return tesseractPromise;
+  }
+
   async function ocr(){
     const f=$ws("wsReportImage")?.files[0];
     if(!f)return setStatus("Select the onboard crew report image first.",true);
-    if(!window.Tesseract)return setStatus("OCR library is loading. Please try again.",true);
-    setStatus("Reading report image…");
+    setStatus("Loading OCR…");
     try{
-      const result=await Tesseract.recognize(f,"eng",{logger:m=>{
+      const T=await loadTesseract();
+      setStatus("Reading report image…");
+      const result=await T.recognize(f,"eng",{logger:m=>{
         if(m.status&&typeof m.progress==="number")setStatus(`OCR: ${m.status} ${Math.round(m.progress*100)}%`);
       }});
-      $ws("wsOcrText").value=result.data.text.trim();
+      $ws("wsOcrText").value=(result?.data?.text||"").trim();
       renderPreview($ws("wsStatementDraft")?.value||"");
+      if(!$ws("wsOcrText").value)throw new Error("OCR completed but no text was detected.");
       setStatus("OCR completed. Check the text before generating.");
     }catch(e){setStatus(e.message||"OCR failed.",true);}
   }
