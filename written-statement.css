@@ -1,3 +1,6 @@
+/* WorkTrack V23 — Written Statement
+   Exact A4 geometry based on the supplied Capital Catering PDF/DOCX.
+*/
 .ws-workspace{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:18px;margin-top:18px}
 .ws-input-panel{display:grid;gap:14px;align-content:start}
 .ws-card{padding:16px;border-radius:18px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07)}
@@ -11,35 +14,85 @@
 .ws-preview-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;font-size:10px;font-weight:800;letter-spacing:1px;color:#78869b}
 .ws-preview-toolbar>div{display:flex;gap:7px}
 
-/* Exact company-form geometry */
-.written-paper{width:100%;max-width:794px;min-height:1123px;margin:0 auto;background:#fff;color:#222;font-family:Arial,Helvetica,sans-serif;box-shadow:0 20px 50px rgba(0,0,0,.35);padding:27px 40px 28px;position:relative}
-.ws-brand-row{height:66px;display:flex;align-items:flex-start;justify-content:space-between}
-.ws-logo{width:120px;height:auto;object-fit:contain;mix-blend-mode:multiply}
-.ws-brand-pattern{width:55%;height:48px}
-.ws-page-title{text-align:center;font-size:16px;font-weight:700;margin:0 0 20px}
-.ws-section-heading{text-align:left;font-size:12px;font-weight:700;border:0;padding:0 0 8px}
-.ws-incident-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:9px}
-.ws-incident-table td{border:1px solid #888;height:30px;padding:4px 7px;vertical-align:middle}
-.ws-incident-table td[colspan="4"]{height:30px}
-.ws-incident-table td b{font-weight:700;display:inline-block;margin-right:7px}
-.ws-incident-table td span:not(.ws-check){display:inline-block;min-height:11px}
-.ws-check{display:flex;align-items:center;gap:4px;font-size:8.5px}
-.ws-check i{font-style:normal;font-size:12px;line-height:1}
-.ws-statement-table,.ws-comments-table{width:100%;border-collapse:collapse;table-layout:fixed}
-.ws-statement-table{margin-top:27px}
-.ws-statement-table th,.ws-comments-table th{height:29px;border:0;text-align:left;font-size:12px;font-weight:700;padding:0}
-.ws-statement-cell{border:1px solid #888;border-top:0;height:315px;vertical-align:top;padding:11px;font-size:10px;line-height:1.5;white-space:pre-wrap;overflow:hidden}
-.ws-sign-cell{border:1px solid #888;height:38px;text-align:left;padding:7px;font-size:9.5px}
-.ws-sign-cell span{display:inline-block;border-bottom:1px solid #777;width:78%;margin-left:10px;vertical-align:middle;height:16px}
-.ws-comments-table{margin-top:25px}
-.ws-comments-cell{border:1px solid #888;border-top:0;height:120px}
-.ws-footer-fields td{border:1px solid #888;height:39px;padding:0}
-.ws-footer-fields td>div{display:inline-flex;align-items:center;height:100%;padding:0 7px;font-size:9.5px}
-.ws-footer-fields td>div:nth-child(1){width:44%}
-.ws-footer-fields td>div:nth-child(2){width:26%}
-.ws-footer-fields td>div:nth-child(3){width:30%}
-.ws-footer-fields span{border-bottom:1px solid #777;height:15px;flex:1;margin-left:7px}
-.ws-page-footer{position:absolute;left:40px;bottom:15px;font-size:8.5px}
+/* ===== Official form preview ===== */
+.written-paper{
+  width:210mm;
+  max-width:210mm;
+  height:297mm;
+  min-height:297mm;
+  box-sizing:border-box;
+  margin:0 auto;
+  padding:10.16mm 12.7mm 10.16mm;
+  position:relative;
+  background:#fff;
+  color:#000;
+  font-family:Arial,Helvetica,sans-serif;
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
+  overflow:hidden;
+}
+.ws-logo-row{height:17mm;display:flex;justify-content:flex-end;align-items:flex-start}
+.ws-company-logo{text-align:right;font-family:Arial,Helvetica,sans-serif;font-size:13pt;line-height:1.02;font-weight:700}
+.ws-company-ar{font-size:9pt;margin-top:1mm;line-height:1}
+.ws-page-title{text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:11pt;font-weight:700;margin:0 0 4mm;line-height:1}
+
+.ws-incident-table,.ws-statement-table,.ws-comments-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.ws-incident-table{font-size:10pt;color:#000}
+.ws-incident-table th,.ws-statement-table th,.ws-comments-table th{
+  border:1px solid #333;
+  background:#f3f3f3;
+  text-align:center;
+  font-weight:700;
+}
+.ws-heading-row th{height:6.08mm;padding:0;font-size:10pt;line-height:1}
+.ws-incident-table td{border:1px solid #333;height:6.60mm;padding:1.2mm 1.8mm;vertical-align:middle;box-sizing:border-box}
+.ws-incident-table .ws-label{width:25%;font-weight:700;white-space:nowrap;color:#000}
+.ws-incident-table .ws-value{width:25%}
+.ws-incident-table .ws-value span{display:block;min-height:4mm;font-size:10pt;line-height:1.15;overflow-wrap:anywhere;color:#000}
+.ws-involvement-row td{height:6.60mm!important}
+.ws-check{font-size:10pt;white-space:nowrap;font-weight:400;color:#000}
+.ws-check i{font-style:normal;font-size:10pt;margin-right:1.2mm}
+
+.ws-statement-table{margin-top:4mm}
+.ws-statement-table th{height:6.08mm;font-size:10pt}
+.ws-statement-cell{height:96.4mm;border:1px solid #333;border-top:0;vertical-align:top;padding:3.2mm;font-size:11pt;line-height:1.5;white-space:pre-wrap;overflow:hidden;color:#000;font-weight:400}
+.ws-sign-cell{height:7.62mm;border:1px solid #333;border-top:0;padding:1.5mm 2mm;text-align:left;font-size:10pt;color:#000}
+.ws-sign-cell span{display:inline-block;width:78%;height:4mm;margin-left:3mm;border-bottom:1px solid #555;vertical-align:middle}
+
+.ws-comments-table{margin-top:4mm}
+.ws-comments-table th{height:6.08mm;font-size:10pt}
+.ws-comments-cell{height:30.48mm;border:1px solid #333;border-top:0;color:#000}
+.ws-footer-fields td{height:7.62mm;border:1px solid #333;padding:0}
+.ws-footer-fields td>div{display:inline-flex;align-items:center;height:100%;box-sizing:border-box;padding:0 2mm;font-size:8.5pt}
+.ws-footer-fields td>div:nth-child(1){width:39%}
+.ws-footer-fields td>div:nth-child(2){width:24%}
+.ws-footer-fields td>div:nth-child(3){width:37%}
+.ws-footer-fields span{flex:1;height:4mm;margin-left:2mm;border-bottom:1px solid #555}
+.ws-page-footer{position:absolute;left:12.7mm;bottom:4mm;font-size:7.5pt}
+
+/* Settings additions */
+.settings-contact-card{grid-column:1/-1;padding:18px;border-radius:20px}
+.settings-contact-card h3{margin:4px 0 4px;font-size:16px}
+.settings-contact-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px}
+.settings-contact-actions{margin-top:14px}
+.settings-contact-note{margin:10px 0 0}
+
+/* Print: print the same A4 form, not the application shell */
+#wsPrintRoot{display:none}
+@media print{
+  html,body{background:#fff!important;margin:0!important;padding:0!important}
+  body>*{display:none!important}
+  body>#wsPrintRoot{display:block!important;visibility:visible!important;position:static!important}
+  #wsPrintRoot .written-paper{display:block!important;visibility:visible!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-width:210mm!important;margin:0!important;padding:10.16mm 12.7mm 10.16mm!important;box-shadow:none!important;overflow:hidden!important}
+  #wsPrintRoot .ws-logo-row{height:17mm}
+  #wsPrintRoot .ws-page-title{font-size:11pt;margin-bottom:4mm}
+  #wsPrintRoot .ws-incident-table td{height:6.60mm}
+  #wsPrintRoot .ws-involvement-row td{height:6.60mm!important}
+  #wsPrintRoot .ws-statement-table{margin-top:4mm}
+  #wsPrintRoot .ws-statement-cell{height:96.4mm;font-size:11pt;line-height:1.5;color:#000}
+  #wsPrintRoot .ws-comments-table{margin-top:4mm}
+  #wsPrintRoot .ws-comments-cell{height:30.48mm}
+  @page{size:A4 portrait;margin:0}
+}
 
 @media(max-width:980px){
   .ws-workspace{grid-template-columns:1fr}
@@ -50,63 +103,6 @@
   .ws-preview-toolbar{align-items:flex-start;flex-direction:column}
   .ws-preview-toolbar>div{width:100%}
   .ws-preview-toolbar button{flex:1}
-  .written-paper{padding:20px 15px 25px;min-height:900px}
-  .ws-incident-table{font-size:7px}
-  .ws-incident-table td{padding:3px 4px;height:27px}
-  .ws-check{font-size:6.8px}
-  .ws-check i{font-size:9px}
-  .ws-statement-cell{height:270px;font-size:8px}
-  .ws-comments-cell{height:100px}
-  .ws-footer-fields td>div{font-size:7px;padding:0 4px}
+  .ws-preview-wrap{overflow-x:auto;overflow-y:hidden}
+  .written-paper{flex:0 0 auto}
 }
-@media print{
-  html,body{background:#fff!important;margin:0!important;padding:0!important}
-  body>*{display:none!important}
-  body>#wsPrintRoot{display:block!important;visibility:visible!important;position:static!important}
-  #wsPrintRoot .written-paper{display:block!important;visibility:visible!important;box-shadow:none!important;width:210mm;max-width:none;min-height:297mm;height:297mm;margin:0;padding:8mm 10mm 7mm;box-sizing:border-box}
-  #wsPrintRoot .ws-preview-wrap{display:block!important}
-  #wsPrintRoot .ws-brand-row{height:17mm}
-  #wsPrintRoot .ws-page-title{font-size:13pt;margin-bottom:5mm}
-  #wsPrintRoot .ws-section-heading{font-size:9pt}
-  #wsPrintRoot .ws-incident-table{font-size:7pt}
-  #wsPrintRoot .ws-incident-table td{height:12.5mm}
-  #wsPrintRoot .ws-statement-table{margin-top:6mm}
-  #wsPrintRoot .ws-statement-table th,#wsPrintRoot .ws-comments-table th{height:7.5mm;font-size:9pt}
-  #wsPrintRoot .ws-statement-cell{height:84mm;font-size:7.5pt}
-  #wsPrintRoot .ws-sign-cell{height:10mm}
-  #wsPrintRoot .ws-comments-table{margin-top:6mm}
-  #wsPrintRoot .ws-comments-cell{height:34mm}
-  #wsPrintRoot .ws-footer-fields td{height:10mm}
-  #wsPrintRoot .ws-page-footer{left:10mm;bottom:4mm}
-  @page{size:A4 portrait;margin:0}
-}
-
-
-/* V23 exact company-form geometry */
-.ws-incident-table{table-layout:fixed}
-.ws-incident-table td{width:50%;height:58px;padding:8px 10px;vertical-align:top;box-sizing:border-box}
-.ws-incident-table td b{display:block;margin:0 0 7px;font-size:9px}
-.ws-incident-table td span:not(.ws-check){display:block;min-height:12px;font-size:9px;line-height:1.25}
-.ws-checks-paper{display:flex;gap:13px;flex-wrap:wrap;align-items:center;margin-top:34px}
-.ws-checks-paper .ws-check{display:inline-flex;align-items:center;gap:3px;font-size:8px;white-space:nowrap}
-.ws-checks-paper .ws-check i{font-style:normal;font-size:10px;line-height:1}
-.ws-incident-table tr:last-child td{height:58px;vertical-align:top}
-.ws-statement-table{margin-top:18px}
-.ws-statement-table th,.ws-comments-table th{text-align:left;padding-left:0;border:0;font-size:12px}
-.ws-statement-cell{height:335px;border:1px solid #111}
-.ws-sign-cell{height:38px;border:0;border-bottom:1px solid #111}
-.ws-comments-table{margin-top:20px}
-.ws-comments-table th{border:0}
-.ws-comments-cell{height:130px;border:1px solid #111}
-.ws-footer-fields td{border:0;border-bottom:1px solid #111}
-.ws-page-footer{font-size:8px}
-
-/* V23 targeted fixes — preserve V22.6 visual system */
-.settings-contact-card{grid-column:1/-1;padding:18px;border-radius:20px}
-.settings-contact-card h3{margin:4px 0 4px;font-size:16px}
-.settings-contact-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px}
-.settings-contact-actions{margin-top:14px}
-.settings-contact-note{margin:10px 0 0}
-.ws-incident-table td span:not(.ws-check){display:inline-block;min-height:11px}
-@media(max-width:900px){.settings-contact-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:640px){.settings-contact-grid{grid-template-columns:1fr}}

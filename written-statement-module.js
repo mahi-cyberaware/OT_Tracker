@@ -24,13 +24,13 @@
 
   function formatDate(value){
     if(!value)return "";
-    const m=/^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(value);
+    const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
     return m?`${m[3]}/${m[2]}/${m[1]}`:value;
   }
 
   function formatTime(value){
     if(!value)return "";
-    const m=/^(\\d{2}):(\\d{2})$/.exec(value);
+    const m=/^(\d{2}):(\d{2})$/.exec(value);
     if(!m)return value;
     let h=Number(m[1]);
     const suffix=h>=12?"PM":"AM";
@@ -49,7 +49,14 @@
     if(el)el.textContent=value||"";
   }
 
+  function normalizeStatement(statement="") {
+    let text=String(statement||"").replace(/\r\n?/g,"\n").trim();
+    text=text.replace(/^Dear\s+Sir\s*[,.:]?\s*/i,"").trim();
+    return text ? `Dear Sir,\n\n${text}` : "Dear Sir,\n\n";
+  }
+
   function renderPreview(statement=""){
+    statement=normalizeStatement(statement);
     const d=formData();
     bind("incidentTitle",d.incidentTitle);
     bind("dateIncident",formatDate(d.dateIncident));
@@ -67,17 +74,40 @@
     });
   }
 
+  let tesseractPromise=null;
+  function loadTesseract(){
+    if(window.Tesseract)return Promise.resolve(window.Tesseract);
+    if(tesseractPromise)return tesseractPromise;
+    tesseractPromise=new Promise((resolve,reject)=>{
+      const s=document.createElement("script");
+      s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+      s.async=true;
+      s.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error("OCR library loaded but Tesseract is unavailable."));
+      s.onerror=()=>{
+        const fallback=document.createElement("script");
+        fallback.src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js";
+        fallback.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error("OCR library could not be loaded."));
+        fallback.onerror=()=>reject(new Error("OCR library could not be loaded. Check your internet connection and try again."));
+        document.head.appendChild(fallback);
+      };
+      document.head.appendChild(s);
+    });
+    return tesseractPromise;
+  }
+
   async function ocr(){
     const f=$ws("wsReportImage")?.files[0];
     if(!f)return setStatus("Select the onboard crew report image first.",true);
-    if(!window.Tesseract)return setStatus("OCR library is loading. Please try again.",true);
-    setStatus("Reading report image…");
+    setStatus("Loading OCR…");
     try{
-      const result=await Tesseract.recognize(f,"eng",{logger:m=>{
+      const T=await loadTesseract();
+      setStatus("Reading report image…");
+      const result=await T.recognize(f,"eng",{logger:m=>{
         if(m.status&&typeof m.progress==="number")setStatus(`OCR: ${m.status} ${Math.round(m.progress*100)}%`);
       }});
-      $ws("wsOcrText").value=result.data.text.trim();
-      renderPreview($ws("wsStatementDraft")?.value||"");
+      $ws("wsOcrText").value=(result?.data?.text||"").trim();
+      renderPreview(normalizeStatement($ws("wsStatementDraft")?.value||""));
+      if(!$ws("wsOcrText").value)throw new Error("OCR completed but no text was detected.");
       setStatus("OCR completed. Check the text before generating.");
     }catch(e){setStatus(e.message||"OCR failed.",true);}
   }
@@ -99,15 +129,15 @@
       let p={};
       try{p=await res.json();}catch(e){}
       if(!res.ok)throw new Error(p.error||`Statement generation failed (${res.status}).`);
-      $ws("wsStatementDraft").value=p.statement||"";
-      renderPreview(p.statement||"");
+      $ws("wsStatementDraft").value=normalizeStatement(p.statement||"");
+      renderPreview($ws("wsStatementDraft").value);
       setStatus("Statement generated. Review and edit it before printing.");
     }catch(e){setStatus(e.message||"Could not generate the statement.",true);}
   }
 
   function saveDraft(){
     const d=formData();
-    d.statement=$ws("wsStatementDraft")?.value||"";
+    d.statement=normalizeStatement($ws("wsStatementDraft")?.value||"");
     localStorage.setItem(WS_STORAGE,JSON.stringify(d));
     renderPreview(d.statement);
     setStatus("Draft saved on this device.");
@@ -128,8 +158,8 @@
       $ws("wsInvolved").checked=!!d.involved;
       $ws("wsWitness").checked=!!d.witness;
       $ws("wsInjured").checked=!!d.injured;
-      $ws("wsStatementDraft").value=d.statement||"";
-      renderPreview(d.statement||"");
+      $ws("wsStatementDraft").value=normalizeStatement(d.statement||"");
+      renderPreview($ws("wsStatementDraft").value);
     }catch(e){}
   }
 
@@ -149,7 +179,7 @@
   }
 
   async function print(){
-    renderPreview($ws("wsStatementDraft")?.value||"");
+    renderPreview(normalizeStatement($ws("wsStatementDraft")?.value||""));
     const paper=$ws("writtenStatementPaper");
     if(!paper)return;
 

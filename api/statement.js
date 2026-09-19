@@ -8,7 +8,7 @@ export default async function handler(req,res){
   try{
     const apiKey=(process.env.OPENAI_API_KEY||"").trim();
     if(!apiKey){
-      return res.status(500).json({error:"OPENAI_API_KEY is not configured for this Vercel deployment. Enable the key for Preview and redeploy V23-integration."});
+      return res.status(500).json({error:"OPENAI_API_KEY is not configured for this Vercel deployment. Enable OPENAI_API_KEY for the Vercel environment serving this request and redeploy."});
     }
     const {
       incidentTitle,dateIncident,locationIncident,timeIncident,flightEtd,
@@ -26,7 +26,10 @@ Rules:
 - If something is unclear or missing, do not guess.
 - Rewrite the employee's simple words into clear, professional, factual English.
 - Do not assign blame or make accusations unless the supplied facts explicitly do so.
-- Return only the statement paragraph(s), with no title, signature, comments, or form fields.
+- Return only the staff statement text, with no title, signature, comments, or form fields.
+- The statement MUST begin exactly with: Dear Sir,
+- After "Dear Sir," insert exactly one blank line, then begin the factual statement on the third line.
+- Do not add any other greeting, heading, salutation, or closing.
 `;
 
     const content=[{
@@ -58,12 +61,20 @@ Rules:
     if(!response.ok){
       const apiMessage=data?.error?.message||"AI request failed.";
       if(response.status===401){
-        return res.status(502).json({error:"OpenAI rejected the API key. Check OPENAI_API_KEY in Vercel Preview and redeploy."});
+        return res.status(502).json({error:"OpenAI rejected the API key. Check OPENAI_API_KEY in the Vercel environment serving this request and redeploy."});
       }
       return res.status(response.status).json({error:apiMessage});
     }
-    const statement=data.output_text?.trim();
-    if(!statement)return res.status(502).json({error:"No statement was returned."});
+    const statement=(
+      data?.output_text?.trim() ||
+      (Array.isArray(data?.output)?data.output.flatMap(item=>Array.isArray(item?.content)?item.content:[])
+        .filter(part=>part?.type==="output_text" && typeof part?.text==="string")
+        .map(part=>part.text).join("\n").trim():"")
+    );
+    if(!statement){
+      console.error("OpenAI response contained no output text", JSON.stringify({id:data?.id,status:data?.status,outputTypes:Array.isArray(data?.output)?data.output.map(x=>x?.type):[]}));
+      return res.status(502).json({error:"OpenAI returned no statement text. Please try again."});
+    }
     return res.status(200).json({statement});
   }catch(e){
     return res.status(500).json({error:e?.message||"Server error"});
