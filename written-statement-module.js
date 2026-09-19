@@ -49,7 +49,14 @@
     if(el)el.textContent=value||"";
   }
 
+  function normalizeStatement(statement="") {
+    let text=String(statement||"").replace(/\r\n?/g,"\n").trim();
+    text=text.replace(/^Dear\s+Sir\s*[,.:]?\s*/i,"").trim();
+    return text ? `Dear Sir,\n\n${text}` : "Dear Sir,\n\n";
+  }
+
   function renderPreview(statement=""){
+    statement=normalizeStatement(statement);
     const d=formData();
     bind("incidentTitle",d.incidentTitle);
     bind("dateIncident",formatDate(d.dateIncident));
@@ -99,7 +106,7 @@
         if(m.status&&typeof m.progress==="number")setStatus(`OCR: ${m.status} ${Math.round(m.progress*100)}%`);
       }});
       $ws("wsOcrText").value=(result?.data?.text||"").trim();
-      renderPreview($ws("wsStatementDraft")?.value||"");
+      renderPreview(normalizeStatement($ws("wsStatementDraft")?.value||""));
       if(!$ws("wsOcrText").value)throw new Error("OCR completed but no text was detected.");
       setStatus("OCR completed. Check the text before generating.");
     }catch(e){setStatus(e.message||"OCR failed.",true);}
@@ -122,15 +129,15 @@
       let p={};
       try{p=await res.json();}catch(e){}
       if(!res.ok)throw new Error(p.error||`Statement generation failed (${res.status}).`);
-      $ws("wsStatementDraft").value=p.statement||"";
-      renderPreview(p.statement||"");
+      $ws("wsStatementDraft").value=normalizeStatement(p.statement||"");
+      renderPreview($ws("wsStatementDraft").value);
       setStatus("Statement generated. Review and edit it before printing.");
     }catch(e){setStatus(e.message||"Could not generate the statement.",true);}
   }
 
   function saveDraft(){
     const d=formData();
-    d.statement=$ws("wsStatementDraft")?.value||"";
+    d.statement=normalizeStatement($ws("wsStatementDraft")?.value||"");
     localStorage.setItem(WS_STORAGE,JSON.stringify(d));
     renderPreview(d.statement);
     setStatus("Draft saved on this device.");
@@ -151,8 +158,8 @@
       $ws("wsInvolved").checked=!!d.involved;
       $ws("wsWitness").checked=!!d.witness;
       $ws("wsInjured").checked=!!d.injured;
-      $ws("wsStatementDraft").value=d.statement||"";
-      renderPreview(d.statement||"");
+      $ws("wsStatementDraft").value=normalizeStatement(d.statement||"");
+      renderPreview($ws("wsStatementDraft").value);
     }catch(e){}
   }
 
@@ -172,7 +179,7 @@
   }
 
   async function print(){
-    renderPreview($ws("wsStatementDraft")?.value||"");
+    renderPreview(normalizeStatement($ws("wsStatementDraft")?.value||""));
     const paper=$ws("writtenStatementPaper");
     if(!paper)return;
 
