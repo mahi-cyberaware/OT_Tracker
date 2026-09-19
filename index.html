@@ -72,6 +72,17 @@
         <button id="addToday" class="primary hero-btn" type="button"><span>＋</span> Add attendance</button>
       </section>
 
+      <section id="homeUpdates" class="home-updates glass-card" aria-label="WorkTrack updates">
+        <div class="updates-head">
+          <div><div class="section-kicker">WORKTRACK UPDATES</div><h2>What’s new</h2><span class="muted small">Product updates, improvements and important notices.</span></div>
+          <span id="updateBadge" class="update-badge hidden">NEW</span>
+        </div>
+        <div class="update-slider" id="updateSlider">
+          <div class="update-track" id="updateTrack"></div>
+        </div>
+        <div class="update-dots" id="updateDots" aria-label="Update slides"></div>
+      </section>
+
       <section id="homeStats" class="stats">
         <div class="stat glass-card"><span>Working days</span><b id="workingDays">0</b><small>This month</small></div>
         <div class="stat glass-card"><span>Day off</span><b id="dayOffCount">0</b><small>Off days recorded</small></div>
@@ -362,14 +373,13 @@
           <span>Attendance • Hours • Overtime</span>
         </div>
         <div class="footer-made">Made by <strong>Mahi</strong></div>
-        <div class="footer-links">
-          <button type="button" class="footer-link" data-nav="about">About WorkTrack</button>
-          <button type="button" class="footer-link" data-nav="contact">Contact</button>
-          <button type="button" class="footer-link" data-nav="services">Services</button>
-          <button type="button" class="footer-link" data-nav="security">Security</button>
+        <div class="footer-columns">
+          <div><span class="footer-heading">Company</span><button type="button" class="footer-link" data-nav="about">About WorkTrack</button><button type="button" class="footer-link" data-nav="services">Services</button><button type="button" class="footer-link" data-nav="contact">Contact</button></div>
+          <div><span class="footer-heading">Trust & Legal</span><button type="button" class="footer-link" data-nav="security">Security & Privacy</button><button type="button" class="footer-link" data-nav="privacy">Privacy Policy</button><button type="button" class="footer-link" data-nav="terms">Terms & Conditions</button></div>
+          <div><span class="footer-heading">Founder</span><span class="footer-text">Mahi</span><span class="footer-text">Founder & Product Developer</span></div>
         </div>
         <div class="footer-security">Private account access • HTTPS • Supabase authentication • Row Level Security</div>
-        <div class="footer-copy">© 2026 Mahi. WorkTrack.</div>
+        <div class="footer-bottom"><span>© 2026 WorkTrack</span><span>Built & developed by Mahi</span></div>
       </footer>
     </main>
 
