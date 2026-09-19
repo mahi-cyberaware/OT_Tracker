@@ -26,7 +26,10 @@ Rules:
 - If something is unclear or missing, do not guess.
 - Rewrite the employee's simple words into clear, professional, factual English.
 - Do not assign blame or make accusations unless the supplied facts explicitly do so.
-- Return only the statement paragraph(s), with no title, signature, comments, or form fields.
+- Return only the staff statement text, with no title, signature, comments, or form fields.
+- The statement MUST begin exactly with: Dear Sir,
+- After "Dear Sir," insert exactly one blank line, then begin the factual statement on the third line.
+- Do not add any other greeting, heading, salutation, or closing.
 `;
 
     const content=[{
