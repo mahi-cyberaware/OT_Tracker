@@ -1346,10 +1346,10 @@ $('settingsPasswordButton')?.addEventListener('click',openPasswordDialog);
    V25.1 — HOME UPDATE CENTER
    ========================= */
 const WORKTRACK_UPDATE={
-  version:'25.1',
-  date:'19 September 2026',
+  version:'25.2',
+  date:'20 September 2026',
   slides:[
-    {image:'./updates/worktrack-update.svg',eyebrow:'LATEST RELEASE',title:'WorkTrack V25.1',text:'A more professional home experience with update notices, legal information and a refined footer.'},
+    {image:'./updates/worktrack-update.svg',eyebrow:'LATEST RELEASE',title:'WorkTrack V25.2',text:'Slides redesigned for a clean, responsive mobile and desktop experience.'},
     {image:'./updates/workforce.svg',eyebrow:'WORKFORCE MANAGEMENT',title:'Everything in one place',text:'Attendance, hours, overtime, roster, reports and operational workflows in one workspace.'},
     {image:'./updates/security.svg',eyebrow:'TRUST & SECURITY',title:'Built with protection in mind',text:'Authentication, Row Level Security and authorized administration remain core to WorkTrack.'}
   ]
@@ -1357,7 +1357,7 @@ const WORKTRACK_UPDATE={
 let updateIndex=0,updateTimer=null;
 function renderUpdateCenter(){
   const track=$('updateTrack'),dots=$('updateDots'); if(!track||!dots)return;
-  track.innerHTML=WORKTRACK_UPDATE.slides.map((x,i)=>`<article class="update-slide"><img src="${x.image}" alt="WorkTrack update ${i+1}" loading="lazy"><div class="update-slide-copy"><span>${x.eyebrow}</span><strong>${x.title}</strong><small>${x.text}</small></div></article>`).join('');
+  track.innerHTML=WORKTRACK_UPDATE.slides.map((x,i)=>`<article class="update-slide"><img src="${x.image}" alt="${x.title}" loading="${i===0?'eager':'lazy'}"></article>`).join('');
   dots.innerHTML=WORKTRACK_UPDATE.slides.map((_,i)=>`<button type="button" class="update-dot${i===0?' active':''}" data-update-slide="${i}" aria-label="Show update ${i+1}"></button>`).join('');
   dots.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{setUpdateSlide(Number(btn.dataset.updateSlide));startUpdateTimer();}));
   setUpdateSlide(0); startUpdateTimer();
