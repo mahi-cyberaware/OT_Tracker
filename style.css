@@ -1547,3 +1547,107 @@
     gap:6px;
   }
 }
+
+/* V26.2.1 — desktop-only footer correction
+   Mobile footer remains unchanged. */
+@media (min-width:761px){
+  .app-footer{
+    width:min(1180px, 90%);
+    max-width:1180px;
+    margin:34px auto 0;
+    padding:34px 28px 28px;
+    display:grid !important;
+    grid-template-columns:1fr;
+    grid-template-rows:auto auto auto auto;
+    justify-items:stretch;
+    align-items:start;
+    gap:0;
+    text-align:center;
+    box-sizing:border-box;
+  }
+
+  .app-footer .footer-brand{
+    width:100%;
+    margin:0 auto;
+    display:grid;
+    justify-items:center;
+    align-items:center;
+    gap:4px;
+    text-align:center;
+  }
+
+  .app-footer .footer-made{
+    width:100%;
+    margin:5px 0 0;
+    text-align:center;
+  }
+
+  .app-footer .footer-columns{
+    width:min(980px,100%);
+    margin:28px auto 0;
+    padding:24px 0;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    column-gap:clamp(32px,6vw,72px);
+    row-gap:24px;
+    border-top:1px solid rgba(255,255,255,.07);
+    border-bottom:1px solid rgba(255,255,255,.07);
+    box-sizing:border-box;
+  }
+
+  .app-footer .footer-columns > div{
+    min-width:0;
+    display:grid;
+    grid-template-rows:auto repeat(3,min-content);
+    align-content:start;
+    justify-items:start;
+    gap:8px;
+    text-align:left;
+  }
+
+  .app-footer .footer-heading,
+  .app-footer .footer-link,
+  .app-footer .footer-text{
+    width:100%;
+    text-align:left;
+    box-sizing:border-box;
+  }
+
+  .app-footer .footer-heading{
+    margin:0 0 4px;
+  }
+
+  .app-footer .footer-link,
+  .app-footer .footer-text{
+    margin:0;
+    padding:0;
+    min-height:16px;
+  }
+
+  .app-footer .footer-security{
+    width:100%;
+    max-width:1080px;
+    margin:0 auto;
+    padding:16px 0 0;
+    text-align:center;
+    box-sizing:border-box;
+  }
+
+  .app-footer .footer-bottom{
+    width:100%;
+    max-width:1080px;
+    margin:13px auto 0;
+    padding:0;
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    gap:24px;
+    text-align:left;
+    box-sizing:border-box;
+  }
+
+  .app-footer .footer-bottom span:last-child{
+    text-align:right;
+  }
+}
