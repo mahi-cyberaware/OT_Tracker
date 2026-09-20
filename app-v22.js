@@ -1343,13 +1343,15 @@ $('settingsPasswordButton')?.addEventListener('click',openPasswordDialog);
 
 
 /* =========================
-   V25.1 — HOME UPDATE CENTER
+   V25.3 — HOME UPDATE CENTER
+   Change slide backgrounds anytime by replacing the image path below.
+   Slide text is HTML, not baked into the image, so version/text never gets stuck in an old graphic.
    ========================= */
 const WORKTRACK_UPDATE={
   version:'25.2',
   date:'20 September 2026',
   slides:[
-    {image:'./updates/worktrack-update.svg',eyebrow:'LATEST RELEASE',title:'WorkTrack V25.2',text:'Slides redesigned for a clean, responsive mobile and desktop experience.'},
+    {image:'./updates/worktrack-update.svg',eyebrow:'LATEST RELEASE',title:'WorkTrack V25.2',text:'A cleaner, more responsive WorkTrack experience with an improved update center.'},
     {image:'./updates/workforce.svg',eyebrow:'WORKFORCE MANAGEMENT',title:'Everything in one place',text:'Attendance, hours, overtime, roster, reports and operational workflows in one workspace.'},
     {image:'./updates/security.svg',eyebrow:'TRUST & SECURITY',title:'Built with protection in mind',text:'Authentication, Row Level Security and authorized administration remain core to WorkTrack.'}
   ]
@@ -1357,7 +1359,7 @@ const WORKTRACK_UPDATE={
 let updateIndex=0,updateTimer=null;
 function renderUpdateCenter(){
   const track=$('updateTrack'),dots=$('updateDots'); if(!track||!dots)return;
-  track.innerHTML=WORKTRACK_UPDATE.slides.map((x,i)=>`<article class="update-slide"><img src="${x.image}" alt="${x.title}" loading="${i===0?'eager':'lazy'}"></article>`).join('');
+  track.innerHTML=WORKTRACK_UPDATE.slides.map((x,i)=>`<article class="update-slide" style="--update-bg:url('${x.image}')"><div class="update-slide-content"><div class="update-eyebrow">${esc(x.eyebrow)}</div><h3>${esc(x.title)}</h3><p>${esc(x.text)}</p><span class="update-more">WORKTRACK ${esc(WORKTRACK_UPDATE.version)}</span></div></article>`).join('');
   dots.innerHTML=WORKTRACK_UPDATE.slides.map((_,i)=>`<button type="button" class="update-dot${i===0?' active':''}" data-update-slide="${i}" aria-label="Show update ${i+1}"></button>`).join('');
   dots.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{setUpdateSlide(Number(btn.dataset.updateSlide));startUpdateTimer();}));
   setUpdateSlide(0); startUpdateTimer();
@@ -1620,7 +1622,7 @@ $('installApp')?.addEventListener('click',async()=>{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js?v=25.1').then(()=>{
+    navigator.serviceWorker.register('./sw.js?v=25.2').then(()=>{
       console.info('WorkTrack V23 service worker ready');
     }).catch(err=>console.warn('WorkTrack PWA service worker:',err));
   });
