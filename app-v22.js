@@ -47,7 +47,7 @@ function showApp(){
   setText('headerName',name);setText('headerEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('heroName',name.split(' ')[0]);setText('avatarInitial',initial);
   setTag('profileCompany',p.company_name);setTag('profilePosition',p.position);setTag('profileEmployee',p.employee_id?`Employee ID • ${p.employee_id}`:'');
   $('adminActivityNav')?.classList.toggle('hidden',!isAdmin);
-  showUpdateNotification();
+  loadUpdateHistory();
 }
 function setTag(id,text){$(id).textContent=text||'';$(id).classList.toggle('hidden',!text)}
 function authMessage(text,isError=false){$('authMessage').textContent=text;$('authMessage').className=`message ${text?(isError?'error':'success'):''}`}
@@ -1344,8 +1344,8 @@ $('settingsPasswordButton')?.addEventListener('click',openPasswordDialog);
 
 /* =========================
    V26.2 — HOME UPDATE CENTER
-   Central update history: newest release first.
-   Keep backgrounds as separate image files so they can be replaced anytime.
+   Central update history. Future releases are added to updates/updates.json.
+   The local list is a fallback so the section still works if the JSON file is unavailable.
    ========================= */
 const WORKTRACK_UPDATE={
   version:'26.2',
@@ -1360,13 +1360,40 @@ const WORKTRACK_UPDATE={
 let updateIndex=0,updateTimer=null;
 function renderUpdateCenter(){
   const track=$('updateTrack'),dots=$('updateDots'); if(!track||!dots)return;
-  track.innerHTML=WORKTRACK_UPDATE.slides.map((x,i)=>`<article class="update-slide" style="--update-bg:url('${x.image}')"><div class="update-slide-content"><div class="update-eyebrow">${x.eyebrow}</div><h3>${x.title}</h3><p>${x.text}</p><span class="update-chip">${x.button}</span></div></article>`).join('');
-  dots.innerHTML=WORKTRACK_UPDATE.slides.map((_,i)=>`<button type="button" class="update-dot${i===0?' active':''}" data-update-slide="${i}" aria-label="Show update ${i+1}"></button>`).join('');
+  const slides=Array.isArray(WORKTRACK_UPDATE.slides)?WORKTRACK_UPDATE.slides:[];
+  track.innerHTML=slides.map(x=>`<article class="update-slide" style="--update-bg:url('${x.image}')"><div class="update-slide-content"><div class="update-eyebrow">${x.eyebrow||''}</div><h3>${x.title||''}</h3><p>${x.text||''}</p><span class="update-chip">${x.button||x.version||''}</span></div></article>`).join('');
+  dots.innerHTML=slides.map((_,i)=>`<button type="button" class="update-dot${i===0?' active':''}" data-update-slide="${i}" aria-label="Show update ${i+1}"></button>`).join('');
   dots.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{setUpdateSlide(Number(btn.dataset.updateSlide));startUpdateTimer();}));
-  setUpdateSlide(0); startUpdateTimer();
+  if(slides.length){setUpdateSlide(0);startUpdateTimer();}
 }
-function setUpdateSlide(i){updateIndex=(i+WORKTRACK_UPDATE.slides.length)%WORKTRACK_UPDATE.slides.length;const track=$('updateTrack');if(track)track.style.transform=`translate3d(-${updateIndex*100}%,0,0)`;document.querySelectorAll('.update-dot').forEach((b,n)=>b.classList.toggle('active',n===updateIndex));}
-function startUpdateTimer(){clearInterval(updateTimer);updateTimer=setInterval(()=>setUpdateSlide(updateIndex+1),6500);}
+function setUpdateSlide(i){
+  const total=WORKTRACK_UPDATE.slides.length;
+  if(!total)return;
+  updateIndex=(i+total)%total;
+  const track=$('updateTrack');
+  if(track)track.style.transform=`translate3d(-${updateIndex*100}%,0,0)`;
+  document.querySelectorAll('.update-dot').forEach((b,n)=>b.classList.toggle('active',n===updateIndex));
+}
+function startUpdateTimer(){
+  clearInterval(updateTimer);
+  if(WORKTRACK_UPDATE.slides.length>1)updateTimer=setInterval(()=>setUpdateSlide(updateIndex+1),6500);
+}
+async function loadUpdateHistory(){
+  try{
+    const response=await fetch('./updates/updates.json?v=26.2.1',{cache:'no-store'});
+    if(!response.ok)throw new Error(`Update history HTTP ${response.status}`);
+    const data=await response.json();
+    if(Array.isArray(data.slides)&&data.slides.length){
+      WORKTRACK_UPDATE.version=String(data.version||WORKTRACK_UPDATE.version);
+      WORKTRACK_UPDATE.date=String(data.date||WORKTRACK_UPDATE.date);
+      WORKTRACK_UPDATE.slides=data.slides;
+    }
+  }catch(err){
+    console.warn('WorkTrack update history fallback:',err);
+  }
+  renderUpdateCenter();
+  if(user)showUpdateNotification();
+}
 function showUpdateNotification(){
   const key=`worktrack-update-seen-${WORKTRACK_UPDATE.version}`;
   let seen=false; try{seen=localStorage.getItem(key)==='1'}catch(e){}
@@ -1379,3 +1406,6 @@ function showUpdateNotification(){
   toast.querySelector('button').onclick=()=>{try{localStorage.setItem(key,'1')}catch(e){};$('updateBadge')?.classList.add('hidden');toast.remove();showAppSection('home');window.scrollTo({top:0,behavior:'smooth'});};
   setTimeout(()=>{if(document.body.contains(toast)){toast.remove();}},10000);
 }
+
+// Always initialize the update center. The JSON file is the source of truth for future releases.
+loadUpdateHistory();
