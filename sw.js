@@ -3,7 +3,7 @@ const APP_SHELL = [
   './',
   './index.html',
   './style.css',
-  './app-v22.js?v=25.3',
+  './app-v22.js?v=25.4',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png'

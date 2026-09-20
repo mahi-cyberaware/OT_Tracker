@@ -1343,23 +1343,21 @@ $('settingsPasswordButton')?.addEventListener('click',openPasswordDialog);
 
 
 /* =========================
-   V25.3 — HOME UPDATE CENTER
-   Change slide backgrounds anytime by replacing the image path below.
-   Slide text is HTML, not baked into the image, so version/text never gets stuck in an old graphic.
+   V25.2 — HOME UPDATE CENTER
    ========================= */
 const WORKTRACK_UPDATE={
-  version:'25.2',
+  version:'25.4',
   date:'20 September 2026',
   slides:[
-    {image:'./updates/worktrack-update.svg',eyebrow:'LATEST RELEASE',title:'WorkTrack V25.2',text:'A cleaner, more responsive WorkTrack experience with an improved update center.'},
-    {image:'./updates/workforce.svg',eyebrow:'WORKFORCE MANAGEMENT',title:'Everything in one place',text:'Attendance, hours, overtime, roster, reports and operational workflows in one workspace.'},
-    {image:'./updates/security.svg',eyebrow:'TRUST & SECURITY',title:'Built with protection in mind',text:'Authentication, Row Level Security and authorized administration remain core to WorkTrack.'}
+    {image:'./updates/worktrack-update.svg',eyebrow:'LATEST RELEASE',title:'WorkTrack V25.4',text:'A cleaner, more responsive WorkTrack experience with an improved update center.',button:'WORKTRACK 25.4'},
+    {image:'./updates/workforce.svg',eyebrow:'WORKFORCE MANAGEMENT',title:'Everything in one place',text:'Attendance, hours, overtime, roster, reports and operational workflows in one workspace.',button:'WORKTRACK 25.4'},
+    {image:'./updates/security.svg',eyebrow:'TRUST & SECURITY',title:'Built with protection in mind',text:'Authentication, Row Level Security and authorized administration remain core to WorkTrack.',button:'WORKTRACK 25.4'}
   ]
 };
 let updateIndex=0,updateTimer=null;
 function renderUpdateCenter(){
   const track=$('updateTrack'),dots=$('updateDots'); if(!track||!dots)return;
-  track.innerHTML=WORKTRACK_UPDATE.slides.map((x,i)=>`<article class="update-slide" style="--update-bg:url('${x.image}')"><div class="update-slide-content"><div class="update-eyebrow">${esc(x.eyebrow)}</div><h3>${esc(x.title)}</h3><p>${esc(x.text)}</p><span class="update-more">WORKTRACK ${esc(WORKTRACK_UPDATE.version)}</span></div></article>`).join('');
+  track.innerHTML=WORKTRACK_UPDATE.slides.map((x,i)=>`<article class="update-slide" style="--update-bg:url('${x.image}')"><div class="update-slide-content"><div class="update-eyebrow">${x.eyebrow}</div><h3>${x.title}</h3><p>${x.text}</p><span class="update-chip">${x.button}</span></div></article>`).join('');
   dots.innerHTML=WORKTRACK_UPDATE.slides.map((_,i)=>`<button type="button" class="update-dot${i===0?' active':''}" data-update-slide="${i}" aria-label="Show update ${i+1}"></button>`).join('');
   dots.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{setUpdateSlide(Number(btn.dataset.updateSlide));startUpdateTimer();}));
   setUpdateSlide(0); startUpdateTimer();
