@@ -46,6 +46,8 @@ function showApp(){
   let p=profile(),name=displayName(),initial=(name.trim()[0]||'W').toUpperCase();
   setText('headerName',name);setText('headerEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('heroName',name.split(' ')[0]);setText('avatarInitial',initial);
   setTag('profileCompany',p.company_name);setTag('profilePosition',p.position);setTag('profileEmployee',p.employee_id?`Employee ID • ${p.employee_id}`:'');
+  $('adminActivityNav')?.classList.toggle('hidden',!isAdmin);
+  showUpdateNotification();
 }
 function setTag(id,text){$(id).textContent=text||'';$(id).classList.toggle('hidden',!text)}
 function authMessage(text,isError=false){$('authMessage').textContent=text;$('authMessage').className=`message ${text?(isError?'error':'success'):''}`}
@@ -282,6 +284,9 @@ async function load(){
   let p=await sb.from('profiles').select('duty_hours,role').eq('id',user.id).single();
   if(p.data){duty=Number(p.data.duty_hours)||9;isAdmin=p.data.role==='admin';}
   else isAdmin=false;
+  $('adminActivityNav')?.classList.toggle('hidden',!isAdmin);
+  $('adminActivitySection')?.classList.toggle('hidden',!isAdmin);
+  $('adminActivitySection')?.setAttribute('aria-hidden',isAdmin?'false':'true');
   updateRosterAdminUI();
   $('dutyHours').value=duty;
   let start=`${monthKey()}-01`,end=new Date(month.getFullYear(),month.getMonth()+1,0).toISOString().slice(0,10);
@@ -881,6 +886,40 @@ setInterval(checkReminder,30000);
 $('homeLogo')?.addEventListener('click',()=>showAppSection('home'));
 
 $('exportCsv').onclick=()=>{let rows=[['Date','Check In','Check Out','Worked Hours','Overtime Hours','Status','OT Reason','Notes'],...records.map(r=>{let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty);return[r.work_date,r.check_in||'',r.check_out||'',h.toFixed(2),ot.toFixed(2),statusLabel(r.status),r.ot_reason||'',r.notes||'']})];let csv=rows.map(row=>row.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`worktrack-${monthKey()}.csv`;a.click();URL.revokeObjectURL(a.href)};
+
+/* =========================
+   V25 — ADMIN STAFF ACTIVITY CENTER
+   ========================= */
+let adminActivityRows=[];
+function adminActivityMessage(text,isError=false){let el=$('adminActivityMessage');if(!el)return;el.textContent=text||'';el.className=`message ${text?(isError?'error':'success'):''}`}
+function renderAdminActivity(){
+  const tbody=$('adminActivityRecords'),empty=$('adminActivityEmpty'),staff=$('adminActivityStaff'),summary=$('adminActivitySummary');
+  if(!tbody)return; tbody.innerHTML='';
+  if(!adminActivityRows.length){empty.textContent='No activity found for this Employee ID and date range.';empty.classList.remove('hidden');staff?.classList.add('hidden');summary.textContent='';return;}
+  empty.classList.add('hidden');
+  const first=adminActivityRows[0];
+  if(staff){staff.classList.remove('hidden');staff.innerHTML=`<div><span>Employee</span><strong>${esc(first.employee_name||'Unknown')}</strong></div><div><span>Employee ID</span><strong>${esc(first.employee_id||'')}</strong></div>`}
+  summary.textContent=`${adminActivityRows.length} activity record${adminActivityRows.length===1?'':'s'} found`;
+  adminActivityRows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${esc(r.activity_date||'')}</td><td>${esc(r.activity_time||'—')}</td><td><b>${esc(r.activity_type||'')}</b></td><td>${esc(r.details||'')}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+async function loadAdminActivity(){
+  if(!isAdmin){return}
+  const id=String($('adminActivityEmployeeId')?.value||'').trim();
+  if(!id){renderAdminActivity();return}
+  const from=$('adminActivityFrom')?.value||null,to=$('adminActivityTo')?.value||null;
+  adminActivityMessage('Loading staff activity…');
+  const r=await sb.rpc('admin_get_employee_activity',{p_employee_id:id,p_from_date:from,p_to_date:to});
+  if(r.error){adminActivityRows=[];renderAdminActivity();adminActivityMessage(r.error.message||'Could not load staff activity.',true);return}
+  adminActivityRows=r.data||[];renderAdminActivity();adminActivityMessage(`Activity loaded for Employee ID ${id}.`);
+}
+$('adminActivitySearch')?.addEventListener('click',loadAdminActivity);
+$('adminActivityClear')?.addEventListener('click',()=>{['adminActivityEmployeeId','adminActivityFrom','adminActivityTo'].forEach(id=>{if($(id))$(id).value=''});adminActivityRows=[];adminActivityMessage('');renderAdminActivity()});
+$('adminActivityEmployeeId')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();loadAdminActivity()}});
+
 setAuthMode();init();
 
 /* =========================
@@ -888,7 +927,7 @@ setAuthMode();init();
    ========================= */
 
 const appSections={
-  home:['homeSection','homeStats'],
+  home:['homeSection','homeUpdates','homeStats'],
   roster:['rosterSection','adminRosterSection'],
   calendar:['calendarSection'],
   analytics:['analyticsSection'],
@@ -897,7 +936,8 @@ const appSections={
   writtenStatement:['writtenStatementSection'],
   payroll:['payrollSection'],
   reminders:['remindersSection'],
-  settings:['settingsSection']
+  settings:['settingsSection'],
+  adminActivity:['adminActivitySection']
 };
 
 const navLabels={
@@ -910,7 +950,8 @@ const navLabels={
   writtenStatement:'Written Statement',
   payroll:'Payroll estimate',
   reminders:'Reminders',
-  settings:'Settings'
+  settings:'Settings',
+  adminActivity:'Staff Activity'
 };
 
 function closeAppMenu(){
@@ -949,54 +990,74 @@ function showAppSection(name){
 
 
 function showInfo(type){
-
-  let title='';
-  let kicker='';
-  let body='';
-
+  let title='',kicker='',body='';
   if(type==='about'){
-    kicker='ABOUT MAHI';
-    title='About the creator';
+    kicker='ABOUT WORKTRACK';
+    title='WorkTrack — Workforce Management';
     body=`
-      <div class="info-highlight">
-        <strong>Mahi</strong>
-        <span>Creator of WorkTrack</span>
+      <div class="info-hero-card">
+        <div class="info-hero-mark">W</div>
+        <div><strong>WorkTrack</strong><span>Attendance • Hours • Overtime • Workforce Management</span></div>
       </div>
-      <p>Mahi is an Operations Officer who built WorkTrack as a simple, practical tool for managing attendance, working hours and overtime.</p>
-      <p>The goal is straightforward: keep work records organized, make overtime easier to understand, and give employees a clean private workspace.</p>
+      <p>WorkTrack is a workforce management platform designed to bring attendance, working hours, overtime, roster visibility, reporting and operational documentation into one organized workspace.</p>
+      <div class="info-section-card"><div class="info-section-kicker">OUR PURPOSE</div><h3>Make workforce operations simpler, clearer and more accountable.</h3><p>WorkTrack focuses on practical tools that reduce manual work while keeping employee records structured and protected.</p></div>
+      <div class="info-section-card"><div class="info-section-kicker">FOUNDER</div><h3>Mahi</h3><p><strong>Founder & Product Developer</strong></p><p>WorkTrack was created from real operational requirements, with an emphasis on simplicity, automation, security and a better employee experience.</p></div>
     `;
-  }
-
-  if(type==='contact'){
-    kicker='CONTACT';
-    title='Contact Mahi';
+  } else if(type==='services'){
+    kicker='WORKTRACK SERVICES';
+    title='What WorkTrack provides';
     body=`
+      <div class="service-grid">
+        <div class="service-card"><b>📊 Attendance Management</b><span>Track attendance, working days, leave and duty status.</span></div>
+        <div class="service-card"><b>⏱️ Hours & Overtime</b><span>Calculate working hours and overtime using configured duty rules.</span></div>
+        <div class="service-card"><b>📅 Roster Management</b><span>Manage duty schedules and provide clear next-duty visibility.</span></div>
+        <div class="service-card"><b>📈 Workforce Analytics</b><span>Review attendance, hours and overtime patterns through organized insights.</span></div>
+        <div class="service-card"><b>📄 Digital Documentation</b><span>Create operational documents such as Written Statements in a structured workflow.</span></div>
+        <div class="service-card"><b>🤖 AI-Assisted Documentation</b><span>Use OCR and AI assistance to turn operational information into a professional draft for staff review.</span></div>
+        <div class="service-card"><b>📑 Reports & Records</b><span>Generate organized attendance, roster and operational records.</span></div>
+        <div class="service-card"><b>🔐 Account Security</b><span>Authentication, protected records and role-based administrative access.</span></div>
+      </div>
+    `;
+  } else if(type==='contact'){
+    kicker='CONTACT WORKTRACK';
+    title='Let’s connect';
+    body=`
+      <div class="info-hero-card"><div class="info-hero-mark">WT</div><div><strong>WorkTrack</strong><span>Support • Feedback • Business enquiries</span></div></div>
+      <p>For product questions, feedback, support requests or business enquiries, use the official contact details configured by the WorkTrack founder.</p>
       <div class="contact-list">
-        <a href="mailto:myprogrammwork1@gmail.com"><span>Email</span><strong>myprogrammwork1@gmail.com</strong></a>
-        <a href="tel:+971507635453"><span>Contact</span><strong>+971 50 763 5453</strong></a>
-        <a href="https://github.com/mahi-cyberaware" target="_blank" rel="noopener noreferrer"><span>GitHub</span><strong>mahi_cyberaware</strong></a>
+        <a href="mailto:myprogrammwork1@gmail.com"><span>General contact</span><strong>myprogrammwork1@gmail.com</strong></a>
+        <a href="tel:+971507635453"><span>Phone</span><strong>+971 50 763 5453</strong></a>
+        <a href="https://github.com/mahi-cyberaware" target="_blank" rel="noopener noreferrer"><span>Development / GitHub</span><strong>mahi-cyberaware</strong></a>
       </div>
+      <div class="info-section-card"><div class="info-section-kicker">FOUNDER</div><h3>Mahi — Founder & Product Developer</h3><p>For product or partnership enquiries, contact the founder using the details above.</p></div>
     `;
-  }
-
-  if(type==='security'){
+  } else if(type==='privacy'){
+    kicker='PRIVACY POLICY';
+    title='WorkTrack Privacy Policy';
+    body=`
+      <div class="info-section-card"><div class="info-section-kicker">LAST UPDATED</div><h3>19 September 2026</h3><p>This in-app policy is a concise product summary. A final legal review can be added before public commercial use.</p></div>
+      <div class="legal-list"><div><strong>Information we process</strong><span>Account details, employee profile information, attendance, roster, overtime, reports and documents that you choose to enter or upload.</span></div><div><strong>How information is used</strong><span>To provide WorkTrack features, authenticate accounts, calculate work records, generate reports and support operational workflows.</span></div><div><strong>Access controls</strong><span>WorkTrack uses authentication and database access controls intended to limit records to the permitted account or authorized administrator.</span></div><div><strong>Third-party services</strong><span>WorkTrack uses services such as Supabase, Vercel and OpenAI for specific application functions. Secrets are kept server-side where applicable.</span></div><div><strong>Your responsibility</strong><span>Keep your password and account access private. Do not upload information that you are not authorized to process.</span></div></div>`;
+  } else if(type==='terms'){
+    kicker='TERMS & CONDITIONS';
+    title='WorkTrack Terms & Conditions';
+    body=`
+      <div class="info-section-card"><div class="info-section-kicker">LAST UPDATED</div><h3>19 September 2026</h3><p>This in-app summary describes intended use of WorkTrack and should receive a legal review before public commercial deployment.</p></div>
+      <div class="legal-list"><div><strong>Acceptable use</strong><span>Use WorkTrack only for legitimate workforce-management activities and only with information you are authorized to access or submit.</span></div><div><strong>Account responsibility</strong><span>You are responsible for protecting your credentials and for activity performed through your account.</span></div><div><strong>Records and calculations</strong><span>Attendance, hours, overtime and generated documents should be reviewed by the responsible user before they are relied upon for operational or payroll decisions.</span></div><div><strong>AI-assisted documents</strong><span>AI-generated statements are drafts for review. Users remain responsible for checking accuracy, context and completeness before signing or submitting a document.</span></div><div><strong>Availability</strong><span>WorkTrack may be updated, improved or temporarily unavailable for maintenance. Important updates may be announced inside the application.</span></div></div>`;
+  } else if(type==='security'){
     kicker='SECURITY & PRIVACY';
-    title='Your data & security';
+    title='Security by design';
     body=`
       <div class="security-list">
-        <div><strong>🔐 Account authentication</strong><span>Sign-in is handled through Supabase Authentication.</span></div>
-        <div><strong>🛡️ Private records</strong><span>WorkTrack uses Row Level Security so attendance records are intended to be accessible only to the authenticated account.</span></div>
-        <div><strong>🔑 Browser-safe key</strong><span>The app uses a Supabase publishable key. Never place a Supabase secret/service-role key in browser code.</span></div>
-        <div><strong>🌐 Secure connection</strong><span>Use the HTTPS WorkTrack address and keep your account password private.</span></div>
-        <div><strong>⚠️ Good practice</strong><span>Do not share your login credentials, and always sign out on shared devices.</span></div>
+        <div><strong>🔐 Authentication</strong><span>WorkTrack uses Supabase Authentication for account sign-in and session management.</span></div>
+        <div><strong>🛡️ Row Level Security</strong><span>Database access is protected with RLS so employee records are intended to remain within the permitted account scope.</span></div>
+        <div><strong>👑 Admin authorization</strong><span>Administrative staff activity and roster operations are protected by server-side role checks rather than UI visibility alone.</span></div>
+        <div><strong>🔑 Secret protection</strong><span>Server-side API secrets such as the OpenAI key are kept in Vercel environment variables and are not placed in browser code.</span></div>
+        <div><strong>🌐 HTTPS</strong><span>Use the official HTTPS WorkTrack address and keep account credentials private.</span></div>
+        <div><strong>📱 Account protection</strong><span>Use a unique password and sign out of shared devices. Sensitive account changes should be treated as security events.</span></div>
       </div>
     `;
   }
-
-  $('infoKicker').textContent=kicker;
-  $('infoTitle').textContent=title;
-  $('infoBody').innerHTML=body;
-  $('infoDialog').showModal();
+  $('infoKicker').textContent=kicker;$('infoTitle').textContent=title;$('infoBody').innerHTML=body;$('infoDialog').showModal();
 }
 
 $('menuButton')?.addEventListener('click',openAppMenu);
@@ -1015,8 +1076,10 @@ document.querySelectorAll('[data-nav]').forEach(btn=>{
     e.stopPropagation();
     const target=this.dataset.nav;
     if(target==='profile'){ closeAppMenu(); openProfile(); return; }
-    if(['about','contact','security'].includes(target)){ closeAppMenu(); showInfo(target); return; }
+    if(['about','contact','security','services','privacy','terms'].includes(target)){ closeAppMenu(); showInfo(target); return; }
+    if(target==='adminActivity' && !isAdmin){ closeAppMenu(); return; }
     showAppSection(target);
+    if(target==='adminActivity') loadAdminActivity();
   }, false);
 });
 
@@ -1280,6 +1343,42 @@ $('settingsPasswordButton')?.addEventListener('click',openPasswordDialog);
 
 
 /* =========================
+   V25.2 — HOME UPDATE CENTER
+   ========================= */
+const WORKTRACK_UPDATE={
+  version:'25.4',
+  date:'20 September 2026',
+  slides:[
+    {image:'./updates/worktrack-update.svg',eyebrow:'LATEST RELEASE',title:'WorkTrack V25.4',text:'A cleaner, more responsive WorkTrack experience with an improved update center.',button:'WORKTRACK 25.4'},
+    {image:'./updates/workforce.svg',eyebrow:'WORKFORCE MANAGEMENT',title:'Everything in one place',text:'Attendance, hours, overtime, roster, reports and operational workflows in one workspace.',button:'WORKTRACK 25.4'},
+    {image:'./updates/security.svg',eyebrow:'TRUST & SECURITY',title:'Built with protection in mind',text:'Authentication, Row Level Security and authorized administration remain core to WorkTrack.',button:'WORKTRACK 25.4'}
+  ]
+};
+let updateIndex=0,updateTimer=null;
+function renderUpdateCenter(){
+  const track=$('updateTrack'),dots=$('updateDots'); if(!track||!dots)return;
+  track.innerHTML=WORKTRACK_UPDATE.slides.map((x,i)=>`<article class="update-slide" style="--update-bg:url('${x.image}')"><div class="update-slide-content"><div class="update-eyebrow">${x.eyebrow}</div><h3>${x.title}</h3><p>${x.text}</p><span class="update-chip">${x.button}</span></div></article>`).join('');
+  dots.innerHTML=WORKTRACK_UPDATE.slides.map((_,i)=>`<button type="button" class="update-dot${i===0?' active':''}" data-update-slide="${i}" aria-label="Show update ${i+1}"></button>`).join('');
+  dots.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{setUpdateSlide(Number(btn.dataset.updateSlide));startUpdateTimer();}));
+  setUpdateSlide(0); startUpdateTimer();
+}
+function setUpdateSlide(i){updateIndex=(i+WORKTRACK_UPDATE.slides.length)%WORKTRACK_UPDATE.slides.length;const track=$('updateTrack');if(track)track.style.transform=`translateX(-${updateIndex*100}%)`;document.querySelectorAll('.update-dot').forEach((b,n)=>b.classList.toggle('active',n===updateIndex));}
+function startUpdateTimer(){clearInterval(updateTimer);updateTimer=setInterval(()=>setUpdateSlide(updateIndex+1),6500);}
+function showUpdateNotification(){
+  const key=`worktrack-update-seen-${WORKTRACK_UPDATE.version}`;
+  let seen=false; try{seen=localStorage.getItem(key)==='1'}catch(e){}
+  $('updateBadge')?.classList.toggle('hidden',seen);
+  if(seen)return;
+  const old=document.getElementById('worktrackUpdateToast'); old?.remove();
+  const toast=document.createElement('div'); toast.id='worktrackUpdateToast'; toast.className='update-toast';
+  toast.innerHTML=`<div><strong>WorkTrack ${WORKTRACK_UPDATE.version} is available</strong><span>New improvements are ready. View the update slides on Home.</span></div><button type="button">View</button>`;
+  document.body.appendChild(toast);
+  toast.querySelector('button').onclick=()=>{try{localStorage.setItem(key,'1')}catch(e){};$('updateBadge')?.classList.add('hidden');toast.remove();showAppSection('home');window.scrollTo({top:0,behavior:'smooth'});};
+  setTimeout(()=>{if(document.body.contains(toast)){toast.remove();}},10000);
+}
+renderUpdateCenter();
+
+/* =========================
    V16 — HOME EXPERIENCE
    ========================= */
 
@@ -1521,7 +1620,7 @@ $('installApp')?.addEventListener('click',async()=>{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js?v=23.3').then(()=>{
+    navigator.serviceWorker.register('./sw.js?v=25.2').then(()=>{
       console.info('WorkTrack V23 service worker ready');
     }).catch(err=>console.warn('WorkTrack PWA service worker:',err));
   });

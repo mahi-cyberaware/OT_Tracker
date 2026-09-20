@@ -1,0 +1,15 @@
+WorkTrack V23 — Working AI Integration FINAL FIX
+
+FIXED ONLY:
+1. Instant menu bootstrap + single navigation controller; PWA cache bumped to V23.3.
+2. Print/Save PDF uses the current page print engine; no popup/new blank window.
+3. Written Statement incident table now follows the supplied company form geometry: two main columns, with Staff Mob No/checks in the right merged area.
+4. Print layout uses A4 sizing and keeps the form visible.
+5. OpenAI endpoint validates the Preview environment key and returns a safe diagnostic message; no key is embedded.
+6. Existing Settings password/email/mobile features preserved.
+
+IMPORTANT:
+- Upload/replace files on V23-integration only.
+- Do not modify main.
+- In Vercel, OPENAI_API_KEY must be enabled for Preview and the V23-integration deployment must be redeployed.
+- Never put the OpenAI key into index.html or browser JavaScript.

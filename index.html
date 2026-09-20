@@ -72,6 +72,17 @@
         <button id="addToday" class="primary hero-btn" type="button"><span>＋</span> Add attendance</button>
       </section>
 
+      <section id="homeUpdates" class="home-updates glass-card" aria-label="WorkTrack updates">
+        <div class="updates-head">
+          <div><div class="section-kicker">WORKTRACK UPDATES</div><h2>What’s new</h2><span class="muted small">Product updates, improvements and important notices.</span></div>
+          <span id="updateBadge" class="update-badge hidden">NEW</span>
+        </div>
+        <div class="update-slider" id="updateSlider">
+          <div class="update-track" id="updateTrack"></div>
+        </div>
+        <div class="update-dots" id="updateDots" aria-label="Update slides"></div>
+      </section>
+
       <section id="homeStats" class="stats">
         <div class="stat glass-card"><span>Working days</span><b id="workingDays">0</b><small>This month</small></div>
         <div class="stat glass-card"><span>Day off</span><b id="dayOffCount">0</b><small>Off days recorded</small></div>
@@ -130,6 +141,28 @@
           <div class="admin-roster-buttons"><button id="adminSaveEntry" class="primary" type="button">Save change</button><button id="adminDeleteEntry" class="ghost" type="button">Delete entry</button></div>
         </div>
         <div class="table-wrap roster-table-wrap"><table><thead><tr><th>Employee</th><th>Date</th><th>Duty</th><th>Action</th></tr></thead><tbody id="adminRosterRecords"></tbody></table><div id="adminRosterEmpty" class="empty">No roster entries loaded.</div></div>
+      </section>
+
+      <section id="adminActivitySection" class="panel glass-card admin-activity-panel hidden" hidden>
+        <div class="panel-head">
+          <div><div class="section-kicker">ADMIN ACTIVITY CENTER</div><h2>Staff activity</h2><span class="muted small">Authorized administrators can review a staff member’s WorkTrack activity by Employee ID.</span></div>
+        </div>
+        <div class="roster-privacy"><span>🔐</span><span>Administrator access only. Search is performed by Employee ID. Results are read-only and are protected by a server-side admin check.</span></div>
+        <div id="adminActivityMessage" class="message"></div>
+        <div class="admin-activity-filters glass-card">
+          <div class="filter-title">🔎 Find staff activity</div>
+          <label>Employee ID<input id="adminActivityEmployeeId" type="search" inputmode="numeric" placeholder="e.g. 200396"></label>
+          <label>From<input id="adminActivityFrom" type="date"></label>
+          <label>To<input id="adminActivityTo" type="date"></label>
+          <button id="adminActivitySearch" class="primary" type="button">Search activity</button>
+          <button id="adminActivityClear" class="ghost" type="button">Clear</button>
+        </div>
+        <div id="adminActivityStaff" class="admin-activity-staff hidden"></div>
+        <div id="adminActivitySummary" class="muted small"></div>
+        <div class="table-wrap roster-table-wrap admin-activity-table-wrap">
+          <table><thead><tr><th>Date</th><th>Time</th><th>Activity</th><th>Details</th></tr></thead><tbody id="adminActivityRecords"></tbody></table>
+          <div id="adminActivityEmpty" class="empty">Enter an Employee ID and search to view activity.</div>
+        </div>
       </section>
 
       <section id="calendarSection" class="panel glass-card calendar-panel" hidden>
@@ -340,13 +373,13 @@
           <span>Attendance • Hours • Overtime</span>
         </div>
         <div class="footer-made">Made by <strong>Mahi</strong></div>
-        <div class="footer-links">
-          <button type="button" class="footer-link" data-nav="about">About</button>
-          <button type="button" class="footer-link" data-nav="contact">Contact</button>
-          <button type="button" class="footer-link" data-nav="security">Security</button>
+        <div class="footer-columns">
+          <div><span class="footer-heading">Company</span><button type="button" class="footer-link" data-nav="about">About WorkTrack</button><button type="button" class="footer-link" data-nav="services">Services</button><button type="button" class="footer-link" data-nav="contact">Contact</button></div>
+          <div><span class="footer-heading">Trust & Legal</span><button type="button" class="footer-link" data-nav="security">Security & Privacy</button><button type="button" class="footer-link" data-nav="privacy">Privacy Policy</button><button type="button" class="footer-link" data-nav="terms">Terms & Conditions</button></div>
+          <div><span class="footer-heading">Founder</span><span class="footer-text">Mahi</span><span class="footer-text">Founder & Product Developer</span></div>
         </div>
         <div class="footer-security">Private account access • HTTPS • Supabase authentication • Row Level Security</div>
-        <div class="footer-copy">© 2026 Mahi. WorkTrack.</div>
+        <div class="footer-bottom"><span>© 2026 WorkTrack</span><span>Built & developed by Mahi</span></div>
       </footer>
     </main>
 
@@ -372,14 +405,16 @@
           <button type="button" class="menu-item" data-nav="payroll">₹ <span>Payroll estimate</span></button>
           <button type="button" class="menu-item" data-nav="reminders">◷ <span>Reminders</span></button>
           <button type="button" class="menu-item" data-nav="settings">⚙ <span>Settings</span></button>
+          <button id="adminActivityNav" type="button" class="menu-item admin-only-nav hidden" data-nav="adminActivity">▣ <span>Staff Activity</span></button>
         </nav>
 
         <div class="menu-divider"></div>
 
         <nav class="menu-nav menu-secondary">
           <button type="button" class="menu-item" data-nav="profile">◉ <span>My Profile</span></button>
-          <button type="button" class="menu-item" data-nav="about">ⓘ <span>About Mahi</span></button>
-          <button type="button" class="menu-item" data-nav="contact">✉ <span>Contact</span></button>
+          <button type="button" class="menu-item" data-nav="about">ⓘ <span>About WorkTrack</span></button>
+          <button type="button" class="menu-item" data-nav="contact">✉ <span>Contact WorkTrack</span></button>
+          <button type="button" class="menu-item" data-nav="services">◈ <span>Services</span></button>
           <button type="button" class="menu-item" data-nav="security">✓ <span>Security & Privacy</span></button>
         </nav>
 
