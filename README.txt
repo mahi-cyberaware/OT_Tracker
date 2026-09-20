@@ -1,7 +1,6 @@
-WorkTrack V25.3 Home Update Card Fix
+WorkTrack V25.4 — Home Update Slide Responsive Fix
 
 Upload/replace ONLY these files on your V25 development branch:
-- app-v22.js
 - style.css
 - sw.js
 - updates/worktrack-update.svg
@@ -9,8 +8,13 @@ Upload/replace ONLY these files on your V25 development branch:
 - updates/security.svg
 
 No Supabase SQL migration is required.
+No app-v22.js change is required.
 
-IMPORTANT:
-The slide text is now HTML/config driven, not baked into the background image.
-To change a slide background later, replace the corresponding image file while keeping the same filename, OR change the image path in WORKTRACK_UPDATE in app-v22.js.
-The version/title can be changed in the same WORKTRACK_UPDATE config without editing the artwork.
+Fixes:
+- Prevents update slide text from being cropped on mobile.
+- Gives the slide a stable responsive height on phones/tablets.
+- Keeps eyebrow, title, description and release badge inside a safe content area.
+- Makes desktop/tablet typography larger and more readable.
+- Bumps the service-worker cache so the new CSS is loaded.
+
+The background artwork remains independent. You can replace any SVG later using the same filename without changing the slide text configuration.
