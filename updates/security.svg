@@ -1,9 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600">
-<defs><linearGradient id="bg3" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#27203b"/><stop offset="1" stop-color="#0a0f20"/></linearGradient></defs>
-<rect width="1200" height="600" rx="36" fill="url(#bg3)"/><circle cx="1020" cy="130" r="185" fill="#a48bff" opacity=".10"/><circle cx="1100" cy="500" r="250" fill="#6c55e8" opacity=".08"/>
-<rect x="72" y="74" width="210" height="38" rx="19" fill="#a48bff" opacity=".15" stroke="#b6a3ff" stroke-opacity=".30"/><text x="95" y="100" fill="#c4b7ff" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="700" letter-spacing="2">TRUST &amp; SECURITY</text>
-<text x="72" y="210" fill="#ffffff" font-family="Arial,Helvetica,sans-serif" font-size="56" font-weight="800">Built with protection in mind</text>
-<text x="72" y="270" fill="#d1cbe2" font-family="Arial,Helvetica,sans-serif" font-size="27">Authentication • Row Level Security • Admin controls</text>
-<text x="72" y="322" fill="#9d96b2" font-family="Arial,Helvetica,sans-serif" font-size="22">Security is part of the platform, not an afterthought.</text>
-<rect x="72" y="392" width="205" height="54" rx="27" fill="#a48bff"/><text x="174" y="427" text-anchor="middle" fill="#100b1f" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="800">SECURITY FIRST</text>
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#241b3b"/><stop offset="1" stop-color="#100b1f"/></linearGradient></defs>
+<rect width="1200" height="600" rx="36" fill="url(#g)"/>
+<circle cx="1040" cy="110" r="190" fill="#a68cff" opacity=".10"/><circle cx="1120" cy="510" r="240" fill="#7b55e8" opacity=".08"/>
+<path d="M910 150l115 45v92c0 90-65 137-115 160-50-23-115-70-115-160v-92z" fill="#fff" opacity=".035" stroke="#c4b7ff" stroke-opacity=".28" stroke-width="4"/>
+<path d="M865 290l32 32 65-75" fill="none" stroke="#c4b7ff" stroke-opacity=".55" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

@@ -1,9 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600">
-<defs><linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#123436"/><stop offset="1" stop-color="#07171d"/></linearGradient></defs>
-<rect width="1200" height="600" rx="36" fill="url(#bg2)"/><circle cx="1000" cy="180" r="190" fill="#5fe0b1" opacity=".10"/><circle cx="1100" cy="500" r="260" fill="#3ac7a0" opacity=".07"/>
-<rect x="72" y="74" width="270" height="38" rx="19" fill="#55d8ae" opacity=".14" stroke="#74e6c1" stroke-opacity=".28"/><text x="95" y="100" fill="#75e5c1" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="700" letter-spacing="2">WORKFORCE MANAGEMENT</text>
-<text x="72" y="210" fill="#ffffff" font-family="Arial,Helvetica,sans-serif" font-size="58" font-weight="800">Everything in one place</text>
-<text x="72" y="270" fill="#c6d9d6" font-family="Arial,Helvetica,sans-serif" font-size="28">Attendance • Hours • Overtime • Roster</text>
-<text x="72" y="322" fill="#93b0ad" font-family="Arial,Helvetica,sans-serif" font-size="22">Designed to keep everyday workforce operations organized.</text>
-<rect x="72" y="392" width="190" height="54" rx="27" fill="#55d8ae"/><text x="167" y="427" text-anchor="middle" fill="#061817" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="800">WORK SMARTER</text>
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#10302c"/><stop offset="1" stop-color="#071918"/></linearGradient></defs>
+<rect width="1200" height="600" rx="36" fill="url(#g)"/>
+<circle cx="1030" cy="120" r="190" fill="#56d9b0" opacity=".10"/><circle cx="1110" cy="510" r="240" fill="#20a984" opacity=".08"/>
+<rect x="780" y="125" width="260" height="280" rx="36" fill="#fff" opacity=".035" stroke="#75e5c1" stroke-opacity=".18"/>
+<path d="M835 330l55-65 48 38 72-92" fill="none" stroke="#75e5c1" stroke-opacity=".45" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
