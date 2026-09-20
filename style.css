@@ -1419,3 +1419,108 @@
 @media(max-width:760px){.home-updates{padding:14px}.update-slide{min-height:470px;align-items:flex-start;background-image:linear-gradient(180deg,rgba(3,8,20,.86) 0%,rgba(3,8,20,.72) 48%,rgba(3,8,20,.34) 100%),var(--update-bg)}.update-slide-content{width:100%;box-sizing:border-box;padding:38px 28px 32px}.update-slide h3{font-size:clamp(29px,7.5vw,40px);max-width:620px}.update-slide p{font-size:clamp(16px,4.3vw,20px);max-width:620px;line-height:1.45}.update-eyebrow{font-size:11px}.update-chip{font-size:10px;padding:10px 16px}.footer-columns{grid-template-columns:1fr 1fr;gap:20px}.footer-columns>div:last-child{grid-column:1/-1}.footer-bottom{flex-direction:column}.update-toast{right:12px;bottom:12px;width:calc(100% - 24px)}}
 @media(max-width:420px){.update-slide{min-height:430px}.update-slide-content{padding:32px 24px 28px}.update-slide h3{font-size:31px}.update-slide p{font-size:16px}.update-chip{margin-top:2px}}
 @media(min-width:1200px){.update-slide{min-height:360px}.update-slide-content{width:70%;padding:48px 56px}.update-slide h3{font-size:40px}.update-slide p{font-size:18px}}
+
+/* V26 FINAL — professional footer alignment */
+.app-footer{
+  max-width:1280px;
+  margin:18px auto 0;
+  padding:34px 5% 30px;
+  border-top:1px solid rgba(255,255,255,.07);
+  display:flex !important;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-start;
+  gap:0;
+  text-align:center;
+}
+.app-footer .footer-brand{
+  width:100%;
+  display:grid;
+  justify-items:center;
+  gap:3px;
+  text-align:center;
+}
+.app-footer .footer-made{
+  width:100%;
+  margin-top:4px;
+  text-align:center;
+}
+.app-footer .footer-columns{
+  width:100%;
+  box-sizing:border-box;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:24px;
+  margin-top:24px;
+  padding:22px 0;
+  border-top:1px solid rgba(255,255,255,.07);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.app-footer .footer-columns > div{
+  min-width:0;
+  display:grid;
+  align-content:start;
+  justify-items:start;
+  gap:7px;
+  text-align:left;
+}
+.app-footer .footer-heading{
+  display:block;
+  width:100%;
+  margin-bottom:4px;
+  text-align:left;
+}
+.app-footer .footer-link,
+.app-footer .footer-text{
+  display:block;
+  width:100%;
+  text-align:left;
+  line-height:1.45;
+}
+.app-footer .footer-security{
+  width:100%;
+  box-sizing:border-box;
+  margin:0;
+  padding:16px 0 0;
+  border-top:0;
+  text-align:center;
+  line-height:1.5;
+}
+.app-footer .footer-bottom{
+  width:100%;
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-top:12px;
+  padding-top:12px;
+  border-top:0;
+  text-align:center;
+}
+
+@media(max-width:760px){
+  .app-footer{
+    padding:28px 18px 30px;
+  }
+  .app-footer .footer-columns{
+    grid-template-columns:1fr;
+    gap:18px;
+    margin-top:20px;
+    padding:20px 0;
+  }
+  .app-footer .footer-columns > div{
+    justify-items:center;
+    text-align:center;
+  }
+  .app-footer .footer-heading,
+  .app-footer .footer-link,
+  .app-footer .footer-text{
+    text-align:center;
+  }
+  .app-footer .footer-bottom{
+    flex-direction:column;
+    justify-content:center;
+    gap:5px;
+  }
+}
