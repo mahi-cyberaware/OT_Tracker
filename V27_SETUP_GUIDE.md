@@ -1,99 +1,131 @@
 # WorkTrack V27 — Profile Picture + AI Fallback
 
-## What changed
+This V27 package is built directly from the uploaded `OT_Tracker-main.zip` (the current main branch backup). The existing OT/attendance logic, OCR flow, PDF preview, Supabase authentication and written-statement UI are retained.
 
-### 1. Profile picture
-- Upload/change/remove profile picture from the existing profile area.
-- Existing profile functionality is preserved.
-- Supabase migration: `supabase/v27_profile_avatars.sql`
+## 1. GitHub branch
 
-### 2. Staff Statement AI fallback
-The `/api/statement` endpoint now uses this order:
+Create a branch from `main` before uploading this package:
 
-1. Gemini
-2. Groq
-3. Cerebras
-4. OpenAI (optional, if configured)
-5. Built-in statement engine (always available)
+```text
+v27-profile-ai-fallback
+```
 
-If a provider is unavailable, rate-limited, out of quota, times out, or returns an error, WorkTrack automatically moves to the next provider. The user still receives a statement whenever the explanation field contains text.
+Do **not** merge it into `main` until testing is complete.
 
-The API response also includes `provider`, so the frontend can identify which engine generated the statement.
+## 2. Supabase — profile pictures
 
-## Vercel Environment Variables
+V27 uses a private Storage bucket:
 
-Add these in **Vercel → Project → Settings → Environment Variables**.
+```text
+profile-avatars
+```
 
-Recommended:
-- `GEMINI_API_KEY` — Google AI Studio key
-- `GROQ_API_KEY` — Groq API key
-- `CEREBRAS_API_KEY` — Cerebras API key
+Run this file once in **Supabase → SQL Editor**:
 
-Optional:
-- `OPENAI_API_KEY` — existing OpenAI key
-- `GEMINI_MODEL` — optional; default: `gemini-2.5-flash`
-- `GROQ_MODEL` — optional; default: `openai/gpt-oss-120b`
-- `CEREBRAS_MODEL` — optional; default: `gpt-oss-120b`
-- `OPENAI_MODEL` — optional; default: `gpt-5.6-luna`
+```text
+supabase/v27_profile_avatars.sql
+```
 
-**Never put these keys in frontend JavaScript, HTML, GitHub, or client-side environment variables.**
+The migration creates/updates the bucket and four policies so an authenticated user can only access objects inside their own `<auth-user-id>/` folder.
 
-## Provider setup
+If you already ran the V27 avatar SQL and the bucket shows `profile-avatars` with the expected policies, you do not need to run it again.
 
-### Gemini
-1. Open Google AI Studio.
-2. Create an API key.
-3. Add it to Vercel as `GEMINI_API_KEY`.
+## 3. Profile picture behavior
 
-Gemini supports REST `generateContent`; free-tier rate limits depend on the project/model. Check Google's current quota page before relying on a specific limit.
+From **My Profile** the employee can:
 
-### Groq
-1. Create a Groq API key.
-2. Add it to Vercel as `GROQ_API_KEY`.
-3. Leave `GROQ_MODEL` unchanged unless you intentionally select another supported model.
+- Upload/change a JPG, PNG or WebP image.
+- Remove the current image.
+- Use images up to 2 MB.
+- The browser resizes the image to a maximum 512 px dimension and stores it as JPEG.
+- The private Storage object is displayed using a temporary signed URL.
+- If no picture exists, the employee initial remains visible.
 
-### Cerebras
-1. Create a Cerebras Inference API key.
-2. Add it to Vercel as `CEREBRAS_API_KEY`.
-3. The default model is `gpt-oss-120b`.
+The picture path is stored in the authenticated user's metadata as `avatar_path`.
 
-### OpenAI
-OpenAI is retained as an optional compatibility provider. It is not required for the fallback chain. If the current OpenAI account has no credits, WorkTrack will simply continue to the built-in engine.
+## 4. Vercel environment variables
 
-## Supabase profile picture setup
+Add these server-side environment variables to the V27 Preview deployment:
 
-1. Open Supabase for the WorkTrack project.
-2. Go to **SQL Editor**.
-3. Open/copy `supabase/v27_profile_avatars.sql`.
-4. Run it once.
-5. Confirm the `profile-avatars` storage bucket and policies were created.
+```text
+GEMINI_API_KEY
+GROQ_API_KEY
+CEREBRAS_API_KEY
+OPENAI_API_KEY
+```
 
-## Deploy
+Select **Preview** for the branch deployment. Production can remain unchanged while V27 is being tested.
 
-1. Extract this ZIP.
-2. Commit/push the complete project to the private GitHub repository.
-3. Deploy/redeploy the project in Vercel.
-4. Add the environment variables above to the same Vercel project.
-5. Make sure the variables are enabled for the environment you deploy (Production and/or Preview).
-6. Redeploy after adding or changing environment variables.
+Never place these keys in frontend JavaScript or commit them to GitHub.
 
-## Test AI
+## 5. AI fallback order
 
-Open the Staff Statement screen and enter a simple explanation, then click **Generate Staff Statement**.
+The `/api/statement` endpoint uses this order:
 
-Expected:
-- With Gemini working: `provider = Gemini`
-- If Gemini fails but Groq works: `provider = Groq`
-- If both fail but Cerebras works: `provider = Cerebras`
-- If those fail and OpenAI works: `provider = OpenAI`
-- If all external providers fail: `provider = Built-in`
+```text
+Gemini
+  ↓ if unavailable
+Groq
+  ↓ if unavailable
+Cerebras
+  ↓ if unavailable
+OpenAI
+  ↓ if unavailable
+Built-in statement engine
+```
 
-The built-in fallback uses the employee's supplied explanation and does not invent missing facts.
+The built-in engine requires no API key and prevents the Generate Staff Statement function from becoming completely unavailable when external providers are down, out of quota, or misconfigured.
 
-## Important security note
+### Current provider models used by V27
 
-Do not commit API keys to GitHub. If a key is ever pasted into source code or a public repository, revoke/rotate it immediately and replace it in Vercel.
+- Gemini: `gemini-3.8-flash`
+- Groq: `openai/gpt-oss-20b`
+- Cerebras: `gpt-oss-120b`
+- OpenAI: `gpt-5-mini`
 
-## No changes to core calculations
+## 6. Redeploy after environment changes
 
-This V27 AI change is isolated to `api/statement.js`. Existing OT, attendance, OCR, PDF, and other application modules are not intentionally changed by the AI fallback implementation.
+After adding or changing Vercel environment variables:
+
+1. Open **Vercel → Deployments**.
+2. Select the V27 branch deployment.
+3. Redeploy it so the new server-side environment variables are available.
+
+## 7. Testing checklist
+
+### Profile picture
+
+1. Login.
+2. Open **My Profile**.
+3. Upload a picture.
+4. Confirm it appears in the profile dialog and top-right avatar.
+5. Refresh the application.
+6. Confirm it remains visible.
+7. Change the picture.
+8. Remove it.
+9. Confirm the initial returns.
+
+### AI statement
+
+1. Open the written statement section.
+2. Enter a factual explanation.
+3. Optionally run OCR first.
+4. Click **Generate Staff Statement**.
+5. Confirm the statement begins with `Dear Sir,`.
+6. Confirm the status message identifies the provider used.
+
+### Fallback test
+
+Do this only on the V27 Preview environment:
+
+1. Keep all four keys saved securely.
+2. First test normally.
+3. If needed, temporarily disable one provider's Preview environment variable in Vercel and redeploy.
+4. Test again and confirm another provider is used.
+5. Finally test with all external providers unavailable; the response should show **Built-in fallback** and still generate a statement from the employee explanation.
+
+Do not intentionally change the Production variables while testing.
+
+## 8. Security
+
+API keys are read only in `/api/statement` on the server. They are never sent to the browser. The profile avatar bucket is private; V27 uses signed URLs rather than making employee photos public.

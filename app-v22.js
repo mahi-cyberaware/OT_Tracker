@@ -41,36 +41,42 @@ async function init(){
   sb.auth.onAuthStateChange(async (_e,s)=>{if(s?.user){user=s.user;showApp();await load()}else{user=null;showAuth()}});
 }
 function showAuth(){$('authView').classList.remove('hidden');$('appView').classList.add('hidden')}
+function setTag(id,text){$(id).textContent=text||'';$(id).classList.toggle('hidden',!text)}
+const AVATAR_BUCKET='profile-avatars';
+function avatarPath(){return profile().avatar_path||''}
+async function refreshAvatar(){
+  const name=displayName(),initial=(name.trim()[0]||'W').toUpperCase();
+  const headerImg=$('avatarImage'),headerLetter=document.querySelector('#avatarInitial .avatar-letter');
+  const largeImg=$('profileAvatarImage'),largeInitial=$('profileAvatarInitial');
+  if(headerLetter)headerLetter.textContent=initial;
+  if(largeInitial)largeInitial.textContent=initial;
+  const path=avatarPath();
+  if(!path){
+    if(headerImg)headerImg.hidden=true;
+    if(largeImg)largeImg.hidden=true;
+    return;
+  }
+  try{
+    const r=await sb.storage.from(AVATAR_BUCKET).createSignedUrl(path,3600);
+    if(r.error||!r.data?.signedUrl)throw r.error||new Error('Could not create avatar URL.');
+    if(headerImg){headerImg.src=r.data.signedUrl;headerImg.hidden=false}
+    if(largeImg){largeImg.src=r.data.signedUrl;largeImg.hidden=false}
+  }catch(e){
+    if(headerImg)headerImg.hidden=true;
+    if(largeImg)largeImg.hidden=true;
+  }
+}
 function showApp(){
   $('authView').classList.add('hidden');$('appView').classList.remove('hidden');
   let p=profile(),name=displayName(),initial=(name.trim()[0]||'W').toUpperCase();
-  setText('headerName',name);setText('headerEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('heroName',name.split(' ')[0]);setAvatar('avatarInitial',initial);
+  setText('headerName',name);setText('headerEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('heroName',name.split(' ')[0]);setText('avatarInitial',initial);
+  const letter=document.querySelector('#avatarInitial .avatar-letter');if(letter)letter.textContent=initial;
   setTag('profileCompany',p.company_name);setTag('profilePosition',p.position);setTag('profileEmployee',p.employee_id?`Employee ID • ${p.employee_id}`:'');
   $('adminActivityNav')?.classList.toggle('hidden',!isAdmin);
-  showUpdateNotification();
-  refreshProfileAvatar();
+  loadUpdateHistory();
+  refreshAvatar();
 }
-function setAvatar(id,initial,url=''){
-  const el=$(id); if(!el)return;
-  el.textContent='';
-  if(url){
-    const img=document.createElement('img'); img.src=url; img.alt='Profile picture'; img.loading='eager';
-    img.onerror=()=>setAvatar(id,initial,'');
-    el.appendChild(img);
-  }else{el.textContent=initial||'W';}
-}
-async function refreshProfileAvatar(){
-  const path=profile().avatar_path;
-  const initial=(displayName().trim()[0]||'W').toUpperCase();
-  if(!path){setAvatar('avatarInitial',initial,'');return null}
-  try{
-    const r=await sb.storage.from('profile-avatars').createSignedUrl(path,3600);
-    if(r.error||!r.data?.signedUrl){setAvatar('avatarInitial',initial,'');return null}
-    setAvatar('avatarInitial',initial,r.data.signedUrl);
-    return r.data.signedUrl;
-  }catch(e){setAvatar('avatarInitial',initial,'');return null}
-}
-function setTag(id,text){$(id).textContent=text||'';$(id).classList.toggle('hidden',!text)}
+
 function authMessage(text,isError=false){$('authMessage').textContent=text;$('authMessage').className=`message ${text?(isError?'error':'success'):''}`}
 function setAuthMode(){
   $('authSubmitText').textContent=signUp?'Create account':'Sign in';
@@ -108,7 +114,7 @@ $('authForm').onsubmit=async e=>{
 $('resendConfirm').onclick=async()=>{const email=$('email').value.trim().toLowerCase();if(!email){authMessage('Enter your email address first.',true);return}$('resendConfirm').disabled=true;authMessage('Sending confirmation email…');try{const r=await sb.auth.resend({type:'signup',email,options:{emailRedirectTo:REDIRECT_URL}});if(r.error)authMessage(r.error.message,true);else authMessage('Confirmation email requested. Check your inbox and spam folder.')}catch(err){authMessage(err?.message||'Could not resend the email.',true)}finally{$('resendConfirm').disabled=false}};
 $('logout').onclick=async()=>{await sb.auth.signOut()};
 function profileMessage(text,isError=false){$('profileMessage').textContent=text||'';$('profileMessage').className=`message ${text?(isError?'error':'success'):''}`}
-async function openProfile(){
+function openProfile(){
   let p=profile();
   $('profileFirstName').value=p.first_name||'';
   $('profileSurname').value=p.surname||'';
@@ -117,68 +123,56 @@ async function openProfile(){
   $('profilePositionInput').value=p.position||'';
   $('profileEmail').value=user?.email||'';
   profileMessage('');
-  await refreshProfilePhotoPreview();
+  refreshAvatar();
   $('profileDialog').showModal();
 }
-async function refreshProfilePhotoPreview(){
-  const el=$('profilePhotoPreview'); if(!el)return;
-  const p=profile(),initial=(displayName().trim()[0]||'W').toUpperCase();
-  el.textContent=initial; el.classList.remove('has-image');
-  if(!p.avatar_path)return;
-  try{
-    const r=await sb.storage.from('profile-avatars').createSignedUrl(p.avatar_path,3600);
-    if(r.error||!r.data?.signedUrl)return;
-    const img=document.createElement('img'); img.src=r.data.signedUrl; img.alt='Profile picture';
-    img.onerror=()=>{el.textContent=initial;el.classList.remove('has-image')};
-    el.textContent=''; el.appendChild(img); el.classList.add('has-image');
-  }catch(e){}
+function resizeAvatar(file){
+  return new Promise((resolve,reject)=>{
+    const img=new Image(),url=URL.createObjectURL(file);
+    img.onload=()=>{
+      const max=512,scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+      const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+      const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      canvas.toBlob(blob=>{URL.revokeObjectURL(url);blob?resolve(blob):reject(new Error('Could not prepare the profile picture.'))},'image/jpeg',.86);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('The selected image could not be read.'))};
+    img.src=url;
+  });
 }
-async function uploadProfilePhoto(file){
+async function uploadProfileAvatar(file){
   if(!file)return;
-  if(!/^image\/(jpeg|png|webp)$/i.test(file.type)){profileMessage('Please select a JPG, PNG or WebP image.',true);return}
-  if(file.size>2*1024*1024){profileMessage('Profile picture must be 2 MB or smaller.',true);return}
-  const btn=$('profilePhotoInput'),removeBtn=$('removeProfilePhoto');
-  removeBtn.disabled=true; profileMessage('Uploading profile picture…');
+  if(!/^image\/(jpeg|png|webp)$/i.test(file.type))return profileMessage('Please select a JPG, PNG or WebP image.',true);
+  if(file.size>2*1024*1024)return profileMessage('Profile picture must be 2 MB or smaller.',true);
+  const oldPath=avatarPath();
+  $('profileAvatarFile').disabled=true;profileMessage('Uploading profile picture…');
   try{
-    const path=`${user.id}/avatar.webp`;
-    const bitmap=await createImageBitmap(file);
-    const max=512,scale=Math.min(1,max/Math.max(bitmap.width,bitmap.height));
-    const canvas=document.createElement('canvas'); canvas.width=Math.max(1,Math.round(bitmap.width*scale)); canvas.height=Math.max(1,Math.round(bitmap.height*scale));
-    const ctx=canvas.getContext('2d'); ctx.drawImage(bitmap,0,0,canvas.width,canvas.height); bitmap.close?.();
-    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',0.86));
-    if(!blob)throw new Error('Could not process the image.');
-    const upload=await sb.storage.from('profile-avatars').upload(path,blob,{contentType:'image/webp',upsert:true,cacheControl:'3600'});
-    if(upload.error)throw upload.error;
-    const meta={...(user?.user_metadata||{}),avatar_path:path};
-    const r=await sb.auth.updateUser({data:meta});
-    if(r.error)throw r.error;
-    user=r.data.user||user;
-    await refreshProfilePhotoPreview(); await refreshProfileAvatar();
-    profileMessage('Profile picture updated successfully.');
-  }catch(err){profileMessage(err?.message||'Could not upload the profile picture.',true)}
-  finally{btn.value='';removeBtn.disabled=false}
+    const blob=await resizeAvatar(file);
+    const path=`${user.id}/avatar.jpg`;
+    const up=await sb.storage.from(AVATAR_BUCKET).upload(path,blob,{contentType:'image/jpeg',upsert:true,cacheControl:'3600'});
+    if(up.error)throw up.error;
+    const r=await sb.auth.updateUser({data:{...profile(),avatar_path:path}});
+    if(r.error){await sb.storage.from(AVATAR_BUCKET).remove([path]);throw r.error}
+    user=r.data.user||user;await refreshAvatar();profileMessage('Profile picture updated successfully.');
+  }catch(err){profileMessage(err?.message||'Could not upload profile picture.',true)}
+  finally{$('profileAvatarFile').disabled=false}
 }
-async function removeProfilePhoto(){
-  const path=profile().avatar_path; if(!path)return;
-  $('removeProfilePhoto').disabled=true; profileMessage('Removing profile picture…');
+async function removeProfileAvatar(){
+  const path=avatarPath();if(!path)return profileMessage('No profile picture to remove.');
+  $('removeProfileAvatar').disabled=true;profileMessage('Removing profile picture…');
   try{
-    const r=await sb.storage.from('profile-avatars').remove([path]);
-    if(r.error)throw r.error;
-    const meta={...(user?.user_metadata||{})}; delete meta.avatar_path;
-    const u=await sb.auth.updateUser({data:meta});
-    if(u.error)throw u.error; user=u.data.user||user;
-    await refreshProfilePhotoPreview(); await refreshProfileAvatar();
-    profileMessage('Profile picture removed.');
-  }catch(err){profileMessage(err?.message||'Could not remove the profile picture.',true)}
-  finally{$('removeProfilePhoto').disabled=false}
+    const r=await sb.storage.from(AVATAR_BUCKET).remove([path]);if(r.error)throw r.error;
+    const metadata={...profile()};delete metadata.avatar_path;
+    const u=await sb.auth.updateUser({data:metadata});if(u.error)throw u.error;
+    user=u.data.user||user;await refreshAvatar();profileMessage('Profile picture removed.');
+  }catch(err){profileMessage(err?.message||'Could not remove profile picture.',true)}
+  finally{$('removeProfileAvatar').disabled=false}
 }
-$('profilePhotoInput').onchange=e=>uploadProfilePhoto(e.target.files?.[0]);
-$('removeProfilePhoto').onclick=removeProfilePhoto;
-function closeProfile(){$('profileDialog').close()}
 $('profileButton').onclick=openProfile;
 $('closeProfile').onclick=closeProfile;
 $('cancelProfile').onclick=closeProfile;
 $('profileDialog').addEventListener('click',e=>{if(e.target===$('profileDialog'))closeProfile()});
+$('profileAvatarFile').addEventListener('change',e=>{const f=e.target.files?.[0];uploadProfileAvatar(f);e.target.value=''});
+$('removeProfileAvatar').onclick=removeProfileAvatar;
 $('profileForm').onsubmit=async e=>{
   e.preventDefault();
   let data={first_name:$('profileFirstName').value.trim(),surname:$('profileSurname').value.trim(),company_name:$('profileCompanyName').value.trim(),employee_id:$('profileEmployeeId').value.trim(),position:$('profilePositionInput').value.trim()};
@@ -1419,27 +1413,57 @@ $('settingsPasswordButton')?.addEventListener('click',openPasswordDialog);
 
 
 /* =========================
-   V25.2 — HOME UPDATE CENTER
+   V26.2 — HOME UPDATE CENTER
+   Central update history. Future releases are added to updates/updates.json.
+   The local list is a fallback so the section still works if the JSON file is unavailable.
    ========================= */
 const WORKTRACK_UPDATE={
-  version:'25.4',
+  version:'26.2',
   date:'20 September 2026',
   slides:[
-    {image:'./updates/worktrack-update.svg',eyebrow:'LATEST RELEASE',title:'WorkTrack V25.4',text:'A cleaner, more responsive WorkTrack experience with an improved update center.',button:'WORKTRACK 25.4'},
-    {image:'./updates/workforce.svg',eyebrow:'WORKFORCE MANAGEMENT',title:'Everything in one place',text:'Attendance, hours, overtime, roster, reports and operational workflows in one workspace.',button:'WORKTRACK 25.4'},
-    {image:'./updates/security.svg',eyebrow:'TRUST & SECURITY',title:'Built with protection in mind',text:'Authentication, Row Level Security and authorized administration remain core to WorkTrack.',button:'WORKTRACK 25.4'}
+    {image:'./backgrounds/background-1-blue.png',eyebrow:'LATEST RELEASE',title:'WorkTrack V26.2',text:'A cleaner update center with reliable background artwork, responsive layout and a complete release history.',button:'WORKTRACK 26.2'},
+    {image:'./backgrounds/background-2-green.png',eyebrow:'WORKTRACK V26.1',title:'WorkTrack V26.1',text:'Footer alignment improvements and a cleaner presentation across desktop and mobile screens.',button:'WORKTRACK 26.1'},
+    {image:'./backgrounds/background-3-purple-security.png',eyebrow:'WORKTRACK V26',title:'WorkTrack V26',text:'Professional footer alignment and the new visual update-center foundation.',button:'WORKTRACK 26'},
+    {image:'./backgrounds/background-1-blue.png',eyebrow:'WORKTRACK V25.4',title:'WorkTrack V25.4',text:'A more professional WorkTrack experience with an improved update center and responsive presentation.',button:'WORKTRACK 25.4'}
   ]
 };
 let updateIndex=0,updateTimer=null;
 function renderUpdateCenter(){
   const track=$('updateTrack'),dots=$('updateDots'); if(!track||!dots)return;
-  track.innerHTML=WORKTRACK_UPDATE.slides.map((x,i)=>`<article class="update-slide" style="--update-bg:url('${x.image}')"><div class="update-slide-content"><div class="update-eyebrow">${x.eyebrow}</div><h3>${x.title}</h3><p>${x.text}</p><span class="update-chip">${x.button}</span></div></article>`).join('');
-  dots.innerHTML=WORKTRACK_UPDATE.slides.map((_,i)=>`<button type="button" class="update-dot${i===0?' active':''}" data-update-slide="${i}" aria-label="Show update ${i+1}"></button>`).join('');
+  const slides=Array.isArray(WORKTRACK_UPDATE.slides)?WORKTRACK_UPDATE.slides:[];
+  track.innerHTML=slides.map(x=>`<article class="update-slide" style="--update-bg:url('${x.image}')"><div class="update-slide-content"><div class="update-eyebrow">${x.eyebrow||''}</div><h3>${x.title||''}</h3><p>${x.text||''}</p><span class="update-chip">${x.button||x.version||''}</span></div></article>`).join('');
+  dots.innerHTML=slides.map((_,i)=>`<button type="button" class="update-dot${i===0?' active':''}" data-update-slide="${i}" aria-label="Show update ${i+1}"></button>`).join('');
   dots.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{setUpdateSlide(Number(btn.dataset.updateSlide));startUpdateTimer();}));
-  setUpdateSlide(0); startUpdateTimer();
+  if(slides.length){setUpdateSlide(0);startUpdateTimer();}
 }
-function setUpdateSlide(i){updateIndex=(i+WORKTRACK_UPDATE.slides.length)%WORKTRACK_UPDATE.slides.length;const track=$('updateTrack');if(track)track.style.transform=`translateX(-${updateIndex*100}%)`;document.querySelectorAll('.update-dot').forEach((b,n)=>b.classList.toggle('active',n===updateIndex));}
-function startUpdateTimer(){clearInterval(updateTimer);updateTimer=setInterval(()=>setUpdateSlide(updateIndex+1),6500);}
+function setUpdateSlide(i){
+  const total=WORKTRACK_UPDATE.slides.length;
+  if(!total)return;
+  updateIndex=(i+total)%total;
+  const track=$('updateTrack');
+  if(track)track.style.transform=`translate3d(-${updateIndex*100}%,0,0)`;
+  document.querySelectorAll('.update-dot').forEach((b,n)=>b.classList.toggle('active',n===updateIndex));
+}
+function startUpdateTimer(){
+  clearInterval(updateTimer);
+  if(WORKTRACK_UPDATE.slides.length>1)updateTimer=setInterval(()=>setUpdateSlide(updateIndex+1),6500);
+}
+async function loadUpdateHistory(){
+  try{
+    const response=await fetch('./updates/updates.json?v=26.2.1',{cache:'no-store'});
+    if(!response.ok)throw new Error(`Update history HTTP ${response.status}`);
+    const data=await response.json();
+    if(Array.isArray(data.slides)&&data.slides.length){
+      WORKTRACK_UPDATE.version=String(data.version||WORKTRACK_UPDATE.version);
+      WORKTRACK_UPDATE.date=String(data.date||WORKTRACK_UPDATE.date);
+      WORKTRACK_UPDATE.slides=data.slides;
+    }
+  }catch(err){
+    console.warn('WorkTrack update history fallback:',err);
+  }
+  renderUpdateCenter();
+  if(user)showUpdateNotification();
+}
 function showUpdateNotification(){
   const key=`worktrack-update-seen-${WORKTRACK_UPDATE.version}`;
   let seen=false; try{seen=localStorage.getItem(key)==='1'}catch(e){}
@@ -1447,257 +1471,11 @@ function showUpdateNotification(){
   if(seen)return;
   const old=document.getElementById('worktrackUpdateToast'); old?.remove();
   const toast=document.createElement('div'); toast.id='worktrackUpdateToast'; toast.className='update-toast';
-  toast.innerHTML=`<div><strong>WorkTrack ${WORKTRACK_UPDATE.version} is available</strong><span>New improvements are ready. View the update slides on Home.</span></div><button type="button">View</button>`;
+  toast.innerHTML=`<div><strong>WorkTrack ${WORKTRACK_UPDATE.version} is available</strong><span>New improvements are ready. View the update history on Home.</span></div><button type="button">View</button>`;
   document.body.appendChild(toast);
   toast.querySelector('button').onclick=()=>{try{localStorage.setItem(key,'1')}catch(e){};$('updateBadge')?.classList.add('hidden');toast.remove();showAppSection('home');window.scrollTo({top:0,behavior:'smooth'});};
   setTimeout(()=>{if(document.body.contains(toast)){toast.remove();}},10000);
 }
-renderUpdateCenter();
 
-/* =========================
-   V16 — HOME EXPERIENCE
-   ========================= */
-
-let v16InsightIndex=0;
-let v16InsightTimer=null;
-
-function v16Greeting(){
-  let h=new Date().getHours();
-  if(h<12)return 'Good morning';
-  if(h<17)return 'Good afternoon';
-  if(h<22)return 'Good evening';
-  return 'Good night';
-}
-
-function v16FmtMinutes(minutes){
-  minutes=Math.max(0,Math.round(minutes||0));
-  let hh=Math.floor(minutes/60);
-  let mm=minutes%60;
-  return `${hh}h ${String(mm).padStart(2,'0')}m`;
-}
-
-function v16SetInsights(){
-  let track=$('insightTrack');
-  if(!track)return;
-
-  track.style.transform=`translateX(-${v16InsightIndex*100}%)`;
-
-  document.querySelectorAll('#insightDots button').forEach((b,i)=>{
-    b.classList.toggle('active',i===v16InsightIndex);
-  });
-}
-
-function v16StartSlider(){
-  document.querySelectorAll('#insightDots button').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      v16InsightIndex=Number(btn.dataset.slide)||0;
-      v16SetInsights();
-      clearInterval(v16InsightTimer);
-      v16InsightTimer=setInterval(()=>{
-        v16InsightIndex=(v16InsightIndex+1)%4;
-        v16SetInsights();
-      },5500);
-    });
-  });
-
-  clearInterval(v16InsightTimer);
-  v16InsightTimer=setInterval(()=>{
-    v16InsightIndex=(v16InsightIndex+1)%4;
-    v16SetInsights();
-  },5500);
-}
-
-function v16UpdateLiveTime(){
-  let el=$('homeLiveTime');
-  if(el){
-    el.textContent=new Date().toLocaleTimeString([],{
-      hour:'2-digit',
-      minute:'2-digit'
-    });
-  }
-}
-
-function v16UpdateHomeFromRecords(records=[]){
-
-  let now=new Date();
-  let key=todayKey();
-  let current=records.find(r=>r.work_date===key);
-
-  if($('homeGreeting')){
-    let name=user?.user_metadata?.first_name||user?.user_metadata?.name||'there';
-    $('homeGreeting').textContent=`${v16Greeting()}, ${name} 👋`;
-  }
-
-  let todayDate=new Date(`${key}T00:00:00`);
-  if($('todayWorkDate')){
-    $('todayWorkDate').textContent=todayDate.toLocaleDateString('en',{
-      weekday:'long',
-      day:'numeric',
-      month:'long'
-    });
-  }
-
-  if(current){
-    let worked=current.status==='present'
-      ?hours(current.check_in,current.check_out)
-      :0;
-    let ot=current.status==='present'
-      ?Math.max(0,worked-duty)
-      :0;
-
-    if($('todayWorkBadge')){
-      $('todayWorkBadge').textContent=statusLabel(current.status);
-      $('todayWorkBadge').classList.add('recorded');
-    }
-
-    if($('todayCheckIn'))$('todayCheckIn').textContent=current.check_in||'—';
-    if($('todayCheckOut'))$('todayCheckOut').textContent=current.check_out||'—';
-    if($('todayWorked'))$('todayWorked').textContent=v16FmtMinutes(worked*60);
-    if($('todayOt'))$('todayOt').textContent=v16FmtMinutes(ot*60);
-    if($('todayDuty'))$('todayDuty').textContent=v16FmtMinutes(duty*60);
-
-    if($('insightToday')){
-      $('insightToday').textContent=
-        current.status==='present'
-          ?`${v16FmtMinutes(worked*60)} worked`
-          :statusLabel(current.status);
-    }
-    if($('insightTodaySub')){
-      $('insightTodaySub').textContent=
-        current.status==='present'
-          ?`${current.check_in||'—'} → ${current.check_out||'—'}`
-          :(current.notes||'Today is recorded.');
-    }
-    if($('homeLiveStatus'))$('homeLiveStatus').textContent=statusLabel(current.status);
-  }else{
-    if($('todayWorkBadge')){
-      $('todayWorkBadge').textContent='Not recorded';
-      $('todayWorkBadge').classList.remove('recorded');
-    }
-    if($('todayCheckIn'))$('todayCheckIn').textContent='—';
-    if($('todayCheckOut'))$('todayCheckOut').textContent='—';
-    if($('todayWorked'))$('todayWorked').textContent='0h 00m';
-    if($('todayOt'))$('todayOt').textContent='0h 00m';
-    if($('todayDuty'))$('todayDuty').textContent=v16FmtMinutes(duty*60);
-    if($('insightToday'))$('insightToday').textContent='No attendance yet';
-    if($('insightTodaySub'))$('insightTodaySub').textContent='Add your attendance for today.';
-    if($('homeLiveStatus'))$('homeLiveStatus').textContent='Ready';
-  }
-
-  let monthKey=key.slice(0,7);
-  let monthRecords=records.filter(r=>r.work_date.startsWith(monthKey));
-
-  let present=monthRecords.filter(r=>r.status==='present');
-  let totalOt=present.reduce((sum,r)=>{
-    let worked=hours(r.check_in,r.check_out);
-    return sum+Math.max(0,worked-duty);
-  },0);
-
-  // Reuse the same monthly eligibility rules as the dashboard.
-  let monthDate=new Date(`${monthKey}-01T00:00:00`);
-  let elapsedDays=now.getDate();
-  let eligible=0;
-
-  for(let day=1;day<=elapsedDays;day++){
-    let date=`${monthKey}-${String(day).padStart(2,'0')}`;
-    let record=monthRecords.find(r=>r.work_date===date);
-    let holiday=publicHolidayName(date);
-
-    if(
-      record?.status==='off' ||
-      record?.status==='sick_leave' ||
-      record?.status==='annual_leave' ||
-      record?.status==='comp_off' ||
-      record?.status==='leave' ||
-      (!record&&holiday)
-    )continue;
-
-    eligible++;
-  }
-
-  let attendance=eligible
-    ?Math.round((present.filter(r=>Number(r.work_date.slice(8,10))<=elapsedDays).length/eligible)*100)
-    :0;
-
-  if($('insightOt'))$('insightOt').textContent=v16FmtMinutes(totalOt*60);
-  if($('insightAttendance'))$('insightAttendance').textContent=`${attendance}%`;
-  if($('insightDays'))$('insightDays').textContent=present.length;
-}
-
-$('homeAddAttendance')?.addEventListener('click',()=>{
-  openDialog(null,todayKey());
-});
-
-$('homeOpenCalendar')?.addEventListener('click',()=>{
-  showAppSection('calendar');
-});
-
-document.querySelectorAll('[data-home-nav]').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    showAppSection(btn.dataset.homeNav);
-  });
-});
-
-v16StartSlider();
-v16UpdateLiveTime();
-setInterval(v16UpdateLiveTime,30000);
-
-
-const v16OriginalLoad=load;
-load=async function(){
-  let result=await v16OriginalLoad.apply(this,arguments);
-  try{
-    // Query the current month records for the home showcase. This is read-only.
-    let {data}=await sb.from('attendance')
-      .select('*')
-      .eq('user_id',user.id)
-      .order('work_date',{ascending:true});
-
-    v16UpdateHomeFromRecords(data||[]);
-  }catch(e){
-    console.warn('Home showcase refresh:',e);
-  }
-  return result;
-};
-
-setTimeout(()=>{
-  try{
-    if(typeof user!=='undefined'&&user)v16UpdateHomeFromRecords([]);
-  }catch(e){}
-},250);
-
-
-/* V19 — Progressive Web App / install support */
-let v19DeferredInstallPrompt=null;
-function v19SetInstallButton(show){
-  const b=$('installApp');
-  if(b)b.classList.toggle('hidden',!show);
-}
-window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();
-  v19DeferredInstallPrompt=e;
-  v19SetInstallButton(true);
-});
-window.addEventListener('appinstalled',()=>{
-  v19DeferredInstallPrompt=null;
-  v19SetInstallButton(false);
-  try{localStorage.setItem('worktrack-pwa-installed','1')}catch(e){}
-});
-$('installApp')?.addEventListener('click',async()=>{
-  if(!v19DeferredInstallPrompt){
-    alert('If Install WorkTrack is not offered, open your browser menu and choose “Add to Home screen” or “Install app”.');
-    return;
-  }
-  v19DeferredInstallPrompt.prompt();
-  try{await v19DeferredInstallPrompt.userChoice}catch(e){}
-  v19DeferredInstallPrompt=null;
-  v19SetInstallButton(false);
-});
-
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js?v=25.2').then(()=>{
-      console.info('WorkTrack V23 service worker ready');
-    }).catch(err=>console.warn('WorkTrack PWA service worker:',err));
-  });
-}
+// Always initialize the update center. The JSON file is the source of truth for future releases.
+loadUpdateHistory();
