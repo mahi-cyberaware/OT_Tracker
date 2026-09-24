@@ -1701,3 +1701,7 @@
 
 /* V27 profile picture */
 .avatar{position:relative;overflow:hidden;flex:0 0 auto}.avatar-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit}.avatar-letter{position:relative;z-index:0}.profile-picture-editor{display:flex;align-items:center;gap:16px;margin-top:20px;padding:15px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(255,255,255,.035)}.profile-avatar-large{position:relative;display:grid;place-items:center;width:76px;height:76px;border-radius:22px;overflow:hidden;background:rgba(124,156,255,.17);color:#b9c8ff;font-size:27px;font-weight:850;flex:0 0 auto}.profile-avatar-large img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.profile-picture-actions{display:grid;gap:5px;min-width:0}.profile-picture-actions strong{font-size:13px}.profile-picture-buttons{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap}.upload-avatar-label{display:inline-flex;align-items:center;justify-content:center;cursor:pointer}.profile-picture-buttons .danger{padding:10px 13px}.profile-picture-buttons .ghost{padding:10px 13px}@media(max-width:640px){.profile-picture-editor{align-items:flex-start}.profile-avatar-large{width:68px;height:68px}.profile-picture-buttons{width:100%}}
+
+/* V27 profile avatar visibility hardening */
+.avatar-image:not([hidden]), .profile-avatar-large img:not([hidden]){display:block!important;}
+.avatar-image{z-index:1;}
