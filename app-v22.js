@@ -50,20 +50,22 @@ async function refreshAvatar(){
   const largeImg=$('profileAvatarImage'),largeInitial=$('profileAvatarInitial');
   if(headerLetter)headerLetter.textContent=initial;
   if(largeInitial)largeInitial.textContent=initial;
+  const hideImage=img=>{if(!img)return;img.hidden=true;img.removeAttribute('src');img.style.display='none'};
+  const showImage=(img,url)=>{
+    if(!img)return;
+    img.onload=()=>{img.hidden=false;img.style.display='block'};
+    img.onerror=()=>hideImage(img);
+    img.src=url;
+  };
   const path=avatarPath();
-  if(!path){
-    if(headerImg)headerImg.hidden=true;
-    if(largeImg)largeImg.hidden=true;
-    return;
-  }
+  if(!path){hideImage(headerImg);hideImage(largeImg);return;}
   try{
     const r=await sb.storage.from(AVATAR_BUCKET).createSignedUrl(path,3600);
     if(r.error||!r.data?.signedUrl)throw r.error||new Error('Could not create avatar URL.');
-    if(headerImg){headerImg.src=r.data.signedUrl;headerImg.hidden=false}
-    if(largeImg){largeImg.src=r.data.signedUrl;largeImg.hidden=false}
+    showImage(headerImg,r.data.signedUrl);
+    showImage(largeImg,r.data.signedUrl);
   }catch(e){
-    if(headerImg)headerImg.hidden=true;
-    if(largeImg)largeImg.hidden=true;
+    hideImage(headerImg);hideImage(largeImg);
   }
 }
 function showApp(){
@@ -166,6 +168,10 @@ async function removeProfileAvatar(){
     user=u.data.user||user;await refreshAvatar();profileMessage('Profile picture removed.');
   }catch(err){profileMessage(err?.message||'Could not remove profile picture.',true)}
   finally{$('removeProfileAvatar').disabled=false}
+}
+function closeProfile(){
+  const dialog=$('profileDialog');
+  if(dialog?.open)dialog.close();
 }
 $('profileButton').onclick=openProfile;
 $('closeProfile').onclick=closeProfile;
