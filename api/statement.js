@@ -3,19 +3,24 @@
 // All API keys stay server-side in Vercel Environment Variables.
 
 const INSTRUCTIONS = `
-Prepare ONLY the Staff Statement text for a formal workplace written statement.
+Prepare ONLY the employee's factual explanation/answer body for a formal workplace written statement.
+
+Operational context:
+- The OCR text is the onboard report/questioning/complaint. Treat it as the issue that the employee is responding to.
+- The employee explanation (reason) is the employee's answer. Use it as the factual source for the response.
+- The location controls the mandatory opening sentence, which the server will add separately. Do NOT write the opening sentence yourself.
 
 Rules:
-- Use only supplied facts from the form, OCR text, image, and employee explanation.
+- Use only supplied facts from the form, OCR text, and employee explanation.
 - Never invent a fact, time, flight number, action, cause, person, or outcome.
 - If something is unclear or missing, do not guess.
 - Rewrite the employee's simple words into clear, professional, factual English.
+- Directly address the points raised in the OCR/questioning/complaint using the employee explanation as the answer.
 - Do not assign blame or make accusations unless the supplied facts explicitly do so.
-- Return only the staff statement text, with no title, signature, comments, or form fields.
-- The statement MUST begin exactly with: Dear Sir,
-- After "Dear Sir," insert exactly one blank line, then begin the factual statement on the third line.
-- Do not add any other greeting, heading, salutation, or closing.
-`;
+- Return ONLY the explanation/answer body. Do not return Dear Sir, the opening sentence, Staff Statement, Answer, Question, Complaint, Subject, Opening, Regards, Sincerely, Thank you, Yours faithfully, Yours sincerely, Signature, Name, Date, or any heading.
+- Do not repeat the incident details unless they are necessary to explain the answer.
+- Keep the wording concise and suitable for a company written statement.
+`
 
 function formPrompt(body) {
   const {
@@ -30,21 +35,42 @@ function formPrompt(body) {
   },null,2)}`;
 }
 
-function normalizeStatement(value='') {
+function extractFlightNumber(value=''){
+  const text=String(value||'').trim();
+  const match=text.match(/\b[A-Z]{2}\s?\d{3,4}\b/i);
+  return match?match[0].replace(/\s+/g,'').toUpperCase():text;
+}
+
+function buildOpening(body={}){
+  const flight=extractFlightNumber(body.flightEtd)||'the flight';
+  const location=String(body.locationIncident||'').trim().toLowerCase();
+  if(/\bbase\b/.test(location))return `I was allocated for the ${flight} base catering check.`;
+  if(/\bramp\b/.test(location))return `I was allocated for the ${flight} handling on the RAMP.`;
+  const rawLocation=String(body.locationIncident||'').trim();
+  return rawLocation
+    ? `I was allocated for the ${flight} handling at ${rawLocation}.`
+    : `I was allocated for the ${flight} handling.`;
+}
+
+function cleanAnswer(value=''){
   let text=String(value||'').replace(/\r\n?/g,'\n').trim();
   text=text.replace(/^```(?:text)?\s*/i,'').replace(/\s*```$/,'').trim();
   text=text.replace(/^Dear\s+Sir\s*[,.:]?\s*/i,'').trim();
-  if(!text)return '';
-  return `Dear Sir,\n\n${text}`;
+  text=text.replace(/^(?:Staff\s+Statement|Answer|Response|Explanation)\s*[:\-]?\s*/i,'').trim();
+  text=text.replace(/^I\s+was\s+allocated\s+for\b[^.!?]*[.!?]\s*/i,'').trim();
+  return text;
 }
 
-function builtInStatement(body) {
+function normalizeStatement(value='',body={}){
+  const answer=cleanAnswer(value);
+  if(!answer)return `Dear Sir,\n\n${buildOpening(body)}`;
+  return `Dear Sir,\n\n${buildOpening(body)}\n\n${answer}`;
+}
+
+function builtInStatement(body){
   const reason=String(body?.reason||'').trim().replace(/\s+/g,' ');
   if(!reason)return '';
-  let factual=reason;
-  if(!/^[iI]\b/.test(factual)) factual=`I would like to state that ${factual.charAt(0).toLowerCase()}${factual.slice(1)}`;
-  if(!/[.!?]$/.test(factual))factual+='.';
-  return normalizeStatement(factual);
+  return normalizeStatement(reason,body);
 }
 
 async function readJson(response){
@@ -70,7 +96,7 @@ async function callGemini(apiKey,prompt,imageData){
   if(!response.ok)throw providerError('Gemini',response,data);
   const text=data?.candidates?.[0]?.content?.parts?.map(p=>p?.text||'').join('\n').trim()||'';
   if(!text)throw new Error('Gemini returned no statement text.');
-  return normalizeStatement(text);
+  return cleanAnswer(text);
 }
 
 async function callOpenAI(apiKey,prompt,imageData){
@@ -84,7 +110,7 @@ async function callOpenAI(apiKey,prompt,imageData){
   if(!response.ok)throw providerError('OpenAI',response,data);
   const text=data?.output_text?.trim() || (Array.isArray(data?.output)?data.output.flatMap(item=>Array.isArray(item?.content)?item.content:[]).filter(part=>part?.type==='output_text'&&typeof part?.text==='string').map(part=>part.text).join('\n').trim():'');
   if(!text)throw new Error('OpenAI returned no statement text.');
-  return normalizeStatement(text);
+  return cleanAnswer(text);
 }
 
 async function callCompatibleProvider(name,apiKey,url,model,prompt){
@@ -96,7 +122,7 @@ async function callCompatibleProvider(name,apiKey,url,model,prompt){
   if(!response.ok)throw providerError(name,response,data);
   const text=data?.choices?.[0]?.message?.content?.trim()||'';
   if(!text)throw new Error(`${name} returned no statement text.`);
-  return normalizeStatement(text);
+  return cleanAnswer(text);
 }
 
 export default async function handler(req,res){
@@ -128,8 +154,8 @@ export default async function handler(req,res){
     for(const [name,key,call] of providers){
       if(!String(key||'').trim()){attempts.push(`${name}: not configured`);continue;}
       try{
-        const statement=await call();
-        if(statement)return res.status(200).json({statement,provider:name,attempts});
+        const answer=await call();
+        if(answer)return res.status(200).json({statement:normalizeStatement(answer,body),provider:name,attempts});
         attempts.push(`${name}: empty response`);
       }catch(err){
         console.error(`WorkTrack ${name} statement provider failed`,err?.message||err);
