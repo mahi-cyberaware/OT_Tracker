@@ -71,7 +71,7 @@ async function refreshAvatar(){
 function showApp(){
   $('authView').classList.add('hidden');$('appView').classList.remove('hidden');
   let p=profile(),name=displayName(),initial=(name.trim()[0]||'W').toUpperCase();
-  setText('headerName',name);setText('headerEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('heroName',name.split(' ')[0]);setText('avatarInitial',initial);
+  setText('headerName',name);setText('headerEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('heroName',name.split(' ')[0]);
   const letter=document.querySelector('#avatarInitial .avatar-letter');if(letter)letter.textContent=initial;
   setTag('profileCompany',p.company_name);setTag('profilePosition',p.position);setTag('profileEmployee',p.employee_id?`Employee ID • ${p.employee_id}`:'');
   $('adminActivityNav')?.classList.toggle('hidden',!isAdmin);
@@ -1427,7 +1427,8 @@ const WORKTRACK_UPDATE={
   version:'26.2',
   date:'20 September 2026',
   slides:[
-    {image:'./backgrounds/background-1-blue.png',eyebrow:'LATEST RELEASE',title:'WorkTrack V26.2',text:'A cleaner update center with reliable background artwork, responsive layout and a complete release history.',button:'WORKTRACK 26.2'},
+    {image:'./backgrounds/background-1-blue.png',eyebrow:'LATEST RELEASE',title:'WorkTrack V27.1',text:'AI staff statements now support Base/Ramp context with automatic provider fallback. Profile picture display and profile controls are improved.',button:'WORKTRACK 27.1'},
+    {image:'./backgrounds/background-1-blue.png',eyebrow:'WORKTRACK V26.2',title:'WorkTrack V26.2',text:'A cleaner update center with reliable background artwork, responsive layout and a complete release history.',button:'WORKTRACK 26.2'},
     {image:'./backgrounds/background-2-green.png',eyebrow:'WORKTRACK V26.1',title:'WorkTrack V26.1',text:'Footer alignment improvements and a cleaner presentation across desktop and mobile screens.',button:'WORKTRACK 26.1'},
     {image:'./backgrounds/background-3-purple-security.png',eyebrow:'WORKTRACK V26',title:'WorkTrack V26',text:'Professional footer alignment and the new visual update-center foundation.',button:'WORKTRACK 26'},
     {image:'./backgrounds/background-1-blue.png',eyebrow:'WORKTRACK V25.4',title:'WorkTrack V25.4',text:'A more professional WorkTrack experience with an improved update center and responsive presentation.',button:'WORKTRACK 25.4'}
@@ -1456,7 +1457,7 @@ function startUpdateTimer(){
 }
 async function loadUpdateHistory(){
   try{
-    const response=await fetch('./updates/updates.json?v=26.2.1',{cache:'no-store'});
+    const response=await fetch('./updates/updates.json?v=27.1.0',{cache:'no-store'});
     if(!response.ok)throw new Error(`Update history HTTP ${response.status}`);
     const data=await response.json();
     if(Array.isArray(data.slides)&&data.slides.length){
