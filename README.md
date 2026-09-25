@@ -1,66 +1,108 @@
-WorkTrack V18
+# WorkTrack V27.1
 
-# WorkTrack — Attendance & Overtime
+## Attendance • Hours • Overtime • Written Statements
 
-A simple multi-user attendance tracker built with HTML, CSS, JavaScript, Supabase and Vercel.
+WorkTrack is a private workforce management platform designed to simplify attendance tracking, working-hour calculations, overtime management, employee profiles, OCR-assisted incident capture, and professional written-statement preparation.
 
-## Current calculation
-- Worked hours = Check-out minus Check-in.
-- Overnight shifts are supported (for example 18:00 → 04:00 = 10 hours).
-- Overtime = Worked hours minus daily duty hours, never below zero.
-- Break minutes are not used by the current app.
-- Existing `break_minutes` database column is retained for compatibility and is always saved as 0 by the current UI.
+## ✨ V27.1 — Current Release
 
-## Features
-- Email sign up / login with Supabase Auth.
-- Production redirect to the Vercel site after email confirmation.
-- Private records using Supabase Row Level Security.
-- Monthly dashboard and calendar.
-- Present, Leave, Off day and Holiday statuses.
-- Edit and delete attendance.
-- Monthly CSV export.
-- Configurable daily duty hours (default 9).
-- Mobile-friendly responsive layout.
+### 👤 Employee Profile
+- Profile picture upload, change, and removal
+- Employee information and profile management
+- Supabase-backed secure profile storage
 
-## Deployment
-Static files can be deployed directly to Vercel. Update `app.js` only if the Supabase project credentials or production URL change.
+### 📊 Attendance & Hours
+- Attendance tracking
+- Working-hour calculation
+- Overtime calculation
+- Attendance percentage
+- Monthly workforce overview
 
-## Security
-Use the Supabase Publishable key in the browser. Never put a Supabase Secret/service-role key in frontend code.
+### 📝 AI Written Statements
+- OCR-assisted incident information
+- Base/Ramp-aware statement opening
+- OCR treated as the questioning/complaint
+- Staff explanation treated as the response
+- AI-assisted professional statement generation
+- Automatic provider fallback
+- Built-in statement fallback when external AI is unavailable
 
+### 📄 Professional PDF
+- Staff statement formatting
+- Incident details
+- Employee details
+- Signature and officer sections
+- A4 print/PDF support
 
-V16 adds a menu-based interface, footer, About, Contact, and Security & Privacy sections.
+### 🔐 Security
+- Supabase authentication
+- Supabase Storage
+- Row-level security architecture
+- API credentials stored through environment variables
+- AI credentials kept server-side
 
-V16 adds a unified clickable WorkTrack logo, centered footer, and repaired reminder controls/notification flow.
+## 🤖 AI Providers
 
+- Google Gemini
+- Groq
+- Cerebras
+- OpenAI
+- Built-in fallback statement engine
 
-V16 adds an authenticated Change Password option under the user menu.
+## 🏗️ Technology
 
+- HTML5
+- CSS3
+- JavaScript
+- Supabase
+- OCR
+- Vercel
+- Progressive Web App (PWA)
 
-V16 moves Change Password from the main menu into Settings.
+## 🚀 Version History
 
+| Version | Focus |
+|---|---|
+| V18 | Original WorkTrack foundation |
+| V19–V22 | Attendance, UI and workflow improvements |
+| V23 | AI/API and OCR integration |
+| V24–V26 | UI, workflow and reliability improvements |
+| **V27** | AI fallback and profile picture functionality |
+| **V27.1** | Profile avatar, statement and update-slide fixes |
 
-V16 adds secure password change: current-password verification or email OTP recovery before setting a new password.
+## 🎯 Core Workflow
 
+```text
+LOGIN
+  ↓
+WORKSPACE
+  ↓
+ATTENDANCE / HOURS / OVERTIME
+  ↓
+WRITTEN STATEMENT
+  ↓
+UPLOAD REPORT
+  ↓
+OCR
+  ↓
+INCIDENT DETAILS
+  ↓
+STAFF EXPLANATION
+  ↓
+AI GENERATION
+  ↓
+REVIEW & EDIT
+  ↓
+PRINT / SAVE PDF
+```
 
-V16 adds a polished Home experience with WorkTrack branding, insight slider, today's work card, and quick actions. No database migration is required.
+## 📌 Project Status
 
+**Current Version: V27.1**  
+**Status: Active Development**
 
-## V18 — Smart Roster & Duty Reminder
-- Admin-only full-roster Excel import with Employee ID matching.
-- Revised uploads replace represented employees within the uploaded date range.
-- Admin can edit or delete individual roster entries.
-- Users can view only their own saved roster.
-- Tomorrow duty and wake-up reminder follow roster changes automatically.
-- Overnight duty times are supported.
+## 🔒 Private Project
 
+WorkTrack is intended for authorized personal/workforce use.
 
-## V19.2.1 Smart Duty Alerts
-
-- Prominent in-app 🚨 dialog for tomorrow's scheduled duty.
-- Shows duty date, duty time, and calculated wake-up time.
-- Optional device notification is also sent when browser notification permission is granted.
-- Includes a **Test duty alert** button.
-- Day Off and non-duty entries do not trigger a duty alert.
-
-> Web/PWA alerts are subject to Android/browser background restrictions; a web app cannot guarantee a native alarm after the operating system has fully stopped the app.
+**Built with focus. Built for operations.**
