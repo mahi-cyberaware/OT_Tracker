@@ -57,7 +57,7 @@
         <div class="header-actions">
           <button id="menuButton" class="ghost menu-button" type="button" aria-label="Open menu" aria-expanded="false">☰ <span>Menu</span></button>
           <button id="profileButton" class="identity-chip profile-button" type="button" aria-label="Open profile">
-            <span class="avatar" id="avatarInitial">W</span>
+            <span class="avatar" id="avatarInitial"><span class="avatar-letter">W</span><img id="avatarImage" class="avatar-image" alt="Profile picture" hidden></span>
             <div><strong id="headerName">Employee</strong><small id="headerEmployeeId"></small></div>
             <span class="profile-chevron">›</span>
           </button>
@@ -542,6 +542,18 @@
     <form id="profileForm" class="dialog-card glass-card">
       <div class="dialog-top"><div><div class="section-kicker">MY PROFILE</div><h2>Edit personal information</h2><span class="muted small">Keep your employee details up to date.</span></div><button id="closeProfile" type="button" class="modal-close" aria-label="Close">×</button></div>
       <div id="profileMessage" class="message"></div>
+      <div class="profile-picture-editor">
+        <div class="profile-avatar-large"><span id="profileAvatarInitial">W</span><img id="profileAvatarImage" alt="Profile picture" hidden></div>
+        <div class="profile-picture-actions">
+          <strong>Profile picture</strong>
+          <span class="muted small">JPG, PNG or WebP • maximum 2 MB</span>
+          <div class="profile-picture-buttons">
+            <label class="ghost upload-avatar-label" for="profileAvatarFile">Upload / Change</label>
+            <input id="profileAvatarFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+            <button id="removeProfileAvatar" type="button" class="danger">Remove</button>
+          </div>
+        </div>
+      </div>
       <div class="profile-form-grid">
         <label>First name<input id="profileFirstName" type="text" autocomplete="given-name" required></label>
         <label>Surname<input id="profileSurname" type="text" autocomplete="family-name" required></label>

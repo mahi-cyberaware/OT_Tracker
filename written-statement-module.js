@@ -131,7 +131,9 @@
       if(!res.ok)throw new Error(p.error||`Statement generation failed (${res.status}).`);
       $ws("wsStatementDraft").value=normalizeStatement(p.statement||"");
       renderPreview($ws("wsStatementDraft").value);
-      setStatus("Statement generated. Review and edit it before printing.");
+      const provider=p.provider||"AI";
+      const providerLabel=provider==='Built-in'?'Built-in fallback':provider;
+      setStatus(`Statement generated using ${providerLabel}. Review and edit it before printing.`);
     }catch(e){setStatus(e.message||"Could not generate the statement.",true);}
   }
 

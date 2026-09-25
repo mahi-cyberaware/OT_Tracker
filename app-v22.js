@@ -41,15 +41,44 @@ async function init(){
   sb.auth.onAuthStateChange(async (_e,s)=>{if(s?.user){user=s.user;showApp();await load()}else{user=null;showAuth()}});
 }
 function showAuth(){$('authView').classList.remove('hidden');$('appView').classList.add('hidden')}
+function setTag(id,text){$(id).textContent=text||'';$(id).classList.toggle('hidden',!text)}
+const AVATAR_BUCKET='profile-avatars';
+function avatarPath(){return profile().avatar_path||''}
+async function refreshAvatar(){
+  const name=displayName(),initial=(name.trim()[0]||'W').toUpperCase();
+  const headerImg=$('avatarImage'),headerLetter=document.querySelector('#avatarInitial .avatar-letter');
+  const largeImg=$('profileAvatarImage'),largeInitial=$('profileAvatarInitial');
+  if(headerLetter)headerLetter.textContent=initial;
+  if(largeInitial)largeInitial.textContent=initial;
+  const hideImage=img=>{if(!img)return;img.hidden=true;img.removeAttribute('src');img.style.display='none'};
+  const showImage=(img,url)=>{
+    if(!img)return;
+    img.onload=()=>{img.hidden=false;img.style.display='block'};
+    img.onerror=()=>hideImage(img);
+    img.src=url;
+  };
+  const path=avatarPath();
+  if(!path){hideImage(headerImg);hideImage(largeImg);return;}
+  try{
+    const r=await sb.storage.from(AVATAR_BUCKET).createSignedUrl(path,3600);
+    if(r.error||!r.data?.signedUrl)throw r.error||new Error('Could not create avatar URL.');
+    showImage(headerImg,r.data.signedUrl);
+    showImage(largeImg,r.data.signedUrl);
+  }catch(e){
+    hideImage(headerImg);hideImage(largeImg);
+  }
+}
 function showApp(){
   $('authView').classList.add('hidden');$('appView').classList.remove('hidden');
   let p=profile(),name=displayName(),initial=(name.trim()[0]||'W').toUpperCase();
-  setText('headerName',name);setText('headerEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('heroName',name.split(' ')[0]);setText('avatarInitial',initial);
+  setText('headerName',name);setText('headerEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('heroName',name.split(' ')[0]);
+  const letter=document.querySelector('#avatarInitial .avatar-letter');if(letter)letter.textContent=initial;
   setTag('profileCompany',p.company_name);setTag('profilePosition',p.position);setTag('profileEmployee',p.employee_id?`Employee ID • ${p.employee_id}`:'');
   $('adminActivityNav')?.classList.toggle('hidden',!isAdmin);
   loadUpdateHistory();
+  refreshAvatar();
 }
-function setTag(id,text){$(id).textContent=text||'';$(id).classList.toggle('hidden',!text)}
+
 function authMessage(text,isError=false){$('authMessage').textContent=text;$('authMessage').className=`message ${text?(isError?'error':'success'):''}`}
 function setAuthMode(){
   $('authSubmitText').textContent=signUp?'Create account':'Sign in';
@@ -96,13 +125,60 @@ function openProfile(){
   $('profilePositionInput').value=p.position||'';
   $('profileEmail').value=user?.email||'';
   profileMessage('');
+  refreshAvatar();
   $('profileDialog').showModal();
 }
-function closeProfile(){$('profileDialog').close()}
+function resizeAvatar(file){
+  return new Promise((resolve,reject)=>{
+    const img=new Image(),url=URL.createObjectURL(file);
+    img.onload=()=>{
+      const max=512,scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+      const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+      const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      canvas.toBlob(blob=>{URL.revokeObjectURL(url);blob?resolve(blob):reject(new Error('Could not prepare the profile picture.'))},'image/jpeg',.86);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('The selected image could not be read.'))};
+    img.src=url;
+  });
+}
+async function uploadProfileAvatar(file){
+  if(!file)return;
+  if(!/^image\/(jpeg|png|webp)$/i.test(file.type))return profileMessage('Please select a JPG, PNG or WebP image.',true);
+  if(file.size>2*1024*1024)return profileMessage('Profile picture must be 2 MB or smaller.',true);
+  const oldPath=avatarPath();
+  $('profileAvatarFile').disabled=true;profileMessage('Uploading profile picture…');
+  try{
+    const blob=await resizeAvatar(file);
+    const path=`${user.id}/avatar.jpg`;
+    const up=await sb.storage.from(AVATAR_BUCKET).upload(path,blob,{contentType:'image/jpeg',upsert:true,cacheControl:'3600'});
+    if(up.error)throw up.error;
+    const r=await sb.auth.updateUser({data:{...profile(),avatar_path:path}});
+    if(r.error){await sb.storage.from(AVATAR_BUCKET).remove([path]);throw r.error}
+    user=r.data.user||user;await refreshAvatar();profileMessage('Profile picture updated successfully.');
+  }catch(err){profileMessage(err?.message||'Could not upload profile picture.',true)}
+  finally{$('profileAvatarFile').disabled=false}
+}
+async function removeProfileAvatar(){
+  const path=avatarPath();if(!path)return profileMessage('No profile picture to remove.');
+  $('removeProfileAvatar').disabled=true;profileMessage('Removing profile picture…');
+  try{
+    const r=await sb.storage.from(AVATAR_BUCKET).remove([path]);if(r.error)throw r.error;
+    const metadata={...profile()};delete metadata.avatar_path;
+    const u=await sb.auth.updateUser({data:metadata});if(u.error)throw u.error;
+    user=u.data.user||user;await refreshAvatar();profileMessage('Profile picture removed.');
+  }catch(err){profileMessage(err?.message||'Could not remove profile picture.',true)}
+  finally{$('removeProfileAvatar').disabled=false}
+}
+function closeProfile(){
+  const dialog=$('profileDialog');
+  if(dialog?.open)dialog.close();
+}
 $('profileButton').onclick=openProfile;
 $('closeProfile').onclick=closeProfile;
 $('cancelProfile').onclick=closeProfile;
 $('profileDialog').addEventListener('click',e=>{if(e.target===$('profileDialog'))closeProfile()});
+$('profileAvatarFile').addEventListener('change',e=>{const f=e.target.files?.[0];uploadProfileAvatar(f);e.target.value=''});
+$('removeProfileAvatar').onclick=removeProfileAvatar;
 $('profileForm').onsubmit=async e=>{
   e.preventDefault();
   let data={first_name:$('profileFirstName').value.trim(),surname:$('profileSurname').value.trim(),company_name:$('profileCompanyName').value.trim(),employee_id:$('profileEmployeeId').value.trim(),position:$('profilePositionInput').value.trim()};
@@ -1351,7 +1427,8 @@ const WORKTRACK_UPDATE={
   version:'26.2',
   date:'20 September 2026',
   slides:[
-    {image:'./backgrounds/background-1-blue.png',eyebrow:'LATEST RELEASE',title:'WorkTrack V26.2',text:'A cleaner update center with reliable background artwork, responsive layout and a complete release history.',button:'WORKTRACK 26.2'},
+    {image:'./backgrounds/background-1-blue.png',eyebrow:'LATEST RELEASE',title:'WorkTrack V27.1',text:'AI staff statements now support Base/Ramp context with automatic provider fallback. Profile picture display and profile controls are improved.',button:'WORKTRACK 27.1'},
+    {image:'./backgrounds/background-1-blue.png',eyebrow:'WORKTRACK V26.2',title:'WorkTrack V26.2',text:'A cleaner update center with reliable background artwork, responsive layout and a complete release history.',button:'WORKTRACK 26.2'},
     {image:'./backgrounds/background-2-green.png',eyebrow:'WORKTRACK V26.1',title:'WorkTrack V26.1',text:'Footer alignment improvements and a cleaner presentation across desktop and mobile screens.',button:'WORKTRACK 26.1'},
     {image:'./backgrounds/background-3-purple-security.png',eyebrow:'WORKTRACK V26',title:'WorkTrack V26',text:'Professional footer alignment and the new visual update-center foundation.',button:'WORKTRACK 26'},
     {image:'./backgrounds/background-1-blue.png',eyebrow:'WORKTRACK V25.4',title:'WorkTrack V25.4',text:'A more professional WorkTrack experience with an improved update center and responsive presentation.',button:'WORKTRACK 25.4'}
@@ -1380,7 +1457,7 @@ function startUpdateTimer(){
 }
 async function loadUpdateHistory(){
   try{
-    const response=await fetch('./updates/updates.json?v=26.2.1',{cache:'no-store'});
+    const response=await fetch('./updates/updates.json?v=27.1.0',{cache:'no-store'});
     if(!response.ok)throw new Error(`Update history HTTP ${response.status}`);
     const data=await response.json();
     if(Array.isArray(data.slides)&&data.slides.length){
