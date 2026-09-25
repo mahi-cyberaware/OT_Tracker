@@ -1,7 +1,16 @@
 {
-  "version": "26.2",
-  "date": "20 September 2026",
+  "version": "27.1",
+  "date": "25 September 2026",
   "slides": [
+    {
+      "version": "27.1",
+      "date": "25 September 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V27.1",
+      "text": "AI staff statements now use Base/Ramp context with automatic provider fallback. Profile picture display and profile controls are improved.",
+      "button": "WORKTRACK 27.1"
+    },
     {
       "version": "26.2",
       "date": "20 September 2026",
