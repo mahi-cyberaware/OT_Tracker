@@ -1,7 +1,16 @@
 {
-  "version": "27.2",
+  "version": "27.3",
   "date": "26 September 2026",
   "slides": [
+    {
+      "version": "27.3",
+      "date": "26 September 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V27.3",
+      "text": "New Light Mode with a persistent Light/Dark theme switch, while preserving the existing WorkTrack functionality and dark-blue design.",
+      "button": "WORKTRACK 27.3"
+    },
     {
       "version": "27.2",
       "date": "26 September 2026",
