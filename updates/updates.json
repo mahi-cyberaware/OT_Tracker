@@ -1,7 +1,16 @@
 {
-  "version": "27.1",
-  "date": "25 September 2026",
+  "version": "27.2",
+  "date": "26 September 2026",
   "slides": [
+    {
+      "version": "27.2",
+      "date": "26 September 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V27.2",
+      "text": "Calendar intelligence now highlights duty days below 9 hours in red and adds the 2026 UAE public-holiday list below the monthly calendar.",
+      "button": "WORKTRACK 27.2"
+    },
     {
       "version": "27.1",
       "date": "25 September 2026",
