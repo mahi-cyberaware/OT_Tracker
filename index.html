@@ -168,7 +168,18 @@
       <section id="calendarSection" class="panel glass-card calendar-panel" hidden>
         <div class="panel-head"><div><div class="section-kicker">MONTH VIEW</div><h2 id="monthTitle"></h2><span id="monthMeta" class="muted small"></span></div><div class="month-actions"><button id="todayMonth" class="ghost" type="button">Today</button><button id="prevMonth" class="ghost icon-btn" type="button" aria-label="Previous month">‹</button><button id="nextMonth" class="ghost icon-btn" type="button" aria-label="Next month">›</button></div></div>
         <div id="calendar" class="calendar"></div>
-        <div class="legend"><span><i class="dot normal-dot"></i>Present</span><span><i class="dot ot-dot"></i>Overtime</span><span><i class="dot holiday-dot"></i>UAE Public Holiday</span><span><i class="dot leave-dot"></i>Leave / Off</span></div>
+        <div class="legend"><span><i class="dot normal-dot"></i>Present</span><span><i class="dot ot-dot"></i>Overtime</span><span><i class="dot short-duty-dot"></i>Below 9h</span><span><i class="dot holiday-dot"></i>UAE Public Holiday</span><span><i class="dot leave-dot"></i>Leave / Off</span></div>
+        <div class="uae-holidays-panel">
+          <div class="uae-holidays-head">
+            <div>
+              <div class="section-kicker">UAE HOLIDAYS</div>
+              <h3>🇦🇪 UAE Public Holidays — 2026</h3>
+              <span class="muted small">Official holiday dates displayed for quick attendance planning.</span>
+            </div>
+          </div>
+          <div id="uaeHolidayList" class="uae-holidays-list"></div>
+          <p class="uae-holidays-note">Islamic holiday dates are based on official UAE announcements. Shift-based employees should follow their employer roster and applicable holiday arrangements.</p>
+        </div>
       </section>
 
       <section id="analyticsSection" class="panel glass-card analytics-panel" hidden>
@@ -593,7 +604,7 @@
     window.__worktrackInstantMenu={open,close};
   })();
   </script>
-  <script src="app-v22.js?v=26.2.1"></script>
+  <script src="app-v22.js?v=27.2.0"></script>
   <script>
   (function(){
     function initContactSettings(){

@@ -30,6 +30,19 @@ const UAE_HOLIDAYS_2026={
   '2026-12-03':'UAE National Day'
 };
 function publicHolidayName(date){return UAE_HOLIDAYS_2026[date]||''}
+
+// V27.2 — 2026 UAE public-holiday list shown below the calendar.
+// Islamic holiday dates are based on official UAE announcements and can vary by sector
+// where the announced federal and private-sector holiday periods differ.
+const UAE_PUBLIC_HOLIDAYS_2026=[
+  {date:'01 Jan',name:"New Year's Day",note:'Official UAE public holiday'},
+  {date:'19–22 Mar',name:'Eid Al-Fitr',note:'Federal holiday period; private-sector observance may differ'},
+  {date:'25–29 May',name:'Arafat Day & Eid Al-Adha',note:'Federal holiday period; private-sector observance may differ'},
+  {date:'15 Jun',name:'Hijri New Year',note:'Official UAE public holiday'},
+  {date:'28 Aug',name:"Prophet Muhammad’s Birthday",note:'Official UAE public holiday'},
+  {date:'02–03 Dec',name:'UAE National Day',note:'Official UAE public holiday'}
+];
+
 function profile(){return user?.user_metadata||{}}
 function displayName(){let p=profile(),full=[p.first_name,p.surname].filter(Boolean).join(' ');return full||user?.email?.split('@')[0]||'Employee'}
 function setText(id,text){$(id).textContent=text||''}
@@ -453,10 +466,87 @@ function renderBars(id,data,key,label,valueFn){
   el.innerHTML=data.map(x=>`<div class="bar-item" title="${label}: ${fmt(valueFn(x))}"><span class="bar-value">${valueFn(x)?fmt(valueFn(x)):'-'}</span><div class="bar-track"><i style="height:${Math.max(4,Math.round(valueFn(x)/max*100))}%"></i></div><small>${x.n}</small></div>`).join('');
 }
 function renderCalendar(){
-  let c=$('calendar');c.innerHTML='';['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(x=>{let d=document.createElement('div');d.className='cal-head';d.textContent=x;c.appendChild(d)});
-  let first=new Date(month.getFullYear(),month.getMonth(),1),days=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
-  for(let i=0;i<first.getDay();i++){let d=document.createElement('div');d.className='day mutedday';c.appendChild(d)}
-  for(let n=1;n<=days;n++){let date=`${monthKey()}-${String(n).padStart(2,'0')}`,r=records.find(x=>x.work_date===date),holiday=publicHolidayName(date),d=document.createElement('div');d.className='day'+(date===todayKey()?' today':'')+(holiday?' public-holiday':'');d.innerHTML=`<div class="daynum">${n}</div>`;if(r){let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty);d.innerHTML+=`<span class="pill ${ot?'ot':r.status==='present'?(holiday?'holidayworked':'normal'):'leave'}">${r.status==='present'?(ot?`+${fmt(ot)} OT`:fmt(h)):statusLabel(r.status)}</span>`;if(holiday)d.title=`${holiday}${r.status==='present'?' • Worked':''}`}else if(holiday){d.innerHTML+=`<span class="pill holiday">Holiday</span>`;d.title=holiday}d.onclick=()=>openDateDetails(r,date);c.appendChild(d)}
+  let c=$('calendar');c.innerHTML='';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(x=>{
+    let d=document.createElement('div');
+    d.className='cal-head';
+    d.textContent=x;
+    c.appendChild(d);
+  });
+  let first=new Date(month.getFullYear(),month.getMonth(),1),
+      days=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
+
+  for(let i=0;i<first.getDay();i++){
+    let d=document.createElement('div');
+    d.className='day mutedday';
+    c.appendChild(d);
+  }
+
+  for(let n=1;n<=days;n++){
+    let date=`${monthKey()}-${String(n).padStart(2,'0')}`,
+        r=records.find(x=>x.work_date===date),
+        holiday=publicHolidayName(date),
+        d=document.createElement('div');
+
+    d.className='day'+
+      (date===todayKey()?' today':'')+
+      (holiday?' public-holiday':'');
+    d.innerHTML=`<div class="daynum">${n}</div>`;
+
+    if(r){
+      let h=hours(r.check_in,r.check_out),
+          isPresent=r.status==='present',
+          shortDuty=isPresent && h<9,
+          ot=isPresent ? Math.max(0,h-duty) : 0;
+
+      if(shortDuty)d.classList.add('short-duty');
+
+      let pillClass=shortDuty
+        ? 'short-duty'
+        : ot
+          ? 'ot'
+          : isPresent
+            ? (holiday?'holidayworked':'normal')
+            : 'leave';
+
+      d.innerHTML+=`<span class="pill ${pillClass}">${isPresent?(ot?`+${fmt(ot)} OT`:fmt(h)):statusLabel(r.status)}</span>`;
+
+      if(shortDuty){
+        d.title=`Below 9 hours • ${fmt(h)}${holiday?' • '+holiday:''}`;
+      }else if(holiday){
+        d.title=`${holiday}${isPresent?' • Worked':''}`;
+      }
+    }else if(holiday){
+      d.innerHTML+=`<span class="pill holiday">Holiday</span>`;
+      d.title=holiday;
+    }
+
+    d.onclick=()=>openDateDetails(r,date);
+    c.appendChild(d);
+  }
+
+  renderUaeHolidayList();
+}
+
+function renderUaeHolidayList(){
+  let el=$('uaeHolidayList');
+  if(!el)return;
+  let year=month.getFullYear();
+
+  if(year!==2026){
+    el.innerHTML=`<div class="uae-holidays-empty">UAE public-holiday dates are currently configured for 2026.</div>`;
+    return;
+  }
+
+  el.innerHTML=UAE_PUBLIC_HOLIDAYS_2026.map(x=>`
+    <div class="uae-holiday-row">
+      <div class="uae-holiday-date">${x.date}</div>
+      <div class="uae-holiday-name">
+        <strong>${x.name}</strong>
+        <span>${x.note}</span>
+      </div>
+    </div>
+  `).join('');
 }
 function renderTable(){
   let t=$('records');t.innerHTML='';$('emptyRecords').classList.toggle('hidden',records.length>0);
@@ -1424,10 +1514,11 @@ $('settingsPasswordButton')?.addEventListener('click',openPasswordDialog);
    The local list is a fallback so the section still works if the JSON file is unavailable.
    ========================= */
 const WORKTRACK_UPDATE={
-  version:'26.2',
-  date:'20 September 2026',
+  version:'27.2',
+  date:'26 September 2026',
   slides:[
-    {image:'./backgrounds/background-1-blue.png',eyebrow:'LATEST RELEASE',title:'WorkTrack V27.1',text:'AI staff statements now support Base/Ramp context with automatic provider fallback. Profile picture display and profile controls are improved.',button:'WORKTRACK 27.1'},
+    {image:'./backgrounds/background-1-blue.png',eyebrow:'LATEST RELEASE',title:'WorkTrack V27.2',text:'Calendar intelligence now highlights duty days below 9 hours in red and adds the 2026 UAE public-holiday list below the monthly calendar.',button:'WORKTRACK 27.2'},
+    {image:'./backgrounds/background-1-blue.png',eyebrow:'WORKTRACK V27.1',title:'WorkTrack V27.1',text:'AI staff statements now support Base/Ramp context with automatic provider fallback. Profile picture display and profile controls are improved.',button:'WORKTRACK 27.1'},
     {image:'./backgrounds/background-1-blue.png',eyebrow:'WORKTRACK V26.2',title:'WorkTrack V26.2',text:'A cleaner update center with reliable background artwork, responsive layout and a complete release history.',button:'WORKTRACK 26.2'},
     {image:'./backgrounds/background-2-green.png',eyebrow:'WORKTRACK V26.1',title:'WorkTrack V26.1',text:'Footer alignment improvements and a cleaner presentation across desktop and mobile screens.',button:'WORKTRACK 26.1'},
     {image:'./backgrounds/background-3-purple-security.png',eyebrow:'WORKTRACK V26',title:'WorkTrack V26',text:'Professional footer alignment and the new visual update-center foundation.',button:'WORKTRACK 26'},
@@ -1457,7 +1548,7 @@ function startUpdateTimer(){
 }
 async function loadUpdateHistory(){
   try{
-    const response=await fetch('./updates/updates.json?v=27.1.0',{cache:'no-store'});
+    const response=await fetch('./updates/updates.json?v=27.2.0',{cache:'no-store'});
     if(!response.ok)throw new Error(`Update history HTTP ${response.status}`);
     const data=await response.json();
     if(Array.isArray(data.slides)&&data.slides.length){
