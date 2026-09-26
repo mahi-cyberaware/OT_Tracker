@@ -1089,6 +1089,32 @@ $('adminActivityEmployeeId')?.addEventListener('keydown',e=>{if(e.key==='Enter')
 setAuthMode();init();
 
 /* =========================
+   V27.3 — THEME & APPEARANCE
+   ========================= */
+(function initWorkTrackTheme(){
+  const root=document.documentElement;
+  const meta=document.getElementById('themeColorMeta');
+  const btn=document.getElementById('themeToggle');
+  const label=document.getElementById('themeToggleLabel');
+  const icon=btn?.querySelector('.theme-toggle-icon');
+  function current(){return root.dataset.theme==='light'?'light':'dark'}
+  function paint(theme){
+    const light=theme==='light';
+    root.dataset.theme=light?'light':'dark';
+    if(meta)meta.setAttribute('content',light?'#f4f7fb':'#0b1220');
+    if(label)label.textContent=light?'Dark mode':'Light mode';
+    if(icon)icon.textContent=light?'🌙':'☀️';
+    if(btn)btn.setAttribute('aria-label',light?'Switch to dark mode':'Switch to light mode');
+  }
+  function save(theme){try{localStorage.setItem('worktrack-theme',theme)}catch(e){}}
+  paint(current());
+  btn?.addEventListener('click',()=>{
+    const next=current()==='light'?'dark':'light';
+    paint(next);save(next);
+  });
+})();
+
+/* =========================
    V11 — APP MENU + FOOTER
    ========================= */
 

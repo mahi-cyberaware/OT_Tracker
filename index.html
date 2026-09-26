@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0b1220">
+  <meta name="theme-color" content="#0b1220" id="themeColorMeta">
+  <script>
+  (function(){try{var t=localStorage.getItem("worktrack-theme")||"dark";document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme="dark";}})();
+  </script>
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -416,6 +419,7 @@
           <button type="button" class="menu-item" data-nav="payroll">₹ <span>Payroll estimate</span></button>
           <button type="button" class="menu-item" data-nav="reminders">◷ <span>Reminders</span></button>
           <button type="button" class="menu-item" data-nav="settings">⚙ <span>Settings</span></button>
+          <button id="themeToggle" type="button" class="menu-item theme-toggle-item" aria-label="Switch theme"><span class="theme-toggle-icon">☀️</span> <span id="themeToggleLabel">Light mode</span></button>
           <button id="adminActivityNav" type="button" class="menu-item admin-only-nav hidden" data-nav="adminActivity">▣ <span>Staff Activity</span></button>
         </nav>
 
@@ -604,7 +608,7 @@
     window.__worktrackInstantMenu={open,close};
   })();
   </script>
-  <script src="app-v22.js?v=27.2.0"></script>
+  <script src="app-v22.js?v=27.3.0"></script>
   <script>
   (function(){
     function initContactSettings(){
