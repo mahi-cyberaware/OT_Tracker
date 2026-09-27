@@ -117,7 +117,13 @@
           <button id="saveRosterSettings" class="primary" type="button">Save reminder settings</button><button id="testDutyAlert" class="ghost" type="button">Test duty alert</button>
         </div>
         <div class="roster-export-actions"><button id="exportRosterPdf" class="primary" type="button">Download Roster PDF</button><button id="exportRosterExcel" class="ghost" type="button">Download Roster Excel</button></div>
-        <div class="table-wrap roster-table-wrap"><table><thead><tr><th>Date</th><th>Day</th><th>Duty</th><th>Status</th></tr></thead><tbody id="rosterRecords"></tbody></table><div id="emptyRoster" class="empty">No roster entries yet.</div></div>
+        <div class="roster-month-toolbar" aria-label="Roster month navigation">
+          <button id="rosterPrevMonth" class="ghost" type="button" aria-label="Previous roster month">‹</button>
+          <div class="roster-month-title"><span class="section-kicker">ROSTER VIEW</span><strong id="rosterMonthTitle">Current month</strong><small id="rosterMonthMeta" class="muted small"></small></div>
+          <button id="rosterNextMonth" class="ghost" type="button" aria-label="Next roster month">›</button>
+          <button id="rosterCurrentMonth" class="ghost" type="button">Current month</button>
+        </div>
+        <div class="table-wrap roster-table-wrap"><table><thead><tr><th>Date</th><th>Day</th><th>Duty</th><th>Status</th></tr></thead><tbody id="rosterRecords"></tbody></table><div id="emptyRoster" class="empty">No roster entries for this month.</div></div>
       </section>
 
       <section id="adminRosterSection" class="panel glass-card roster-panel hidden" hidden>
@@ -195,11 +201,28 @@
       </section>
 
       <section id="reportsSection" class="panel glass-card" hidden>
-        <div class="panel-head"><div><div class="section-kicker">REPORTS</div><h2>Monthly report</h2><span class="muted small">Generate a professional PDF or CSV for the selected month</span></div><div class="report-actions"><button id="exportPdf" class="primary" type="button">Download PDF</button><button id="exportCsv" class="ghost" type="button">Export CSV</button></div></div>
+        <div class="panel-head report-head">
+          <div><div class="section-kicker">REPORTS</div><h2>Monthly report</h2><span id="reportMonthMeta" class="muted small">Selected month only</span></div>
+          <div class="month-actions report-month-actions">
+            <button id="reportTodayMonth" class="ghost" type="button">Current month</button>
+            <button id="reportPrevMonth" class="ghost icon-btn" type="button" aria-label="Previous report month">‹</button>
+            <button id="reportNextMonth" class="ghost icon-btn" type="button" aria-label="Next report month">›</button>
+          </div>
+        </div>
+        <div class="report-month-banner"><span class="section-kicker">REPORT MONTH</span><strong id="reportMonthTitle"></strong><span class="muted small">Choose the month you want to export.</span></div>
+        <div class="report-actions"><button id="exportPdf" class="primary" type="button">Download PDF</button><button id="exportCsv" class="ghost" type="button">Export CSV</button></div>
       </section>
 
       <section id="recordsSection" class="panel glass-card" hidden>
-        <div class="panel-head"><div><div class="section-kicker">RECORDS</div><h2>Attendance history</h2><span class="muted small">Your records for the selected month</span></div></div>
+        <div class="panel-head attendance-history-head">
+          <div><div class="section-kicker">RECORDS</div><h2>Attendance history</h2><span id="historyMonthMeta" class="muted small">Selected month only</span></div>
+          <div class="month-actions history-month-actions">
+            <button id="historyTodayMonth" class="ghost" type="button">Current month</button>
+            <button id="historyPrevMonth" class="ghost icon-btn" type="button" aria-label="Previous month">‹</button>
+            <button id="historyNextMonth" class="ghost icon-btn" type="button" aria-label="Next month">›</button>
+          </div>
+        </div>
+        <div class="history-month-banner"><span class="section-kicker">MONTH</span><strong id="historyMonthTitle"></strong><span class="muted small">One month of attendance records is shown at a time.</span></div>
         <div class="table-wrap"><table><thead><tr><th>Date</th><th>In</th><th>Out</th><th>Worked</th><th>OT</th><th>Status</th><th></th></tr></thead><tbody id="records"></tbody></table><div id="emptyRecords" class="empty hidden">No attendance records for this month.</div></div>
       </section>
 
@@ -252,7 +275,7 @@
             <label>Mobile number<input id="settingsMobile" type="tel" inputmode="tel" placeholder="e.g. +971 50 123 4567" autocomplete="tel"></label>
           </div>
           <div class="dialog-actions settings-contact-actions"><button id="saveContactSettings" class="primary" type="button">Save email & mobile</button></div>
-          <p class="muted small settings-contact-note">If you change the email, Supabase may require email confirmation before the new address becomes active.</p>
+          <p class="muted small settings-contact-note">Email changes use Supabase confirmation. Complete the confirmation email(s) before the new address becomes active. Your current email remains the login address until the change is confirmed.</p>
         </div>
       </section>
 
@@ -608,7 +631,7 @@
     window.__worktrackInstantMenu={open,close};
   })();
   </script>
-  <script src="app-v22.js?v=27.3.0"></script>
+  <script src="app-v22.js?v=27.5.0"></script>
   <script>
   (function(){
     function initContactSettings(){

@@ -1903,3 +1903,21 @@ html[data-theme="light"] .menu-logout{margin-top:14px}
 /* Theme switch visual */
 .theme-toggle-item{justify-content:flex-start}
 .theme-toggle-icon{display:inline-flex;min-width:20px;justify-content:center}
+
+/* V27.4 — cleaner monthly roster view */
+.roster-month-toolbar{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;margin:16px 0 12px;padding:12px;border:1px solid var(--border,rgba(120,140,180,.16));border-radius:16px;background:var(--card,rgba(255,255,255,.035));}
+.roster-month-toolbar button{min-height:40px;min-width:42px;}
+.roster-month-title{min-width:0;text-align:center;display:flex;flex-direction:column;gap:2px;}
+.roster-month-title strong{font-size:1rem;}
+.roster-month-toolbar button:disabled{opacity:.42;cursor:not-allowed;}
+@media (max-width:640px){.roster-month-toolbar{grid-template-columns:42px 1fr 42px;}.roster-month-toolbar #rosterCurrentMonth{grid-column:1/-1;width:100%;}.roster-month-title{padding:0 4px;}}
+.settings-contact-note{max-width:760px;line-height:1.55;}
+#contactSettingsMessage{min-height:1.2em;margin:8px 0 2px;}
+
+/* V27.4 attendance history month navigation */
+.attendance-history-head{align-items:flex-start}.history-month-actions{flex-wrap:nowrap}.history-month-banner{display:flex;align-items:baseline;gap:10px;margin-top:14px;padding:12px 14px;border-radius:13px;background:rgba(124,156,255,.06);border:1px solid rgba(124,156,255,.10)}.history-month-banner strong{font-size:16px;color:var(--text)}.history-month-banner .muted{margin-left:auto}.history-month-actions .icon-btn{min-width:40px}
+@media(max-width:640px){.attendance-history-head{gap:10px}.history-month-actions{width:100%;justify-content:flex-end}.history-month-actions .ghost:first-child{flex:1}.history-month-banner{display:grid;grid-template-columns:auto 1fr;gap:4px 8px}.history-month-banner .muted{grid-column:1/-1;margin-left:0}}
+
+/* V27.5 — monthly report month navigation */
+.report-head{align-items:flex-start}.report-month-actions{flex-wrap:nowrap}.report-month-banner{display:flex;align-items:baseline;gap:10px;margin-top:14px;padding:12px 14px;border-radius:13px;background:rgba(124,156,255,.06);border:1px solid rgba(124,156,255,.10)}.report-month-banner strong{font-size:16px;color:var(--text)}.report-month-banner .muted{margin-left:auto}.report-actions{margin-top:14px}
+@media(max-width:640px){.report-head{gap:10px}.report-month-actions{width:100%;justify-content:flex-end}.report-month-actions .ghost:first-child{flex:1}.report-month-banner{display:grid;grid-template-columns:auto 1fr;gap:4px 8px}.report-month-banner .muted{grid-column:1/-1;margin-left:0}}

@@ -3,7 +3,7 @@ const SUPABASE_ANON_KEY="sb_publishable_QqqqICyurLbmaMBPUwfF_g_8_jVZYuO";
 const REDIRECT_URL="https://ot-tracker-psi.vercel.app/";
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
-let user=null,records=[],rosterEntries=[],month=new Date(),duty=9,signUp=false,isAdmin=false;
+let user=null,records=[],rosterEntries=[],month=new Date(),rosterMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),duty=9,signUp=false,isAdmin=false;
 const NORMAL_OT_RATE=8.94;
 const $=id=>document.getElementById(id);
 function fmt(n){return `${Number(n.toFixed(2))}h`}
@@ -47,11 +47,67 @@ function profile(){return user?.user_metadata||{}}
 function displayName(){let p=profile(),full=[p.first_name,p.surname].filter(Boolean).join(' ');return full||user?.email?.split('@')[0]||'Employee'}
 function setText(id,text){$(id).textContent=text||''}
 
+async function handleAuthCallback(){
+  const url=new URL(window.location.href);
+  const params=url.searchParams;
+  const code=params.get('code');
+  const tokenHash=params.get('token_hash');
+  const type=params.get('type');
+  const hash=new URLSearchParams((url.hash||'').replace(/^#/,'').replace(/^\?/,'').replace(/&amp;/g,'&'));
+  const accessToken=hash.get('access_token');
+  const refreshToken=hash.get('refresh_token');
+  const hashType=hash.get('type')||type;
+  if(code){
+    const r=await sb.auth.exchangeCodeForSession(code);
+    if(r.error)throw r.error;
+    window.history.replaceState({},document.title,url.pathname+url.hash.replace(/#.*/,''));
+    return r.data?.session||null;
+  }
+  if(tokenHash&&type){
+    const r=await sb.auth.verifyOtp({token_hash:tokenHash,type});
+    if(r.error)throw r.error;
+    window.history.replaceState({},document.title,url.pathname);
+    return r.data?.session||null;
+  }
+  if(accessToken&&refreshToken){
+    const r=await sb.auth.setSession({access_token:accessToken,refresh_token:refreshToken});
+    if(r.error)throw r.error;
+    window.history.replaceState({},document.title,url.pathname+url.search);
+    return r.data?.session||null;
+  }
+  return null;
+}
+async function refreshAuthenticatedUser(){
+  try{const r=await sb.auth.getUser();if(!r.error&&r.data?.user){user=r.data.user;return user;}}catch(_){ }
+  return user;
+}
 async function init(){
+  sb.auth.onAuthStateChange(async (_e,s)=>{
+    if(s?.user){user=s.user;showApp();await load()}
+    else{user=null;showAuth()}
+  });
+  let callbackSession=null;
+  try{callbackSession=await handleAuthCallback()}catch(err){
+    const msg=String(err?.message||'');
+    if(/invalid refresh token|refresh token not found/i.test(msg)){
+      try{await sb.auth.signOut({scope:'local'})}catch(_){}
+      showAuth();authMessage('This confirmation link is no longer valid. Please start a new email change and use the latest confirmation email.',true);
+      return;
+    }
+    showAuth();authMessage(msg||'Email confirmation could not be completed. Please request a new confirmation email.',true);
+    return;
+  }
   const {data:{session},error}=await sb.auth.getSession();
-  if(error){showAuth();authMessage(error.message,true);return}
-  if(session?.user){user=session.user;showApp();await load()}else showAuth();
-  sb.auth.onAuthStateChange(async (_e,s)=>{if(s?.user){user=s.user;showApp();await load()}else{user=null;showAuth()}});
+  if(error){
+    if(/invalid refresh token|refresh token not found/i.test(error.message||'')){
+      try{await sb.auth.signOut({scope:'local'})}catch(_){}
+      showAuth();authMessage('Your previous session expired. Please sign in again.',true);
+      return;
+    }
+    showAuth();authMessage(error.message,true);return;
+  }
+  const active=callbackSession||session;
+  if(active?.user){user=active.user;await refreshAuthenticatedUser();showApp();await load()}else showAuth();
 }
 function showAuth(){$('authView').classList.remove('hidden');$('appView').classList.add('hidden')}
 function setTag(id,text){$(id).textContent=text||'';$(id).classList.toggle('hidden',!text)}
@@ -86,7 +142,7 @@ function showApp(){
   let p=profile(),name=displayName(),initial=(name.trim()[0]||'W').toUpperCase();
   setText('headerName',name);setText('headerEmployeeId',p.employee_id?`ID • ${p.employee_id}`:'');setText('heroName',name.split(' ')[0]);
   const letter=document.querySelector('#avatarInitial .avatar-letter');if(letter)letter.textContent=initial;
-  setTag('profileCompany',p.company_name);setTag('profilePosition',p.position);setTag('profileEmployee',p.employee_id?`Employee ID • ${p.employee_id}`:'');
+  setTag('profileCompany',p.company_name);setTag('profilePosition',p.position);setTag('profileEmployee',p.employee_id?`Employee ID • ${p.employee_id}`:'');if($('settingsCurrentEmail'))$('settingsCurrentEmail').value=user?.email||'';if($('settingsMobile'))$('settingsMobile').value=p.mobile_number||'';
   $('adminActivityNav')?.classList.toggle('hidden',!isAdmin);
   loadUpdateHistory();
   refreshAvatar();
@@ -192,6 +248,29 @@ $('cancelProfile').onclick=closeProfile;
 $('profileDialog').addEventListener('click',e=>{if(e.target===$('profileDialog'))closeProfile()});
 $('profileAvatarFile').addEventListener('change',e=>{const f=e.target.files?.[0];uploadProfileAvatar(f);e.target.value=''});
 $('removeProfileAvatar').onclick=removeProfileAvatar;
+$('saveContactSettings')?.addEventListener('click',async()=>{
+  if(!user)return;
+  const current=String(user.email||'').trim().toLowerCase();
+  const newEmail=String($('settingsNewEmail')?.value||'').trim().toLowerCase();
+  const mobile=String($('settingsMobile')?.value||'').trim();
+  if(newEmail&&newEmail!==current&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)){setContactMessage('Enter a valid new email address.',true);return}
+  if(!newEmail&&!mobile){setContactMessage('Enter a new email or mobile number before saving.',true);return}
+  const attrs={data:{...profile()}};if(mobile)attrs.data.mobile_number=mobile;
+  $('saveContactSettings').disabled=true;setContactMessage('Saving contact details…');
+  try{
+    const emailChanged=!!newEmail&&newEmail!==current;if(emailChanged)attrs.email=newEmail;
+    const r=await sb.auth.updateUser(attrs,{emailRedirectTo:REDIRECT_URL});
+    if(r.error){setContactMessage(r.error.message,true);return}
+    user=r.data.user||user;
+    await sb.auth.refreshSession();
+    const fresh=await sb.auth.getUser();if(fresh.data?.user)user=fresh.data.user;
+    showApp();$('settingsCurrentEmail').value=user?.email||current;$('settingsNewEmail').value='';
+    setContactMessage(emailChanged?`Confirmation email sent for ${newEmail}. Complete the required Supabase confirmation link(s) before the new email becomes active.`:'Contact details updated successfully.');
+  }catch(err){setContactMessage(err?.message||'Could not update contact details.',true)}
+  finally{$('saveContactSettings').disabled=false}
+});
+function setContactMessage(text,isError=false){const el=$('contactSettingsMessage');if(!el)return;el.textContent=text||'';el.className=`message ${text?(isError?'error':'success'):''}`}
+
 $('profileForm').onsubmit=async e=>{
   e.preventDefault();
   let data={first_name:$('profileFirstName').value.trim(),surname:$('profileSurname').value.trim(),company_name:$('profileCompanyName').value.trim(),employee_id:$('profileEmployeeId').value.trim(),position:$('profilePositionInput').value.trim()};
@@ -383,8 +462,13 @@ async function load(){
   if(r.error){alert(r.error.message);return}records=r.data||[];await loadRoster();render();
 }
 function render(){
-  $('monthTitle').textContent=month.toLocaleString('en',{month:'long',year:'numeric'});
+  const selectedMonth=month.toLocaleString('en',{month:'long',year:'numeric'});
+  $('monthTitle').textContent=selectedMonth;
   $('monthMeta').textContent=`${records.length} record${records.length===1?'':'s'}`;
+  if($('historyMonthTitle'))$('historyMonthTitle').textContent=selectedMonth;
+  if($('historyMonthMeta'))$('historyMonthMeta').textContent=`${records.length} record${records.length===1?'':'s'} in this month`;
+  if($('reportMonthTitle'))$('reportMonthTitle').textContent=selectedMonth;
+  if($('reportMonthMeta'))$('reportMonthMeta').textContent=`${records.length} record${records.length===1?'':'s'} available for this month`;
   let present=records.filter(x=>x.status==='present');
   let worked=present.reduce((sum,x)=>sum+hours(x.check_in,x.check_out),0);
   let ot=present.reduce((sum,x)=>sum+Math.max(0,hours(x.check_in,x.check_out)-duty),0);
@@ -626,7 +710,16 @@ $('attendanceForm').onsubmit=async e=>{
   }
 };
 $('deleteRecord').onclick=async()=>{let id=$('recordId').value;if(id&&confirm('Delete this attendance record?')){let r=await sb.from('attendance').delete().eq('id',id).eq('user_id',user.id);if(r.error)alert(r.error.message);else{$('attendanceDialog').close();await load()}}};
-$('addToday').onclick=()=>openDialog(null,todayKey());$('prevMonth').onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()-1,1);load()};$('nextMonth').onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()+1,1);load()};$('todayMonth').onclick=()=>{let t=new Date();month=new Date(t.getFullYear(),t.getMonth(),1);load()};
+$('addToday').onclick=()=>openDialog(null,todayKey());
+function changeSelectedMonth(offset){month=new Date(month.getFullYear(),month.getMonth()+offset,1);load()}
+function selectCurrentMonth(){let t=new Date();month=new Date(t.getFullYear(),t.getMonth(),1);load()}
+$('prevMonth').onclick=()=>changeSelectedMonth(-1);$('nextMonth').onclick=()=>changeSelectedMonth(1);$('todayMonth').onclick=selectCurrentMonth;
+$('historyPrevMonth')?.addEventListener('click',()=>changeSelectedMonth(-1));
+$('historyNextMonth')?.addEventListener('click',()=>changeSelectedMonth(1));
+$('historyTodayMonth')?.addEventListener('click',selectCurrentMonth);
+$('reportPrevMonth')?.addEventListener('click',()=>changeSelectedMonth(-1));
+$('reportNextMonth')?.addEventListener('click',()=>changeSelectedMonth(1));
+$('reportTodayMonth')?.addEventListener('click',selectCurrentMonth);
 $('saveSettings').onclick=async()=>{let v=Number($('dutyHours').value);if(v<=0||v>24)return alert('Enter duty hours between 0.25 and 24.');let r=await sb.from('profiles').upsert({id:user.id,duty_hours:v});if(r.error)alert(r.error.message);else{duty=v;render();alert('Settings saved.')}};
 function reportTotals(){
   let present=records.filter(x=>x.status==='present'),worked=present.reduce((sum,x)=>sum+hours(x.check_in,x.check_out),0),ot=present.reduce((sum,x)=>sum+Math.max(0,hours(x.check_in,x.check_out)-duty),0);
@@ -731,6 +824,7 @@ async function loadRoster(){
   let r=await sb.from('roster_entries').select('*').eq('user_id',user.id).order('work_date',{ascending:true});
   if(r.error){rosterEntries=[];rosterMessage(r.error.message,true);return}
   rosterEntries=r.data||[];
+  const now=new Date();rosterMonth=new Date(now.getFullYear(),now.getMonth(),1);
   try{rosterSettings=JSON.parse(localStorage.getItem(rosterSettingsKey)||'{}')||{}}catch(e){rosterSettings={}}
   rosterSettings={enabled:!!rosterSettings.enabled,time:rosterSettings.time||'20:00',wakeLead:Number(rosterSettings.wakeLead)||60};
   if($('dutyReminderEnabled'))$('dutyReminderEnabled').checked=rosterSettings.enabled;
@@ -739,10 +833,30 @@ async function loadRoster(){
   renderRoster();
   if(isAdmin)await loadAdminRoster();
 }
-function renderRoster(){
-  let t=$('rosterRecords');if(!t)return;t.innerHTML='';$('emptyRoster').classList.toggle('hidden',rosterEntries.length>0);
-  rosterEntries.forEach(r=>{let tr=document.createElement('tr'),d=new Date(`${r.work_date}T12:00:00`),label=r.duty_type==='present'?`${r.duty_start} – ${r.duty_end}`:statusLabel(r.duty_type==='off'?'off':r.duty_type);tr.innerHTML=`<td>${r.work_date}</td><td>${d.toLocaleDateString('en',{weekday:'short'})}</td><td><b>${esc(label)}</b></td><td class="status ${r.duty_type==='present'?'normal':'leave'}">${esc(r.duty_type==='present'?'Duty':statusLabel(r.duty_type==='off'?'off':r.duty_type))}</td>`;t.appendChild(tr)});updateNextDuty();
+function rosterMonthKey(date=rosterMonth){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`}
+function rosterHasMonth(key){return rosterEntries.some(r=>String(r.work_date||'').startsWith(key))}
+function updateRosterMonthControls(){
+  const key=rosterMonthKey();
+  const title=$('rosterMonthTitle'),meta=$('rosterMonthMeta'),prev=$('rosterPrevMonth'),next=$('rosterNextMonth'),current=$('rosterCurrentMonth');
+  if(title)title.textContent=rosterMonth.toLocaleDateString('en',{month:'long',year:'numeric'});
+  if(meta){const count=rosterEntries.filter(r=>String(r.work_date||'').startsWith(key)).length;meta.textContent=`${count} roster entr${count===1?'y':'ies'}`;}
+  const thisMonth=new Date();thisMonth.setDate(1);
+  if(prev)prev.disabled=rosterMonth.getTime()<=new Date(thisMonth.getFullYear(),thisMonth.getMonth()-12,1).getTime();
+  const nextDate=new Date(rosterMonth.getFullYear(),rosterMonth.getMonth()+1,1);
+  if(next)next.disabled=!rosterHasMonth(rosterMonthKey(nextDate));
+  if(current)current.disabled=rosterMonth.getTime()===thisMonth.getTime();
 }
+function renderRoster(){
+  let t=$('rosterRecords');if(!t)return;t.innerHTML='';
+  const key=rosterMonthKey(),visible=rosterEntries.filter(r=>String(r.work_date||'').startsWith(key));
+  $('emptyRoster').classList.toggle('hidden',visible.length>0);
+  visible.forEach(r=>{let tr=document.createElement('tr'),d=new Date(`${r.work_date}T12:00:00`),label=r.duty_type==='present'?`${r.duty_start} – ${r.duty_end}`:statusLabel(r.duty_type==='off'?'off':r.duty_type);tr.innerHTML=`<td>${r.work_date}</td><td>${d.toLocaleDateString('en',{weekday:'short'})}</td><td><b>${esc(label)}</b></td><td class="status ${r.duty_type==='present'?'normal':'leave'}">${esc(r.duty_type==='present'?'Duty':statusLabel(r.duty_type==='off'?'off':r.duty_type))}</td>`;t.appendChild(tr)});
+  updateRosterMonthControls();updateNextDuty();
+}
+function setRosterMonth(y,m){rosterMonth=new Date(y,m,1);renderRoster()}
+$('rosterPrevMonth')?.addEventListener('click',()=>setRosterMonth(rosterMonth.getFullYear(),rosterMonth.getMonth()-1));
+$('rosterNextMonth')?.addEventListener('click',()=>{const d=new Date(rosterMonth.getFullYear(),rosterMonth.getMonth()+1,1);if(rosterHasMonth(rosterMonthKey(d)))setRosterMonth(d.getFullYear(),d.getMonth())});
+$('rosterCurrentMonth')?.addEventListener('click',()=>{const d=new Date();setRosterMonth(d.getFullYear(),d.getMonth())});
 function nextDutyEntry(){let d=new Date();d.setDate(d.getDate()+1);let key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;return rosterEntries.find(r=>r.work_date===key)||null}
 function updateNextDuty(){let r=nextDutyEntry();if(!r){setText('nextDutyTitle',rosterEntries.length?'No roster entry for tomorrow':'No roster loaded');setText('nextDutyMeta',rosterEntries.length?'Check your roster or upload the latest version.':'Your administrator will upload your duty roster.');setText('nextWakeTime','—');setText('wakeMeta','');return}if(r.duty_type!=='present'){setText('nextDutyTitle',statusLabel(r.duty_type==='off'?'off':r.duty_type));setText('nextDutyMeta','No duty reminder is needed for tomorrow.');setText('nextWakeTime','—');setText('wakeMeta','');return}setText('nextDutyTitle',`${r.duty_start} – ${r.duty_end}`);setText('nextDutyMeta','Tomorrow • scheduled duty from your private roster.');let[h,m]=r.duty_start.split(':').map(Number),total=(h*60+m-Number(rosterSettings.wakeLead||60)+1440)%1440;setText('nextWakeTime',`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`);setText('wakeMeta',`${rosterSettings.wakeLead||60} min before duty`)}
 async function importRosterFile(file){
@@ -1540,10 +1654,10 @@ $('settingsPasswordButton')?.addEventListener('click',openPasswordDialog);
    The local list is a fallback so the section still works if the JSON file is unavailable.
    ========================= */
 const WORKTRACK_UPDATE={
-  version:'27.2',
-  date:'26 September 2026',
+  version:'27.5',
+  date:'27 September 2026',
   slides:[
-    {image:'./backgrounds/background-1-blue.png',eyebrow:'LATEST RELEASE',title:'WorkTrack V27.2',text:'Calendar intelligence now highlights duty days below 9 hours in red and adds the 2026 UAE public-holiday list below the monthly calendar.',button:'WORKTRACK 27.2'},
+    {image:'./backgrounds/background-1-blue.png',eyebrow:'LATEST RELEASE',title:'WorkTrack V27.5',text:'Monthly reports now have their own simple month navigation so you can select the exact month before exporting PDF or CSV.',button:'WORKTRACK 27.5'},
     {image:'./backgrounds/background-1-blue.png',eyebrow:'WORKTRACK V27.1',title:'WorkTrack V27.1',text:'AI staff statements now support Base/Ramp context with automatic provider fallback. Profile picture display and profile controls are improved.',button:'WORKTRACK 27.1'},
     {image:'./backgrounds/background-1-blue.png',eyebrow:'WORKTRACK V26.2',title:'WorkTrack V26.2',text:'A cleaner update center with reliable background artwork, responsive layout and a complete release history.',button:'WORKTRACK 26.2'},
     {image:'./backgrounds/background-2-green.png',eyebrow:'WORKTRACK V26.1',title:'WorkTrack V26.1',text:'Footer alignment improvements and a cleaner presentation across desktop and mobile screens.',button:'WORKTRACK 26.1'},
