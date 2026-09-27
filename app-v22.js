@@ -1229,6 +1229,54 @@ setAuthMode();init();
 })();
 
 /* =========================
+   V27.6 — BACKGROUND GALLERY & PERSONALIZATION
+   ========================= */
+(function initWorkTrackBackgrounds(){
+  const gallery=document.getElementById('backgroundGallery');
+  const reset=document.getElementById('resetBackground');
+  const root=document.documentElement;
+  if(!gallery)return;
+  const backgrounds=[
+    ['aurora-blue','Aurora Blue','./backgrounds/v27.6-01_aurora-blue.svg','dark'],
+    ['deep-ocean','Deep Ocean','./backgrounds/v27.6-02_deep-ocean.svg','dark'],
+    ['midnight-purple','Midnight Purple','./backgrounds/v27.6-03_midnight-purple.svg','dark'],
+    ['blue-glass','Blue Glass','./backgrounds/v27.6-04_blue-glass.svg','dark'],
+    ['soft-lavender','Soft Lavender','./backgrounds/v27.6-05_soft-lavender.svg','light'],
+    ['ice-blue','Ice Blue','./backgrounds/v27.6-06_ice-blue.svg','light'],
+    ['clean-sky','Clean Sky','./backgrounds/v27.6-07_clean-sky.svg','light'],
+    ['silver-blue','Silver Blue','./backgrounds/v27.6-08_silver-blue.svg','light'],
+    ['emerald-night','Emerald Night','./backgrounds/v27.6-09_emerald-night.svg','dark'],
+    ['sunset-violet','Sunset Violet','./backgrounds/v27.6-10_sunset-violet.svg','dark']
+  ];
+  const key='worktrack-background';
+  const defaultBg='';
+  function current(){try{return localStorage.getItem(key)||defaultBg}catch(e){return defaultBg}}
+  function apply(id,save=true){
+    const item=backgrounds.find(x=>x[0]===id);
+    if(!item){root.style.removeProperty('--worktrack-background-image');document.body.classList.remove('has-worktrack-background');if(save)try{localStorage.removeItem(key)}catch(e){};render();return}
+    root.style.setProperty('--worktrack-background-image',`url("${item[2]}")`);
+    document.body.classList.add('has-worktrack-background');
+    if(save)try{localStorage.setItem(key,id)}catch(e){}
+    render();
+  }
+  function render(){
+    const active=current();
+    gallery.innerHTML='';
+    backgrounds.forEach(([id,name,url,mode])=>{
+      const b=document.createElement('button');
+      b.type='button';b.className='background-option'+(active===id?' selected':'');
+      b.setAttribute('aria-label',`Use ${name} background`);b.setAttribute('aria-pressed',String(active===id));
+      b.innerHTML=`<span class="background-swatch" style="background-image:url('${url}')"></span><span class="background-option-name">${name}</span><span class="background-option-mode">${mode==='dark'?'Dark':'Light'}</span>`;
+      b.addEventListener('click',()=>apply(id,true));
+      gallery.appendChild(b);
+    });
+  }
+  const saved=current();
+  if(saved)apply(saved,false);else render();
+  reset?.addEventListener('click',()=>apply('',true));
+})();
+
+/* =========================
    V11 — APP MENU + FOOTER
    ========================= */
 
@@ -1688,7 +1736,7 @@ function startUpdateTimer(){
 }
 async function loadUpdateHistory(){
   try{
-    const response=await fetch('./updates/updates.json?v=27.2.0',{cache:'no-store'});
+    const response=await fetch('./updates/updates.json?v=27.6.0',{cache:'no-store'});
     if(!response.ok)throw new Error(`Update history HTTP ${response.status}`);
     const data=await response.json();
     if(Array.isArray(data.slides)&&data.slides.length){

@@ -264,6 +264,14 @@
         <div><div class="section-kicker">PREFERENCES</div><h2>Settings</h2><p class="muted small">Set the normal daily duty hours used to calculate overtime.</p></div>
         <div class="settings-grid"><label>Daily duty hours<input id="dutyHours" type="number" min="0.25" max="24" step=".25" inputmode="decimal"></label><button id="saveSettings" class="primary" type="button">Save settings</button></div>
 
+        <div class="settings-background-card glass-card">
+          <div class="section-kicker">PERSONALIZATION</div>
+          <h3>Background</h3>
+          <p class="muted small">Choose a WorkTrack background. Your selection is saved on this device.</p>
+          <div id="backgroundGallery" class="background-gallery" aria-label="WorkTrack background choices"></div>
+          <div class="background-gallery-actions"><button id="resetBackground" class="ghost" type="button">Reset background</button></div>
+        </div>
+
         <div class="settings-contact-card glass-card">
           <div class="section-kicker">ACCOUNT CONTACT</div>
           <h3>Email & mobile number</h3>
@@ -631,7 +639,7 @@
     window.__worktrackInstantMenu={open,close};
   })();
   </script>
-  <script src="app-v22.js?v=27.5.0"></script>
+  <script src="app-v22.js?v=27.6.0"></script>
   <script>
   (function(){
     function initContactSettings(){
