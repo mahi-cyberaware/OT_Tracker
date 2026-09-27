@@ -550,18 +550,18 @@ function renderBars(id,data,key,label,valueFn){
   el.innerHTML=data.map(x=>`<div class="bar-item" title="${label}: ${fmt(valueFn(x))}"><span class="bar-value">${valueFn(x)?fmt(valueFn(x)):'-'}</span><div class="bar-track"><i style="height:${Math.max(4,Math.round(valueFn(x)/max*100))}%"></i></div><small>${x.n}</small></div>`).join('');
 }
 const CALENDAR_BACKGROUND_MAP={
-  0:{dark:'./backgrounds/v27.6-03_midnight-purple.svg',light:'./backgrounds/v27.6-05_soft-lavender.svg'},
-  1:{dark:'./backgrounds/v27.6-10_sunset-violet.svg',light:'./backgrounds/v27.6-07_clean-sky.svg'},
-  2:{dark:'./backgrounds/v27.6-02_deep-ocean.svg',light:'./backgrounds/v27.6-06_ice-blue.svg'},
-  3:{dark:'./backgrounds/v27.6-09_emerald-night.svg',light:'./backgrounds/v27.6-08_silver-blue.svg'},
+  0:{dark:'./backgrounds/background-3-purple-security.png',light:'./backgrounds/background-1-blue.png'},
+  1:{dark:'./backgrounds/v27.6-10_sunset-violet.svg',light:'./backgrounds/v27.6-05_soft-lavender.svg'},
+  2:{dark:'./backgrounds/background-1-blue.png',light:'./backgrounds/v27.6-06_ice-blue.svg'},
+  3:{dark:'./backgrounds/background-2-green.png',light:'./backgrounds/v27.6-08_silver-blue.svg'},
   4:{dark:'./backgrounds/v27.6-01_aurora-blue.svg',light:'./backgrounds/v27.6-06_ice-blue.svg'},
   5:{dark:'./backgrounds/v27.6-04_blue-glass.svg',light:'./backgrounds/v27.6-07_clean-sky.svg'},
-  6:{dark:'./backgrounds/v27.6-01_aurora-blue.svg',light:'./backgrounds/v27.6-05_soft-lavender.svg'},
-  7:{dark:'./backgrounds/v27.6-10_sunset-violet.svg',light:'./backgrounds/v27.6-08_silver-blue.svg'},
-  8:{dark:'./backgrounds/v27.6-02_deep-ocean.svg',light:'./backgrounds/v27.6-06_ice-blue.svg'},
-  9:{dark:'./backgrounds/v27.6-09_emerald-night.svg',light:'./backgrounds/v27.6-07_clean-sky.svg'},
+  6:{dark:'./backgrounds/background-1-blue.png',light:'./backgrounds/v27.6-05_soft-lavender.svg'},
+  7:{dark:'./backgrounds/background-3-purple-security.png',light:'./backgrounds/v27.6-08_silver-blue.svg'},
+  8:{dark:'./backgrounds/background-1-blue.png',light:'./backgrounds/v27.6-06_ice-blue.svg'},
+  9:{dark:'./backgrounds/background-2-green.png',light:'./backgrounds/v27.6-07_clean-sky.svg'},
   10:{dark:'./backgrounds/v27.6-03_midnight-purple.svg',light:'./backgrounds/v27.6-05_soft-lavender.svg'},
-  11:{dark:'./backgrounds/v27.6-04_blue-glass.svg',light:'./backgrounds/v27.6-08_silver-blue.svg'}
+  11:{dark:'./backgrounds/background-3-purple-security.png',light:'./backgrounds/v27.6-08_silver-blue.svg'}
 };
 function applyCalendarMonthBackground(){
   const panel=$('calendarSection');

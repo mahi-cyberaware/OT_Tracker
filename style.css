@@ -1967,20 +1967,14 @@ html[data-theme="light"] .settings-preferences-block{background:rgba(255,255,255
 @media(max-width:900px){.settings-preferences-block{grid-template-columns:1fr}.settings-security-card{align-items:flex-start;flex-direction:column}.settings-security-card .settings-password-button{width:100%}.background-gallery{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:640px){.settings-panel{gap:12px}.settings-security-card,.settings-preferences-block,.settings-background-card,.settings-contact-card{padding:15px}.background-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.background-option{border-radius:13px}.background-preview{border-radius:9px}.background-option-name{font-size:10px}}
 
-/* V27.7 — Calendar visual background */
-.calendar-panel.calendar-image-bg{
-  position:relative;
-  overflow:hidden;
-  isolation:isolate;
-  background-image:linear-gradient(180deg,rgba(7,14,28,.88),rgba(7,14,28,.78)),var(--calendar-month-bg);
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
-}
-.calendar-panel.calendar-image-bg::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% 15%,rgba(124,156,255,.10),transparent 35%),linear-gradient(180deg,rgba(3,8,20,.10),rgba(3,8,20,.16));pointer-events:none;z-index:-1}
-.calendar-panel.calendar-image-bg .calendar,.calendar-panel.calendar-image-bg .legend,.calendar-panel.calendar-image-bg .uae-holidays-panel{position:relative;z-index:1}
-.calendar-panel.calendar-image-bg .day{background:rgba(8,16,32,.34);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+/* V27.7 — Calendar visual background (fixed: visible image layer) */
+.calendar-panel.calendar-image-bg{position:relative;overflow:hidden;isolation:isolate;background-image:linear-gradient(180deg,rgba(7,14,28,.80),rgba(7,14,28,.72));background-size:cover;background-position:center;background-repeat:no-repeat}
+.calendar-panel.calendar-image-bg::after{content:"";position:absolute;inset:0;background-image:linear-gradient(180deg,rgba(5,10,22,.46),rgba(5,10,22,.62)),var(--calendar-month-bg);background-size:cover;background-position:center;background-repeat:no-repeat;opacity:.92;z-index:0;pointer-events:none}
+.calendar-panel.calendar-image-bg::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,8,20,.10),rgba(3,8,20,.24));pointer-events:none;z-index:0}
+.calendar-panel.calendar-image-bg .panel-head,.calendar-panel.calendar-image-bg .calendar,.calendar-panel.calendar-image-bg .legend,.calendar-panel.calendar-image-bg .uae-holidays-panel{position:relative;z-index:1}
+.calendar-panel.calendar-image-bg .day{background:rgba(8,16,32,.30);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 .calendar-panel.calendar-image-bg .day.mutedday{background:rgba(8,16,32,.16)}
-:root[data-theme="light"] .calendar-panel.calendar-image-bg{background-image:linear-gradient(180deg,rgba(246,249,255,.78),rgba(240,245,255,.82)),var(--calendar-month-bg)}
-:root[data-theme="light"] .calendar-panel.calendar-image-bg .day{background:rgba(255,255,255,.48)}
-@media(max-width:640px){.calendar-panel.calendar-image-bg{background-position:center top}.calendar-panel.calendar-image-bg .day{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}}
+:root[data-theme="light"] .calendar-panel.calendar-image-bg{background-image:linear-gradient(180deg,rgba(246,249,255,.72),rgba(240,245,255,.76))}
+:root[data-theme="light"] .calendar-panel.calendar-image-bg::after{background-image:linear-gradient(180deg,rgba(255,255,255,.48),rgba(255,255,255,.62)),var(--calendar-month-bg);opacity:.78}
+:root[data-theme="light"] .calendar-panel.calendar-image-bg .day{background:rgba(255,255,255,.42)}
+@media(max-width:640px){.calendar-panel.calendar-image-bg{background-position:center top}.calendar-panel.calendar-image-bg::after{background-position:center center}.calendar-panel.calendar-image-bg .day{backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}}
