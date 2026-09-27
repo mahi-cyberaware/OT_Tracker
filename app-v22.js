@@ -1266,7 +1266,7 @@ setAuthMode();init();
       const b=document.createElement('button');
       b.type='button';b.className='background-option'+(active===id?' selected':'');
       b.setAttribute('aria-label',`Use ${name} background`);b.setAttribute('aria-pressed',String(active===id));
-      b.innerHTML=`<span class="background-swatch" style="background-image:url('${url}')"></span><span class="background-option-name">${name}</span><span class="background-option-mode">${mode==='dark'?'Dark':'Light'}</span>`;
+      b.innerHTML=`<span class="background-preview"><img src="${url}" alt="${name} background preview" loading="lazy"></span><span class="background-option-name">${name}</span>`;
       b.addEventListener('click',()=>apply(id,true));
       gallery.appendChild(b);
     });

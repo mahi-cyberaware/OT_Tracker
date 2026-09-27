@@ -1948,3 +1948,21 @@ html[data-theme="light"] .background-option{background:#fff;border-color:rgba(23
 html[data-theme="light"] .background-swatch{border-color:rgba(23,32,51,.08)}
 @media(max-width:900px){.background-gallery{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:640px){.background-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.settings-background-card{padding:15px}.background-option-name{font-size:9px}}
+
+/* V27.6 — settings alignment + real background previews */
+.settings-panel{display:grid;grid-template-columns:1fr;gap:14px;align-items:stretch}
+.settings-security-card,.settings-preferences-block,.settings-background-card,.settings-contact-card{width:100%;box-sizing:border-box}
+.settings-security-card{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.settings-preferences-block{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:end;padding:18px;border:1px solid var(--border,rgba(255,255,255,.10));border-radius:20px;background:rgba(255,255,255,.025)}
+.settings-preferences-block .settings-grid{margin:0}
+.settings-background-card{padding:18px}
+.background-gallery{grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.background-option{padding:7px;overflow:hidden}
+.background-preview{display:block;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:11px;background:rgba(120,140,170,.10)}
+.background-preview img{display:block;width:100%;height:100%;object-fit:cover}
+.background-option-name{font-size:11px;padding:2px 3px 4px}
+.background-option-mode{display:none}
+.background-gallery-actions{margin-top:12px}
+html[data-theme="light"] .settings-preferences-block{background:rgba(255,255,255,.70)}
+@media(max-width:900px){.settings-preferences-block{grid-template-columns:1fr}.settings-security-card{align-items:flex-start;flex-direction:column}.settings-security-card .settings-password-button{width:100%}.background-gallery{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:640px){.settings-panel{gap:12px}.settings-security-card,.settings-preferences-block,.settings-background-card,.settings-contact-card{padding:15px}.background-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.background-option{border-radius:13px}.background-preview{border-radius:9px}.background-option-name{font-size:10px}}
