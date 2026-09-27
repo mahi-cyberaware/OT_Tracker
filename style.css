@@ -1903,3 +1903,13 @@ html[data-theme="light"] .menu-logout{margin-top:14px}
 /* Theme switch visual */
 .theme-toggle-item{justify-content:flex-start}
 .theme-toggle-icon{display:inline-flex;min-width:20px;justify-content:center}
+
+/* V27.4 — cleaner monthly roster view */
+.roster-month-toolbar{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;margin:16px 0 12px;padding:12px;border:1px solid var(--border,rgba(120,140,180,.16));border-radius:16px;background:var(--card,rgba(255,255,255,.035));}
+.roster-month-toolbar button{min-height:40px;min-width:42px;}
+.roster-month-title{min-width:0;text-align:center;display:flex;flex-direction:column;gap:2px;}
+.roster-month-title strong{font-size:1rem;}
+.roster-month-toolbar button:disabled{opacity:.42;cursor:not-allowed;}
+@media (max-width:640px){.roster-month-toolbar{grid-template-columns:42px 1fr 42px;}.roster-month-toolbar #rosterCurrentMonth{grid-column:1/-1;width:100%;}.roster-month-title{padding:0 4px;}}
+.settings-contact-note{max-width:760px;line-height:1.55;}
+#contactSettingsMessage{min-height:1.2em;margin:8px 0 2px;}
