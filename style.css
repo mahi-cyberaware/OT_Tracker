@@ -1921,3 +1921,48 @@ html[data-theme="light"] .menu-logout{margin-top:14px}
 /* V27.5 — monthly report month navigation */
 .report-head{align-items:flex-start}.report-month-actions{flex-wrap:nowrap}.report-month-banner{display:flex;align-items:baseline;gap:10px;margin-top:14px;padding:12px 14px;border-radius:13px;background:rgba(124,156,255,.06);border:1px solid rgba(124,156,255,.10)}.report-month-banner strong{font-size:16px;color:var(--text)}.report-month-banner .muted{margin-left:auto}.report-actions{margin-top:14px}
 @media(max-width:640px){.report-head{gap:10px}.report-month-actions{width:100%;justify-content:flex-end}.report-month-actions .ghost:first-child{flex:1}.report-month-banner{display:grid;grid-template-columns:auto 1fr;gap:4px 8px}.report-month-banner .muted{grid-column:1/-1;margin-left:0}}
+
+
+/* =========================================================
+   V27.6 — BACKGROUND GALLERY & PERSONALIZATION
+   ========================================================= */
+body.has-worktrack-background{
+  background-image:linear-gradient(rgba(6,12,24,.28),rgba(6,12,24,.28)),var(--worktrack-background-image),radial-gradient(circle at 10% 0%,rgba(79,111,229,.10),transparent 28%),radial-gradient(circle at 90% 10%,rgba(118,88,217,.07),transparent 24%),var(--bg);
+  background-size:cover,cover,auto,auto,auto;
+  background-position:center,center,center,center,center;
+  background-attachment:fixed,fixed,scroll,scroll,scroll;
+}
+body.has-worktrack-background::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:rgba(4,9,18,.16)}
+html[data-theme="light"] body.has-worktrack-background{background-image:linear-gradient(rgba(255,255,255,.52),rgba(255,255,255,.52)),var(--worktrack-background-image),radial-gradient(circle at 10% 0%,rgba(79,111,229,.10),transparent 28%),radial-gradient(circle at 90% 10%,rgba(118,88,217,.07),transparent 24%),var(--bg)}
+html[data-theme="light"] body.has-worktrack-background::before{background:rgba(255,255,255,.10)}
+.settings-background-card{margin-top:14px;padding:18px;border-radius:20px}
+.background-gallery{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:14px}
+.background-option{position:relative;display:grid;gap:6px;text-align:left;padding:6px;border-radius:14px;border:1px solid var(--border,rgba(255,255,255,.10));background:rgba(255,255,255,.025);color:var(--text);cursor:pointer;transition:.18s ease;min-width:0}
+.background-option:hover{transform:translateY(-1px);border-color:rgba(124,156,255,.40)}
+.background-option.selected{border-color:rgba(124,156,255,.78);box-shadow:0 0 0 2px rgba(124,156,255,.14)}
+.background-swatch{display:block;width:100%;aspect-ratio:16/9;border-radius:10px;background-size:cover;background-position:center;border:1px solid rgba(255,255,255,.08)}
+.background-option-name{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.background-option-mode{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.background-gallery-actions{display:flex;justify-content:flex-end;margin-top:10px}
+html[data-theme="light"] .background-option{background:#fff;border-color:rgba(23,32,51,.10)}
+html[data-theme="light"] .background-swatch{border-color:rgba(23,32,51,.08)}
+@media(max-width:900px){.background-gallery{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:640px){.background-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.settings-background-card{padding:15px}.background-option-name{font-size:9px}}
+
+/* V27.6 — settings alignment + real background previews */
+.settings-panel{display:grid;grid-template-columns:1fr;gap:14px;align-items:stretch}
+.settings-security-card,.settings-preferences-block,.settings-background-card,.settings-contact-card{width:100%;box-sizing:border-box}
+.settings-security-card{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.settings-preferences-block{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:end;padding:18px;border:1px solid var(--border,rgba(255,255,255,.10));border-radius:20px;background:rgba(255,255,255,.025)}
+.settings-preferences-block .settings-grid{margin:0}
+.settings-background-card{padding:18px}
+.background-gallery{grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.background-option{padding:7px;overflow:hidden}
+.background-preview{display:block;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:11px;background:rgba(120,140,170,.10)}
+.background-preview img{display:block;width:100%;height:100%;object-fit:cover}
+.background-option-name{font-size:11px;padding:2px 3px 4px}
+.background-option-mode{display:none}
+.background-gallery-actions{margin-top:12px}
+html[data-theme="light"] .settings-preferences-block{background:rgba(255,255,255,.70)}
+@media(max-width:900px){.settings-preferences-block{grid-template-columns:1fr}.settings-security-card{align-items:flex-start;flex-direction:column}.settings-security-card .settings-password-button{width:100%}.background-gallery{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:640px){.settings-panel{gap:12px}.settings-security-card,.settings-preferences-block,.settings-background-card,.settings-contact-card{padding:15px}.background-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.background-option{border-radius:13px}.background-preview{border-radius:9px}.background-option-name{font-size:10px}}
