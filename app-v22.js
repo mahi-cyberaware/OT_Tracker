@@ -461,6 +461,52 @@ async function load(){
   let r=await sb.from('attendance').select('*').gte('work_date',start).lte('work_date',end).order('work_date',{ascending:false});
   if(r.error){alert(r.error.message);return}records=r.data||[];await loadRoster();render();
 }
+function todayRosterEntry(){
+  const key=todayKey();
+  return rosterEntries.find(r=>String(r.work_date||'')===key)||null;
+}
+function nextScheduledDutyEntry(){
+  const today=todayKey();
+  return rosterEntries
+    .filter(r=>String(r.work_date||'')>today && r.duty_type==='present')
+    .sort((a,b)=>String(a.work_date).localeCompare(String(b.work_date)))[0]||null;
+}
+function shortDateLabel(key){
+  if(!key)return '';
+  const d=new Date(`${key}T00:00:00`);
+  return d.toLocaleDateString('en',{weekday:'short',day:'numeric',month:'short'});
+}
+function renderHomeDutyOverview(){
+  const today=todayRosterEntry();
+  const todayTitle=$('todayDutyTitle'),todayMeta=$('todayDutyMeta'),todayBadge=$('todayDutyBadge');
+  if(today){
+    if(today.duty_type==='present'){
+      if(todayTitle)todayTitle.textContent=`${today.duty_start} – ${today.duty_end}`;
+      if(todayMeta)todayMeta.textContent='Scheduled duty from your private roster.';
+      if(todayBadge){todayBadge.textContent='Duty today';todayBadge.className='home-duty-badge present';}
+    }else{
+      const label=statusLabel(today.duty_type==='off'?'off':today.duty_type);
+      if(todayTitle)todayTitle.textContent=label;
+      if(todayMeta)todayMeta.textContent='No working duty is scheduled today.';
+      if(todayBadge){todayBadge.textContent='No duty';todayBadge.className='home-duty-badge off';}
+    }
+  }else{
+    if(todayTitle)todayTitle.textContent='No roster entry';
+    if(todayMeta)todayMeta.textContent='Your administrator has not added today’s roster entry.';
+    if(todayBadge){todayBadge.textContent='Roster';todayBadge.className='home-duty-badge';}
+  }
+  const next=nextScheduledDutyEntry();
+  if(next){
+    if($('homeNextDutyTitle'))$('homeNextDutyTitle').textContent=`${next.duty_start} – ${next.duty_end}`;
+    if($('homeNextDutyMeta'))$('homeNextDutyMeta').textContent=shortDateLabel(next.work_date);
+    if($('homeNextDutyTime'))$('homeNextDutyTime').textContent='Next scheduled duty';
+  }else{
+    if($('homeNextDutyTitle'))$('homeNextDutyTitle').textContent='No upcoming duty';
+    if($('homeNextDutyMeta'))$('homeNextDutyMeta').textContent='No future duty found in your roster.';
+    if($('homeNextDutyTime'))$('homeNextDutyTime').textContent='—';
+  }
+}
+
 function render(){
   const selectedMonth=month.toLocaleString('en',{month:'long',year:'numeric'});
   $('monthTitle').textContent=selectedMonth;
@@ -525,6 +571,7 @@ function render(){
   $('estimatedOtPay').textContent=`AED ${(ot*NORMAL_OT_RATE).toFixed(2)}`;
   $('analyticsWorked').textContent=`${fmt(worked)} worked`;
   $('analyticsOt').textContent=`${fmt(ot)} OT`;
+  renderHomeDutyOverview();
   renderCalendar();renderTable();renderAnalytics();applyCalendarMonthBackground();
 }
 
@@ -550,18 +597,18 @@ function renderBars(id,data,key,label,valueFn){
   el.innerHTML=data.map(x=>`<div class="bar-item" title="${label}: ${fmt(valueFn(x))}"><span class="bar-value">${valueFn(x)?fmt(valueFn(x)):'-'}</span><div class="bar-track"><i style="height:${Math.max(4,Math.round(valueFn(x)/max*100))}%"></i></div><small>${x.n}</small></div>`).join('');
 }
 const CALENDAR_BACKGROUND_MAP={
-  0:{dark:'./backgrounds/background-3-purple-security.png',light:'./backgrounds/background-1-blue.png'},
-  1:{dark:'./backgrounds/v27.6-10_sunset-violet.svg',light:'./backgrounds/v27.6-05_soft-lavender.svg'},
-  2:{dark:'./backgrounds/background-1-blue.png',light:'./backgrounds/v27.6-06_ice-blue.svg'},
-  3:{dark:'./backgrounds/background-2-green.png',light:'./backgrounds/v27.6-08_silver-blue.svg'},
+  0:{dark:'./backgrounds/v27.6-03_midnight-purple.svg',light:'./backgrounds/v27.6-05_soft-lavender.svg'},
+  1:{dark:'./backgrounds/v27.6-10_sunset-violet.svg',light:'./backgrounds/v27.6-07_clean-sky.svg'},
+  2:{dark:'./backgrounds/v27.6-02_deep-ocean.svg',light:'./backgrounds/v27.6-06_ice-blue.svg'},
+  3:{dark:'./backgrounds/v27.6-09_emerald-night.svg',light:'./backgrounds/v27.6-08_silver-blue.svg'},
   4:{dark:'./backgrounds/v27.6-01_aurora-blue.svg',light:'./backgrounds/v27.6-06_ice-blue.svg'},
   5:{dark:'./backgrounds/v27.6-04_blue-glass.svg',light:'./backgrounds/v27.6-07_clean-sky.svg'},
-  6:{dark:'./backgrounds/background-1-blue.png',light:'./backgrounds/v27.6-05_soft-lavender.svg'},
-  7:{dark:'./backgrounds/background-3-purple-security.png',light:'./backgrounds/v27.6-08_silver-blue.svg'},
-  8:{dark:'./backgrounds/background-1-blue.png',light:'./backgrounds/v27.6-06_ice-blue.svg'},
-  9:{dark:'./backgrounds/background-2-green.png',light:'./backgrounds/v27.6-07_clean-sky.svg'},
+  6:{dark:'./backgrounds/v27.6-01_aurora-blue.svg',light:'./backgrounds/v27.6-05_soft-lavender.svg'},
+  7:{dark:'./backgrounds/v27.6-10_sunset-violet.svg',light:'./backgrounds/v27.6-08_silver-blue.svg'},
+  8:{dark:'./backgrounds/v27.6-02_deep-ocean.svg',light:'./backgrounds/v27.6-06_ice-blue.svg'},
+  9:{dark:'./backgrounds/v27.6-09_emerald-night.svg',light:'./backgrounds/v27.6-07_clean-sky.svg'},
   10:{dark:'./backgrounds/v27.6-03_midnight-purple.svg',light:'./backgrounds/v27.6-05_soft-lavender.svg'},
-  11:{dark:'./backgrounds/background-3-purple-security.png',light:'./backgrounds/v27.6-08_silver-blue.svg'}
+  11:{dark:'./backgrounds/v27.6-04_blue-glass.svg',light:'./backgrounds/v27.6-08_silver-blue.svg'}
 };
 function applyCalendarMonthBackground(){
   const panel=$('calendarSection');
@@ -1363,6 +1410,16 @@ setAuthMode();init();
 /* =========================
    V11 — APP MENU + FOOTER
    ========================= */
+
+document.addEventListener('click',event=>{
+  const btn=event.target.closest?.('[data-home-action]');
+  if(!btn)return;
+  const action=btn.dataset.homeAction;
+  if(action==='add')$('addToday')?.click();
+  else if(action==='calendar')showAppSection('calendar');
+  else if(action==='roster')showAppSection('roster');
+  else if(action==='reports')showAppSection('reports');
+});
 
 const appSections={
   home:['homeSection','homeUpdates','homeStats'],

@@ -75,6 +75,31 @@
         <button id="addToday" class="primary hero-btn" type="button"><span>＋</span> Add attendance</button>
       </section>
 
+      <section id="homeDutyOverview" class="home-duty-overview" aria-label="Today next duty and quick actions">
+        <article class="home-duty-card glass-card today-duty-card">
+          <div class="home-duty-kicker">TODAY</div>
+          <h2 id="todayDutyTitle">Loading today…</h2>
+          <p id="todayDutyMeta" class="muted small">Checking your roster.</p>
+          <span id="todayDutyBadge" class="home-duty-badge">—</span>
+        </article>
+        <article class="home-duty-card glass-card next-duty-card">
+          <div class="home-duty-kicker">NEXT</div>
+          <h2 id="homeNextDutyTitle">Loading next duty…</h2>
+          <p id="homeNextDutyMeta" class="muted small">Checking your roster.</p>
+          <span id="homeNextDutyTime" class="home-duty-time">—</span>
+        </article>
+        <article class="home-duty-card glass-card quick-actions-card">
+          <div class="home-duty-kicker">QUICK</div>
+          <h2>Quick actions</h2>
+          <div class="quick-actions">
+            <button type="button" class="quick-action" data-home-action="add">＋ Add attendance</button>
+            <button type="button" class="quick-action" data-home-action="calendar">📅 Calendar</button>
+            <button type="button" class="quick-action" data-home-action="roster">📋 Roster</button>
+            <button type="button" class="quick-action" data-home-action="reports">📊 Reports</button>
+          </div>
+        </article>
+      </section>
+
       <section id="homeUpdates" class="home-updates glass-card" aria-label="WorkTrack updates">
         <div class="updates-head">
           <div><div class="section-kicker">WORKTRACK UPDATES</div><h2>What’s new</h2><span class="muted small">Product updates, improvements and important notices.</span></div>
