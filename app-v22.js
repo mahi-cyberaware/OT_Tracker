@@ -525,7 +525,7 @@ function render(){
   $('estimatedOtPay').textContent=`AED ${(ot*NORMAL_OT_RATE).toFixed(2)}`;
   $('analyticsWorked').textContent=`${fmt(worked)} worked`;
   $('analyticsOt').textContent=`${fmt(ot)} OT`;
-  renderCalendar();renderTable();renderAnalytics();
+  renderCalendar();renderTable();renderAnalytics();applyCalendarMonthBackground();
 }
 
 function renderAnalytics(){
@@ -549,7 +549,32 @@ function renderBars(id,data,key,label,valueFn){
   let max=Math.max(.01,...data.map(valueFn));
   el.innerHTML=data.map(x=>`<div class="bar-item" title="${label}: ${fmt(valueFn(x))}"><span class="bar-value">${valueFn(x)?fmt(valueFn(x)):'-'}</span><div class="bar-track"><i style="height:${Math.max(4,Math.round(valueFn(x)/max*100))}%"></i></div><small>${x.n}</small></div>`).join('');
 }
+const CALENDAR_BACKGROUND_MAP={
+  0:{dark:'./backgrounds/v27.6-03_midnight-purple.svg',light:'./backgrounds/v27.6-05_soft-lavender.svg'},
+  1:{dark:'./backgrounds/v27.6-10_sunset-violet.svg',light:'./backgrounds/v27.6-07_clean-sky.svg'},
+  2:{dark:'./backgrounds/v27.6-02_deep-ocean.svg',light:'./backgrounds/v27.6-06_ice-blue.svg'},
+  3:{dark:'./backgrounds/v27.6-09_emerald-night.svg',light:'./backgrounds/v27.6-08_silver-blue.svg'},
+  4:{dark:'./backgrounds/v27.6-01_aurora-blue.svg',light:'./backgrounds/v27.6-06_ice-blue.svg'},
+  5:{dark:'./backgrounds/v27.6-04_blue-glass.svg',light:'./backgrounds/v27.6-07_clean-sky.svg'},
+  6:{dark:'./backgrounds/v27.6-01_aurora-blue.svg',light:'./backgrounds/v27.6-05_soft-lavender.svg'},
+  7:{dark:'./backgrounds/v27.6-10_sunset-violet.svg',light:'./backgrounds/v27.6-08_silver-blue.svg'},
+  8:{dark:'./backgrounds/v27.6-02_deep-ocean.svg',light:'./backgrounds/v27.6-06_ice-blue.svg'},
+  9:{dark:'./backgrounds/v27.6-09_emerald-night.svg',light:'./backgrounds/v27.6-07_clean-sky.svg'},
+  10:{dark:'./backgrounds/v27.6-03_midnight-purple.svg',light:'./backgrounds/v27.6-05_soft-lavender.svg'},
+  11:{dark:'./backgrounds/v27.6-04_blue-glass.svg',light:'./backgrounds/v27.6-08_silver-blue.svg'}
+};
+function applyCalendarMonthBackground(){
+  const panel=$('calendarSection');
+  if(!panel)return;
+  const theme=document.documentElement.dataset.theme==='light'?'light':'dark';
+  const bg=CALENDAR_BACKGROUND_MAP[month.getMonth()]?.[theme];
+  if(!bg)return;
+  panel.style.setProperty('--calendar-month-bg',`url("${bg}")`);
+  panel.classList.add('calendar-image-bg');
+}
+
 function renderCalendar(){
+  applyCalendarMonthBackground();
   let c=$('calendar');c.innerHTML='';
   ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(x=>{
     let d=document.createElement('div');
