@@ -1,9 +1,9 @@
-const CACHE = 'worktrack-v27.7-calendar-visual';
+const CACHE = 'worktrack-v27.8-home-overview';
 const APP_SHELL = [
   './',
   './index.html',
   './style.css',
-  './app-v22.js?v=27.7.0',
+  './app-v22.js?v=27.8.0',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png'
