@@ -47,11 +47,67 @@ function profile(){return user?.user_metadata||{}}
 function displayName(){let p=profile(),full=[p.first_name,p.surname].filter(Boolean).join(' ');return full||user?.email?.split('@')[0]||'Employee'}
 function setText(id,text){$(id).textContent=text||''}
 
+async function handleAuthCallback(){
+  const url=new URL(window.location.href);
+  const params=url.searchParams;
+  const code=params.get('code');
+  const tokenHash=params.get('token_hash');
+  const type=params.get('type');
+  const hash=new URLSearchParams((url.hash||'').replace(/^#/,'').replace(/^\?/,'').replace(/&amp;/g,'&'));
+  const accessToken=hash.get('access_token');
+  const refreshToken=hash.get('refresh_token');
+  const hashType=hash.get('type')||type;
+  if(code){
+    const r=await sb.auth.exchangeCodeForSession(code);
+    if(r.error)throw r.error;
+    window.history.replaceState({},document.title,url.pathname+url.hash.replace(/#.*/,''));
+    return r.data?.session||null;
+  }
+  if(tokenHash&&type){
+    const r=await sb.auth.verifyOtp({token_hash:tokenHash,type});
+    if(r.error)throw r.error;
+    window.history.replaceState({},document.title,url.pathname);
+    return r.data?.session||null;
+  }
+  if(accessToken&&refreshToken){
+    const r=await sb.auth.setSession({access_token:accessToken,refresh_token:refreshToken});
+    if(r.error)throw r.error;
+    window.history.replaceState({},document.title,url.pathname+url.search);
+    return r.data?.session||null;
+  }
+  return null;
+}
+async function refreshAuthenticatedUser(){
+  try{const r=await sb.auth.getUser();if(!r.error&&r.data?.user){user=r.data.user;return user;}}catch(_){ }
+  return user;
+}
 async function init(){
+  sb.auth.onAuthStateChange(async (_e,s)=>{
+    if(s?.user){user=s.user;showApp();await load()}
+    else{user=null;showAuth()}
+  });
+  let callbackSession=null;
+  try{callbackSession=await handleAuthCallback()}catch(err){
+    const msg=String(err?.message||'');
+    if(/invalid refresh token|refresh token not found/i.test(msg)){
+      try{await sb.auth.signOut({scope:'local'})}catch(_){}
+      showAuth();authMessage('This confirmation link is no longer valid. Please start a new email change and use the latest confirmation email.',true);
+      return;
+    }
+    showAuth();authMessage(msg||'Email confirmation could not be completed. Please request a new confirmation email.',true);
+    return;
+  }
   const {data:{session},error}=await sb.auth.getSession();
-  if(error){showAuth();authMessage(error.message,true);return}
-  if(session?.user){user=session.user;showApp();await load()}else showAuth();
-  sb.auth.onAuthStateChange(async (_e,s)=>{if(s?.user){user=s.user;showApp();await load()}else{user=null;showAuth()}});
+  if(error){
+    if(/invalid refresh token|refresh token not found/i.test(error.message||'')){
+      try{await sb.auth.signOut({scope:'local'})}catch(_){}
+      showAuth();authMessage('Your previous session expired. Please sign in again.',true);
+      return;
+    }
+    showAuth();authMessage(error.message,true);return;
+  }
+  const active=callbackSession||session;
+  if(active?.user){user=active.user;await refreshAuthenticatedUser();showApp();await load()}else showAuth();
 }
 function showAuth(){$('authView').classList.remove('hidden');$('appView').classList.add('hidden')}
 function setTag(id,text){$(id).textContent=text||'';$(id).classList.toggle('hidden',!text)}
@@ -406,8 +462,11 @@ async function load(){
   if(r.error){alert(r.error.message);return}records=r.data||[];await loadRoster();render();
 }
 function render(){
-  $('monthTitle').textContent=month.toLocaleString('en',{month:'long',year:'numeric'});
+  const selectedMonth=month.toLocaleString('en',{month:'long',year:'numeric'});
+  $('monthTitle').textContent=selectedMonth;
   $('monthMeta').textContent=`${records.length} record${records.length===1?'':'s'}`;
+  if($('historyMonthTitle'))$('historyMonthTitle').textContent=selectedMonth;
+  if($('historyMonthMeta'))$('historyMonthMeta').textContent=`${records.length} record${records.length===1?'':'s'} in this month`;
   let present=records.filter(x=>x.status==='present');
   let worked=present.reduce((sum,x)=>sum+hours(x.check_in,x.check_out),0);
   let ot=present.reduce((sum,x)=>sum+Math.max(0,hours(x.check_in,x.check_out)-duty),0);
@@ -649,7 +708,13 @@ $('attendanceForm').onsubmit=async e=>{
   }
 };
 $('deleteRecord').onclick=async()=>{let id=$('recordId').value;if(id&&confirm('Delete this attendance record?')){let r=await sb.from('attendance').delete().eq('id',id).eq('user_id',user.id);if(r.error)alert(r.error.message);else{$('attendanceDialog').close();await load()}}};
-$('addToday').onclick=()=>openDialog(null,todayKey());$('prevMonth').onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()-1,1);load()};$('nextMonth').onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()+1,1);load()};$('todayMonth').onclick=()=>{let t=new Date();month=new Date(t.getFullYear(),t.getMonth(),1);load()};
+$('addToday').onclick=()=>openDialog(null,todayKey());
+function changeSelectedMonth(offset){month=new Date(month.getFullYear(),month.getMonth()+offset,1);load()}
+function selectCurrentMonth(){let t=new Date();month=new Date(t.getFullYear(),t.getMonth(),1);load()}
+$('prevMonth').onclick=()=>changeSelectedMonth(-1);$('nextMonth').onclick=()=>changeSelectedMonth(1);$('todayMonth').onclick=selectCurrentMonth;
+$('historyPrevMonth')?.addEventListener('click',()=>changeSelectedMonth(-1));
+$('historyNextMonth')?.addEventListener('click',()=>changeSelectedMonth(1));
+$('historyTodayMonth')?.addEventListener('click',selectCurrentMonth);
 $('saveSettings').onclick=async()=>{let v=Number($('dutyHours').value);if(v<=0||v>24)return alert('Enter duty hours between 0.25 and 24.');let r=await sb.from('profiles').upsert({id:user.id,duty_hours:v});if(r.error)alert(r.error.message);else{duty=v;render();alert('Settings saved.')}};
 function reportTotals(){
   let present=records.filter(x=>x.status==='present'),worked=present.reduce((sum,x)=>sum+hours(x.check_in,x.check_out),0),ot=present.reduce((sum,x)=>sum+Math.max(0,hours(x.check_in,x.check_out)-duty),0);
@@ -1584,10 +1649,10 @@ $('settingsPasswordButton')?.addEventListener('click',openPasswordDialog);
    The local list is a fallback so the section still works if the JSON file is unavailable.
    ========================= */
 const WORKTRACK_UPDATE={
-  version:'27.2',
-  date:'26 September 2026',
+  version:'27.4',
+  date:'27 September 2026',
   slides:[
-    {image:'./backgrounds/background-1-blue.png',eyebrow:'LATEST RELEASE',title:'WorkTrack V27.2',text:'Calendar intelligence now highlights duty days below 9 hours in red and adds the 2026 UAE public-holiday list below the monthly calendar.',button:'WORKTRACK 27.2'},
+    {image:'./backgrounds/background-1-blue.png',eyebrow:'LATEST RELEASE',title:'WorkTrack V27.4',text:'Roster and attendance history now show one month at a time with simple month navigation. Supabase email confirmation handling is improved for account email changes.',button:'WORKTRACK 27.4'},
     {image:'./backgrounds/background-1-blue.png',eyebrow:'WORKTRACK V27.1',title:'WorkTrack V27.1',text:'AI staff statements now support Base/Ramp context with automatic provider fallback. Profile picture display and profile controls are improved.',button:'WORKTRACK 27.1'},
     {image:'./backgrounds/background-1-blue.png',eyebrow:'WORKTRACK V26.2',title:'WorkTrack V26.2',text:'A cleaner update center with reliable background artwork, responsive layout and a complete release history.',button:'WORKTRACK 26.2'},
     {image:'./backgrounds/background-2-green.png',eyebrow:'WORKTRACK V26.1',title:'WorkTrack V26.1',text:'Footer alignment improvements and a cleaner presentation across desktop and mobile screens.',button:'WORKTRACK 26.1'},
