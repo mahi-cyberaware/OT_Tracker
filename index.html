@@ -201,7 +201,16 @@
       </section>
 
       <section id="reportsSection" class="panel glass-card" hidden>
-        <div class="panel-head"><div><div class="section-kicker">REPORTS</div><h2>Monthly report</h2><span class="muted small">Generate a professional PDF or CSV for the selected month</span></div><div class="report-actions"><button id="exportPdf" class="primary" type="button">Download PDF</button><button id="exportCsv" class="ghost" type="button">Export CSV</button></div></div>
+        <div class="panel-head report-head">
+          <div><div class="section-kicker">REPORTS</div><h2>Monthly report</h2><span id="reportMonthMeta" class="muted small">Selected month only</span></div>
+          <div class="month-actions report-month-actions">
+            <button id="reportTodayMonth" class="ghost" type="button">Current month</button>
+            <button id="reportPrevMonth" class="ghost icon-btn" type="button" aria-label="Previous report month">‹</button>
+            <button id="reportNextMonth" class="ghost icon-btn" type="button" aria-label="Next report month">›</button>
+          </div>
+        </div>
+        <div class="report-month-banner"><span class="section-kicker">REPORT MONTH</span><strong id="reportMonthTitle"></strong><span class="muted small">Choose the month you want to export.</span></div>
+        <div class="report-actions"><button id="exportPdf" class="primary" type="button">Download PDF</button><button id="exportCsv" class="ghost" type="button">Export CSV</button></div>
       </section>
 
       <section id="recordsSection" class="panel glass-card" hidden>
@@ -622,7 +631,7 @@
     window.__worktrackInstantMenu={open,close};
   })();
   </script>
-  <script src="app-v22.js?v=27.4.0"></script>
+  <script src="app-v22.js?v=27.5.0"></script>
   <script>
   (function(){
     function initContactSettings(){

@@ -467,6 +467,8 @@ function render(){
   $('monthMeta').textContent=`${records.length} record${records.length===1?'':'s'}`;
   if($('historyMonthTitle'))$('historyMonthTitle').textContent=selectedMonth;
   if($('historyMonthMeta'))$('historyMonthMeta').textContent=`${records.length} record${records.length===1?'':'s'} in this month`;
+  if($('reportMonthTitle'))$('reportMonthTitle').textContent=selectedMonth;
+  if($('reportMonthMeta'))$('reportMonthMeta').textContent=`${records.length} record${records.length===1?'':'s'} available for this month`;
   let present=records.filter(x=>x.status==='present');
   let worked=present.reduce((sum,x)=>sum+hours(x.check_in,x.check_out),0);
   let ot=present.reduce((sum,x)=>sum+Math.max(0,hours(x.check_in,x.check_out)-duty),0);
@@ -715,6 +717,9 @@ $('prevMonth').onclick=()=>changeSelectedMonth(-1);$('nextMonth').onclick=()=>ch
 $('historyPrevMonth')?.addEventListener('click',()=>changeSelectedMonth(-1));
 $('historyNextMonth')?.addEventListener('click',()=>changeSelectedMonth(1));
 $('historyTodayMonth')?.addEventListener('click',selectCurrentMonth);
+$('reportPrevMonth')?.addEventListener('click',()=>changeSelectedMonth(-1));
+$('reportNextMonth')?.addEventListener('click',()=>changeSelectedMonth(1));
+$('reportTodayMonth')?.addEventListener('click',selectCurrentMonth);
 $('saveSettings').onclick=async()=>{let v=Number($('dutyHours').value);if(v<=0||v>24)return alert('Enter duty hours between 0.25 and 24.');let r=await sb.from('profiles').upsert({id:user.id,duty_hours:v});if(r.error)alert(r.error.message);else{duty=v;render();alert('Settings saved.')}};
 function reportTotals(){
   let present=records.filter(x=>x.status==='present'),worked=present.reduce((sum,x)=>sum+hours(x.check_in,x.check_out),0),ot=present.reduce((sum,x)=>sum+Math.max(0,hours(x.check_in,x.check_out)-duty),0);
@@ -1649,10 +1654,10 @@ $('settingsPasswordButton')?.addEventListener('click',openPasswordDialog);
    The local list is a fallback so the section still works if the JSON file is unavailable.
    ========================= */
 const WORKTRACK_UPDATE={
-  version:'27.4',
+  version:'27.5',
   date:'27 September 2026',
   slides:[
-    {image:'./backgrounds/background-1-blue.png',eyebrow:'LATEST RELEASE',title:'WorkTrack V27.4',text:'Roster and attendance history now show one month at a time with simple month navigation. Supabase email confirmation handling is improved for account email changes.',button:'WORKTRACK 27.4'},
+    {image:'./backgrounds/background-1-blue.png',eyebrow:'LATEST RELEASE',title:'WorkTrack V27.5',text:'Monthly reports now have their own simple month navigation so you can select the exact month before exporting PDF or CSV.',button:'WORKTRACK 27.5'},
     {image:'./backgrounds/background-1-blue.png',eyebrow:'WORKTRACK V27.1',title:'WorkTrack V27.1',text:'AI staff statements now support Base/Ramp context with automatic provider fallback. Profile picture display and profile controls are improved.',button:'WORKTRACK 27.1'},
     {image:'./backgrounds/background-1-blue.png',eyebrow:'WORKTRACK V26.2',title:'WorkTrack V26.2',text:'A cleaner update center with reliable background artwork, responsive layout and a complete release history.',button:'WORKTRACK 26.2'},
     {image:'./backgrounds/background-2-green.png',eyebrow:'WORKTRACK V26.1',title:'WorkTrack V26.1',text:'Footer alignment improvements and a cleaner presentation across desktop and mobile screens.',button:'WORKTRACK 26.1'},
