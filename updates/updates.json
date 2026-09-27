@@ -1,7 +1,16 @@
 {
-  "version": "27.5",
-  "date": "27 September 2026",
+  "version": "27.6",
+  "date": "28 September 2026",
   "slides": [
+    {
+      "version": "27.6",
+      "date": "28 September 2026",
+      "image": "./backgrounds/v27.6-01_aurora-blue.svg",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V27.6",
+      "text": "Added a personal Background Gallery with multiple dark and light backgrounds. Users can choose and save their preferred WorkTrack background from Settings.",
+      "button": "WORKTRACK 27.6"
+    },
     {
       "version": "27.5",
       "date": "27 September 2026",
