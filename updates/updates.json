@@ -1,7 +1,16 @@
 {
-  "version": "27.6",
+  "version": "27.7",
   "date": "28 September 2026",
   "slides": [
+    {
+      "version": "27.7",
+      "date": "28 September 2026",
+      "image": "./backgrounds/v27.6-01_aurora-blue.svg",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V27.7",
+      "text": "Calendar now uses subtle month-based background artwork with readable overlays while preserving all attendance, overtime and holiday indicators.",
+      "button": "WORKTRACK 27.7"
+    },
     {
       "version": "27.6",
       "date": "28 September 2026",
