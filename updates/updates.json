@@ -8,7 +8,7 @@
       "image": "./backgrounds/background-1-blue.png",
       "eyebrow": "LATEST RELEASE",
       "title": "WorkTrack V27.4",
-      "text": "Roster now opens on the current month by default with clean navigation for available future rosters. Settings contact changes now use Supabase email confirmation and save mobile updates.",
+      "text": "Roster and attendance history now show one month at a time with simple month navigation. Supabase email confirmation handling is improved for account email changes.",
       "button": "WORKTRACK 27.4"
     },
     {
