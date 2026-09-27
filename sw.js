@@ -1,9 +1,9 @@
-const CACHE = 'worktrack-v27.6-settings-fix-shell-v1';
+const CACHE = 'worktrack-v27.6-background-fix-v2';
 const APP_SHELL = [
   './',
   './index.html',
   './style.css',
-  './app-v22.js?v=27.6.0',
+  './app-v22.js?v=27.6.1',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png'
