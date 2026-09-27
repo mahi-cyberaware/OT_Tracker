@@ -1,7 +1,16 @@
 {
-  "version": "27.7",
+  "version": "27.8",
   "date": "28 September 2026",
   "slides": [
+    {
+      "version": "27.8",
+      "date": "28 September 2026",
+      "image": "./backgrounds/v27.6-02_deep-ocean.svg",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V27.8",
+      "text": "The home page now gives a focused view of Today, Next duty and Quick Actions without changing the existing dashboard calculations.",
+      "button": "WORKTRACK 27.8"
+    },
     {
       "version": "27.7",
       "date": "28 September 2026",
