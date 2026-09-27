@@ -11,6 +11,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/branding/favicon-64.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/branding/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="1024x1024" href="assets/branding/worktrack-icon-1024.png">
   <title>WorkTrack — Attendance & Overtime</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +28,7 @@
   <div id="authView" class="auth-shell">
     <div class="auth-glow glow-one"></div><div class="auth-glow glow-two"></div>
     <div class="auth-card glass-card">
-      <div class="brand-mark"><span class="brand-icon">W</span><div><div class="brand brand-large">WorkTrack</div><div class="brand-caption">Attendance • Hours • Overtime</div></div></div>
+      <div class="brand-mark"><img class="brand-logo-image auth-brand-logo" src="assets/branding/worktrack-icon-256.png" alt="WorkTrack logo"><div><div class="brand brand-large">WorkTrack</div><div class="brand-caption">Attendance • Hours • Overtime</div></div></div>
       <div class="auth-heading"><h1 id="authTitle">Welcome back</h1><p id="authSubtitle">Sign in to manage your work records.</p></div>
       <div id="authMessage" class="message"></div>
       <form id="authForm" class="auth-form">
@@ -54,7 +57,7 @@
     <header class="topbar glass-bar">
       <div class="topbar-inner">
         <button id="homeLogo" class="brand-mark compact brand-home" type="button" aria-label="WorkTrack home">
-          <span class="brand-icon">W</span>
+          <img class="brand-logo-image header-brand-logo" src="assets/branding/worktrack-icon-256.png" alt="WorkTrack logo">
           <div><div class="brand">WorkTrack</div><div class="header-sub">Attendance • Hours • Overtime</div></div>
         </button>
         <div class="header-actions">
@@ -673,7 +676,7 @@
     window.__worktrackInstantMenu={open,close};
   })();
   </script>
-  <script src="app-v22.js?v=27.6.1"></script>
+  <script src="app-v22.js?v=27.9.0"></script>
   <script>
   (function(){
     function initContactSettings(){
