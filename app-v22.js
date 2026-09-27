@@ -1234,11 +1234,15 @@ setAuthMode();init();
 (function initWorkTrackBackgrounds(){
   if(window.__workTrackBackgroundsInitialized)return;
   window.__workTrackBackgroundsInitialized=true;
+  const root=document.documentElement;
+  const body=document.body;
   const gallery=document.getElementById('backgroundGallery');
   const reset=document.getElementById('resetBackground');
-  const root=document.documentElement;
-  if(!gallery)return;
+  if(!gallery||!body)return;
+
   const backgrounds=[
+    // The image data is embedded so the gallery and selected background never depend on a separate asset path.
+
 ['aurora-blue','Aurora Blue','data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201600%201000%22%20preserveAspectRatio%3D%22xMidYMid%20slice%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%2307111f%22%2F%3E%3Cstop%20offset%3D%2255%25%22%20stop-color%3D%22%23183a73%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%2307111f%22%2F%3E%3C%2FlinearGradient%3E%3Cfilter%20id%3D%22blur%22%3E%3CfeGaussianBlur%20stdDeviation%3D%2235%22%2F%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Crect%20width%3D%221600%22%20height%3D%221000%22%20fill%3D%22url(%23g)%22%2F%3E%3Cg%20filter%3D%22url(%23blur)%22%3E%3Ccircle%20cx%3D%227%25%22%20cy%3D%2262%25%22%20r%3D%2214%25%22%20fill%3D%22%235f7cff%22%20opacity%3D%220.13%22%2F%3E%3Ccircle%20cx%3D%2253%25%22%20cy%3D%2287%25%22%20r%3D%2226%25%22%20fill%3D%22%235f7cff%22%20opacity%3D%220.16%22%2F%3E%3Ccircle%20cx%3D%2238%25%22%20cy%3D%2290%25%22%20r%3D%2218%25%22%20fill%3D%22%235f7cff%22%20opacity%3D%220.11%22%2F%3E%3Ccircle%20cx%3D%22-7%25%22%20cy%3D%22104%25%22%20r%3D%2224%25%22%20fill%3D%22%235f7cff%22%20opacity%3D%220.15%22%2F%3E%3Ccircle%20cx%3D%2287%25%22%20cy%3D%2288%25%22%20r%3D%2212%25%22%20fill%3D%22%235f7cff%22%20opacity%3D%220.18%22%2F%3E%3Ccircle%20cx%3D%2224%25%22%20cy%3D%2282%25%22%20r%3D%2219%25%22%20fill%3D%22%235f7cff%22%20opacity%3D%220.17%22%2F%3E%3Ccircle%20cx%3D%223%25%22%20cy%3D%22105%25%22%20r%3D%2222%25%22%20fill%3D%22%235f7cff%22%20opacity%3D%220.1%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M0%20780%20C280%20620%20450%20900%20760%20720%20S1250%20500%201600%20690%20L1600%201000%20L0%201000Z%22%20fill%3D%22%235f7cff%22%20opacity%3D%22.045%22%2F%3E%3Cpath%20d%3D%22M-100%20180%20C250%2050%20420%20300%20720%20180%20S1200%2080%201700%20260%22%20fill%3D%22none%22%20stroke%3D%22%235f7cff%22%20stroke-width%3D%222%22%20opacity%3D%22.10%22%2F%3E%3C%2Fsvg%3E'],
 ['deep-ocean','Deep Ocean','data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201600%201000%22%20preserveAspectRatio%3D%22xMidYMid%20slice%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%2306121c%22%2F%3E%3Cstop%20offset%3D%2255%25%22%20stop-color%3D%22%230b3b55%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%2306121c%22%2F%3E%3C%2FlinearGradient%3E%3Cfilter%20id%3D%22blur%22%3E%3CfeGaussianBlur%20stdDeviation%3D%2235%22%2F%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Crect%20width%3D%221600%22%20height%3D%221000%22%20fill%3D%22url(%23g)%22%2F%3E%3Cg%20filter%3D%22url(%23blur)%22%3E%3Ccircle%20cx%3D%22100%25%22%20cy%3D%2298%25%22%20r%3D%2213%25%22%20fill%3D%22%2336b8d4%22%20opacity%3D%220.11%22%2F%3E%3Ccircle%20cx%3D%2236%25%22%20cy%3D%2296%25%22%20r%3D%2217%25%22%20fill%3D%22%2336b8d4%22%20opacity%3D%220.19%22%2F%3E%3Ccircle%20cx%3D%2275%25%22%20cy%3D%2299%25%22%20r%3D%2221%25%22%20fill%3D%22%2336b8d4%22%20opacity%3D%220.13%22%2F%3E%3Ccircle%20cx%3D%2217%25%22%20cy%3D%2267%25%22%20r%3D%2213%25%22%20fill%3D%22%2336b8d4%22%20opacity%3D%220.17%22%2F%3E%3Ccircle%20cx%3D%2210%25%22%20cy%3D%2245%25%22%20r%3D%2232%25%22%20fill%3D%22%2336b8d4%22%20opacity%3D%220.15%22%2F%3E%3Ccircle%20cx%3D%2282%25%22%20cy%3D%22100%25%22%20r%3D%2228%25%22%20fill%3D%22%2336b8d4%22%20opacity%3D%220.21%22%2F%3E%3Ccircle%20cx%3D%2259%25%22%20cy%3D%22109%25%22%20r%3D%2226%25%22%20fill%3D%22%2336b8d4%22%20opacity%3D%220.16%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M0%20780%20C280%20620%20450%20900%20760%20720%20S1250%20500%201600%20690%20L1600%201000%20L0%201000Z%22%20fill%3D%22%2336b8d4%22%20opacity%3D%22.045%22%2F%3E%3Cpath%20d%3D%22M-100%20180%20C250%2050%20420%20300%20720%20180%20S1200%2080%201700%20260%22%20fill%3D%22none%22%20stroke%3D%22%2336b8d4%22%20stroke-width%3D%222%22%20opacity%3D%22.10%22%2F%3E%3C%2Fsvg%3E'],
 ['midnight-purple','Midnight Purple','data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201600%201000%22%20preserveAspectRatio%3D%22xMidYMid%20slice%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230b0819%22%2F%3E%3Cstop%20offset%3D%2255%25%22%20stop-color%3D%22%2334215e%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%230b0819%22%2F%3E%3C%2FlinearGradient%3E%3Cfilter%20id%3D%22blur%22%3E%3CfeGaussianBlur%20stdDeviation%3D%2235%22%2F%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Crect%20width%3D%221600%22%20height%3D%221000%22%20fill%3D%22url(%23g)%22%2F%3E%3Cg%20filter%3D%22url(%23blur)%22%3E%3Ccircle%20cx%3D%2220%25%22%20cy%3D%2265%25%22%20r%3D%2229%25%22%20fill%3D%22%238b7cff%22%20opacity%3D%220.12%22%2F%3E%3Ccircle%20cx%3D%22107%25%22%20cy%3D%2267%25%22%20r%3D%2227%25%22%20fill%3D%22%238b7cff%22%20opacity%3D%220.18%22%2F%3E%3Ccircle%20cx%3D%22-2%25%22%20cy%3D%2267%25%22%20r%3D%2212%25%22%20fill%3D%22%238b7cff%22%20opacity%3D%220.21%22%2F%3E%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2223%25%22%20r%3D%2229%25%22%20fill%3D%22%238b7cff%22%20opacity%3D%220.13%22%2F%3E%3Ccircle%20cx%3D%2281%25%22%20cy%3D%2250%25%22%20r%3D%2229%25%22%20fill%3D%22%238b7cff%22%20opacity%3D%220.2%22%2F%3E%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2232%25%22%20fill%3D%22%238b7cff%22%20opacity%3D%220.2%22%2F%3E%3Ccircle%20cx%3D%2219%25%22%20cy%3D%2271%25%22%20r%3D%2216%25%22%20fill%3D%22%238b7cff%22%20opacity%3D%220.2%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M0%20780%20C280%20620%20450%20900%20760%20720%20S1250%20500%201600%20690%20L1600%201000%20L0%201000Z%22%20fill%3D%22%238b7cff%22%20opacity%3D%22.045%22%2F%3E%3Cpath%20d%3D%22M-100%20180%20C250%2050%20420%20300%20720%20180%20S1200%2080%201700%20260%22%20fill%3D%22none%22%20stroke%3D%22%238b7cff%22%20stroke-width%3D%222%22%20opacity%3D%22.10%22%2F%3E%3C%2Fsvg%3E'],
@@ -1251,21 +1255,45 @@ setAuthMode();init();
 ['sunset-violet','Sunset Violet','data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201600%201000%22%20preserveAspectRatio%3D%22xMidYMid%20slice%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23120b1d%22%2F%3E%3Cstop%20offset%3D%2255%25%22%20stop-color%3D%22%234b244f%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23120b1d%22%2F%3E%3C%2FlinearGradient%3E%3Cfilter%20id%3D%22blur%22%3E%3CfeGaussianBlur%20stdDeviation%3D%2235%22%2F%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Crect%20width%3D%221600%22%20height%3D%221000%22%20fill%3D%22url(%23g)%22%2F%3E%3Cg%20filter%3D%22url(%23blur)%22%3E%3Ccircle%20cx%3D%2263%25%22%20cy%3D%22-6%25%22%20r%3D%2225%25%22%20fill%3D%22%23c47cff%22%20opacity%3D%220.16%22%2F%3E%3Ccircle%20cx%3D%22-9%25%22%20cy%3D%2216%25%22%20r%3D%2226%25%22%20fill%3D%22%23c47cff%22%20opacity%3D%220.2%22%2F%3E%3Ccircle%20cx%3D%2295%25%22%20cy%3D%2225%25%22%20r%3D%2232%25%22%20fill%3D%22%23c47cff%22%20opacity%3D%220.2%22%2F%3E%3Ccircle%20cx%3D%22-6%25%22%20cy%3D%2256%25%22%20r%3D%2227%25%22%20fill%3D%22%23c47cff%22%20opacity%3D%220.14%22%2F%3E%3Ccircle%20cx%3D%2221%25%22%20cy%3D%2285%25%22%20r%3D%2223%25%22%20fill%3D%22%23c47cff%22%20opacity%3D%220.11%22%2F%3E%3Ccircle%20cx%3D%22100%25%22%20cy%3D%227%25%22%20r%3D%2231%25%22%20fill%3D%22%23c47cff%22%20opacity%3D%220.14%22%2F%3E%3Ccircle%20cx%3D%2243%25%22%20cy%3D%2226%25%22%20r%3D%2233%25%22%20fill%3D%22%23c47cff%22%20opacity%3D%220.13%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M0%20780%20C280%20620%20450%20900%20760%20720%20S1250%20500%201600%20690%20L1600%201000%20L0%201000Z%22%20fill%3D%22%23c47cff%22%20opacity%3D%22.045%22%2F%3E%3Cpath%20d%3D%22M-100%20180%20C250%2050%20420%20300%20720%20180%20S1200%2080%201700%20260%22%20fill%3D%22none%22%20stroke%3D%22%23c47cff%22%20stroke-width%3D%222%22%20opacity%3D%22.10%22%2F%3E%3C%2Fsvg%3E']
   ];
   const key='worktrack-background';
-  function current(){try{return localStorage.getItem(key)||''}catch(e){return ''}}
+
+  function current(){
+    try{return localStorage.getItem(key)||''}catch(e){return ''}
+  }
+
+  function paintBackground(dataUrl){
+    // Use the body directly instead of relying only on a CSS custom property.
+    // This makes the change visible immediately and avoids CSS-variable/data-URL parsing differences.
+    if(!dataUrl){
+      body.classList.remove('has-worktrack-background');
+      body.style.removeProperty('background-image');
+      body.style.removeProperty('background-size');
+      body.style.removeProperty('background-position');
+      body.style.removeProperty('background-attachment');
+      return;
+    }
+    body.classList.add('has-worktrack-background');
+    body.style.backgroundImage=`url("${dataUrl}")`;
+    body.style.backgroundSize='cover';
+    body.style.backgroundPosition='center center';
+    body.style.backgroundAttachment='fixed';
+  }
+
   function clearBackground(save=true){
+    paintBackground('');
     root.style.removeProperty('--worktrack-background-image');
-    document.body.classList.remove('has-worktrack-background');
     if(save){try{localStorage.removeItem(key)}catch(e){}}
     render();
   }
+
   function apply(id,save=true){
     const item=backgrounds.find(x=>x[0]===id);
     if(!item){clearBackground(save);return}
+    paintBackground(item[2]);
     root.style.setProperty('--worktrack-background-image',`url("${item[2]}")`);
-    document.body.classList.add('has-worktrack-background');
     if(save){try{localStorage.setItem(key,id)}catch(e){}}
     render();
   }
+
   function render(){
     const active=current();
     gallery.innerHTML='';
@@ -1280,20 +1308,31 @@ setAuthMode();init();
       gallery.appendChild(b);
     });
   }
-  gallery.addEventListener('click',event=>{
-    const button=event.target.closest('.background-option');
-    if(!button)return;
-    event.preventDefault();
-    event.stopPropagation();
-    apply(button.dataset.backgroundId,true);
-  });
-  reset?.addEventListener('click',event=>{
-    event.preventDefault();
-    event.stopPropagation();
-    clearBackground(true);
-  });
+
+  // Event delegation keeps the controls working even if the settings panel is re-rendered.
+  document.addEventListener('click',event=>{
+    const button=event.target.closest?.('.background-option');
+    if(button&&gallery.contains(button)){
+      event.preventDefault();
+      event.stopPropagation();
+      apply(button.dataset.backgroundId,true);
+      return;
+    }
+    const resetButton=event.target.closest?.('#resetBackground');
+    if(resetButton){
+      event.preventDefault();
+      event.stopPropagation();
+      clearBackground(true);
+    }
+  },true);
+
   const saved=current();
-  if(saved)apply(saved,false);else render();
+  if(saved){
+    const item=backgrounds.find(x=>x[0]===saved);
+    if(item)paintBackground(item[2]);
+    else clearBackground(true);
+  }
+  render();
 })();
 
 /* =========================
