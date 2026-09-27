@@ -1,7 +1,16 @@
 {
-  "version": "27.3",
-  "date": "26 September 2026",
+  "version": "27.4",
+  "date": "27 September 2026",
   "slides": [
+    {
+      "version": "27.4",
+      "date": "27 September 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V27.4",
+      "text": "Roster now opens on the current month by default with clean navigation for available future rosters. Settings contact changes now use Supabase email confirmation and save mobile updates.",
+      "button": "WORKTRACK 27.4"
+    },
     {
       "version": "27.3",
       "date": "26 September 2026",
