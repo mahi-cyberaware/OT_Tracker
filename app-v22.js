@@ -10,6 +10,8 @@ function fmt(n){return `${Number(n.toFixed(2))}h`}
 function hours(inT,outT){if(!inT||!outT)return 0;let [ih,im]=inT.split(':').map(Number),[oh,om]=outT.split(':').map(Number);let a=ih*60+im,b=oh*60+om;if(b<a)b+=1440;return Math.max(0,(b-a)/60)}
 function monthKey(){return `${month.getFullYear()}-${String(month.getMonth()+1).padStart(2,'0')}`}
 function todayKey(){let d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+// V28.0.3: normalize attendance dates so Calendar/History use the same YYYY-MM-DD key.
+function attendanceDateKey(value){return String(value||'').slice(0,10)}
 
 // UAE public holidays used by the WorkTrack Abu Dhabi calendar for 2026.
 // Dates are kept here so public holidays are visible even before an attendance record is added.
@@ -458,8 +460,10 @@ async function load(){
   updateRosterAdminUI();
   $('dutyHours').value=duty;
   let start=`${monthKey()}-01`,end=new Date(month.getFullYear(),month.getMonth()+1,0).toISOString().slice(0,10);
-  let r=await sb.from('attendance').select('*').gte('work_date',start).lte('work_date',end).order('work_date',{ascending:false});
-  if(r.error){alert(r.error.message);return}records=r.data||[];await loadRoster();render();
+  let r=await sb.from('attendance').select('*').eq('user_id',user.id).gte('work_date',start).lte('work_date',end).order('work_date',{ascending:false});
+  if(r.error){alert(r.error.message);return}
+  records=(r.data||[]).map(x=>({...x,work_date:attendanceDateKey(x.work_date)}));
+  await loadRoster();render();
 }
 function todayRosterEntry(){
   const key=todayKey();
@@ -509,6 +513,8 @@ function renderHomeDutyOverview(){
 
 function render(){
   const selectedMonth=month.toLocaleString('en',{month:'long',year:'numeric'});
+  if($('dashboardMonthTitle'))$('dashboardMonthTitle').textContent=selectedMonth;
+  if($('dashboardMonthMeta'))$('dashboardMonthMeta').textContent=`Showing ${selectedMonth} attendance, hours, overtime and attendance percentage.`;
   $('monthTitle').textContent=selectedMonth;
   $('monthMeta').textContent=`${records.length} record${records.length===1?'':'s'}`;
   if($('historyMonthTitle'))$('historyMonthTitle').textContent=selectedMonth;
@@ -537,7 +543,7 @@ function render(){
 
   for(let day=1;day<=elapsedDays;day++){
     let date=`${month.getFullYear()}-${String(month.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    let record=records.find(x=>x.work_date===date);
+    let record=records.find(x=>attendanceDateKey(x.work_date)===date);
     let holiday=publicHolidayName(date);
 
     if(
@@ -555,7 +561,7 @@ function render(){
   }
 
   let attendanceRate=eligibleDays
-    ? Math.round((present.filter(x=>Number(x.work_date.slice(8,10))<=elapsedDays).length/eligibleDays)*100)
+    ? Math.round((present.filter(x=>Number(attendanceDateKey(x.work_date).slice(8,10))<=elapsedDays).length/eligibleDays)*100)
     : 0;
   let avg=present.length?worked/present.length:0;
   $('workingDays').textContent=present.length;
@@ -579,7 +585,7 @@ function renderAnalytics(){
   let daily=[];
   let days=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
   for(let n=1;n<=days;n++){
-    let date=`${monthKey()}-${String(n).padStart(2,'0')}`,r=records.find(x=>x.work_date===date);
+    let date=`${monthKey()}-${String(n).padStart(2,'0')}`,r=records.find(x=>attendanceDateKey(x.work_date)===date);
     let h=r&&r.status==='present'?hours(r.check_in,r.check_out):0;
     let ot=r&&r.status==='present'?Math.max(0,h-duty):0;
     if(h||ot)daily.push({n,h,ot});
@@ -640,7 +646,7 @@ function renderCalendar(){
 
   for(let n=1;n<=days;n++){
     let date=`${monthKey()}-${String(n).padStart(2,'0')}`,
-        r=records.find(x=>x.work_date===date),
+        r=records.find(x=>attendanceDateKey(x.work_date)===date),
         holiday=publicHolidayName(date),
         d=document.createElement('div');
 
@@ -735,57 +741,88 @@ $('closeDialog').onclick=()=>{$('attendanceDialog').close()};
 $('attendanceDialog').addEventListener('click',e=>{if(e.target===$('attendanceDialog'))$('attendanceDialog').close()});
 $('attendanceForm').onsubmit=async e=>{
   e.preventDefault();
+  let id=$('recordId').value,status=$('status').value,date=$('date').value;
+  if(!date)return alert('Please select a date.');
+  if(status==='present'&&(!$('checkIn').value||!$('checkOut').value))return alert('Please enter both check-in and check-out times.');
+  let ot=status==='present'?Math.max(0,hours($('checkIn').value,$('checkOut').value)-duty):0;
+  let otReason=$('otReason')?.value.trim()||null;
+  if(ot>0&&!otReason)return alert('Please enter the reason for the overtime.');
+  let obj={user_id:user.id,work_date:date,check_in:status==='present'?$('checkIn').value:null,check_out:status==='present'?$('checkOut').value:null,break_minutes:0,status,ot_reason:otReason,notes:$('notes').value.trim()||null};
 
-  let id=$('recordId').value;
-  let status=$('status').value;
-
-  if(!$('date').value)
-    return alert('Please select a date.');
-
-  if(
-    status==='present' &&
-    (!$('checkIn').value||!$('checkOut').value)
-  )
-    return alert('Please enter both check-in and check-out times.');
-
-  let ot=
-    status==='present'
-      ?Math.max(0,hours($('checkIn').value,$('checkOut').value)-duty)
-      :0;
-
-  let otReason=
-    $('otReason')?.value.trim()||null;
-
-  if(ot>0&&!otReason)
-    return alert('Please enter the reason for the overtime.');
-
-  let obj={
-    user_id:user.id,
-    work_date:$('date').value,
-    check_in:status==='present' ? $('checkIn').value : null,
-    check_out:status==='present' ? $('checkOut').value : null,
-    break_minutes:0,
-    status,
-    ot_reason:otReason,
-    notes:$('notes').value.trim()||null
-  };
+  // V28.0.4 — Always resolve the unique user/date record before saving.
+  // This prevents a second INSERT when an attendance row already exists
+  // but the form was opened as a new record.
+  if(!id){
+    const existing=await sb.from('attendance')
+      .select('*')
+      .eq('user_id',user.id)
+      .eq('work_date',date)
+      .maybeSingle();
+    if(existing.error){
+      alert(existing.error.message);return;
+    }
+    if(existing.data?.id){
+      id=existing.data.id;
+      $('recordId').value=id;
+    }
+  }
 
   let r=id
-    ?await sb.from('attendance').update(obj).eq('id',id).eq('user_id',user.id)
-    :await sb.from('attendance').insert(obj);
+    ?await sb.from('attendance').update(obj).eq('id',id).eq('user_id',user.id).select('*').single()
+    :await sb.from('attendance').insert(obj).select('*').single();
 
-  if(r.error)
-    alert(r.error.message);
-  else{
-    $('attendanceDialog').close();
-    await load();
+  // If a race/old client still reaches INSERT, recover from the unique-key
+  // error by resolving the existing row and updating it once.
+  if(r.error && /attendance_user_id_work_date_key|duplicate key value/i.test(r.error.message||'')){
+    const existing=await sb.from('attendance')
+      .select('*')
+      .eq('user_id',user.id)
+      .eq('work_date',date)
+      .maybeSingle();
+    if(existing.error){alert(existing.error.message);return}
+    if(existing.data?.id){
+      id=existing.data.id;
+      $('recordId').value=id;
+      r=await sb.from('attendance').update(obj).eq('id',id).eq('user_id',user.id).select('*').single();
+    }
   }
+  if(r.error){alert(r.error.message);return}
+  // V28.0.7 — The write can succeed even when PostgREST does not return the
+  // row through SELECT immediately (for example while an existing RLS/session
+  // context is being refreshed). Do not discard a successful write by calling
+  // load() here. Build the UI record from the values just saved instead.
+  const returned=r.data&&typeof r.data==='object'?r.data:null;
+  const localExisting=records.find(x=>attendanceDateKey(x.work_date)===date)||null;
+  const saved={
+    ...(localExisting||{}),
+    ...(returned||{}),
+    user_id:user.id,
+    work_date:date,
+    check_in:obj.check_in,
+    check_out:obj.check_out,
+    break_minutes:obj.break_minutes,
+    status:obj.status,
+    ot_reason:obj.ot_reason,
+    notes:obj.notes,
+    id:(returned?.id||localExisting?.id||`local-${user.id}-${date}`)
+  };
+  records=records.filter(x=>attendanceDateKey(x.work_date)!==date);
+  records.push(saved);
+  records.sort((a,b)=>String(b.work_date).localeCompare(String(a.work_date)));
+  const d=new Date(`${saved.work_date}T00:00:00`);
+  month=new Date(d.getFullYear(),d.getMonth(),1);
+  render();
+  $('attendanceDialog').close();
+  alert(`Attendance saved successfully for ${saved.work_date}.`);
 };
 $('deleteRecord').onclick=async()=>{let id=$('recordId').value;if(id&&confirm('Delete this attendance record?')){let r=await sb.from('attendance').delete().eq('id',id).eq('user_id',user.id);if(r.error)alert(r.error.message);else{$('attendanceDialog').close();await load()}}};
 $('addToday').onclick=()=>openDialog(null,todayKey());
 function changeSelectedMonth(offset){month=new Date(month.getFullYear(),month.getMonth()+offset,1);load()}
 function selectCurrentMonth(){let t=new Date();month=new Date(t.getFullYear(),t.getMonth(),1);load()}
 $('prevMonth').onclick=()=>changeSelectedMonth(-1);$('nextMonth').onclick=()=>changeSelectedMonth(1);$('todayMonth').onclick=selectCurrentMonth;
+$('dashboardPrevMonth')?.addEventListener('click',()=>changeSelectedMonth(-1));
+$('dashboardNextMonth')?.addEventListener('click',()=>changeSelectedMonth(1));
+$('dashboardTodayMonth')?.addEventListener('click',selectCurrentMonth);
 $('historyPrevMonth')?.addEventListener('click',()=>changeSelectedMonth(-1));
 $('historyNextMonth')?.addEventListener('click',()=>changeSelectedMonth(1));
 $('historyTodayMonth')?.addEventListener('click',selectCurrentMonth);

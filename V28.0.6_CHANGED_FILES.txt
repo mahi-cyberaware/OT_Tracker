@@ -1,0 +1,9 @@
+V28.0.6 changed files
+
+1. app-v22.js
+2. index.html
+3. style.css
+4. sw.js
+5. updates/updates.json
+6. V28.0.6_UPDATE_NOTES.md
+7. V28.0.6_CHANGED_FILES.txt
