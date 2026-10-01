@@ -1,7 +1,16 @@
 {
-  "version": "28.0.6",
-  "date": "02 October 2026",
+  "version": "28.0.7",
+  "date": "October 2026",
   "slides": [
+    {
+      "version": "28.0.7",
+      "date": "October 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "WORKTRACK V28.0.7",
+      "title": "Targeted Attendance Save Fix",
+      "text": "Successful attendance saves are now reflected immediately in Dashboard, Calendar and Attendance History without discarding the saved record during an immediate read-back.",
+      "button": "WORKTRACK 28.0.7"
+    },
     {
       "version": "28.0.6",
       "date": "02 October 2026",
