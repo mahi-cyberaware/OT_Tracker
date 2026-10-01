@@ -1,15 +1,10 @@
-const CACHE = 'worktrack-v28.0-attendance-fix-2';
+const CACHE = 'worktrack-v28.0.3-home-overview';
 const APP_SHELL = [
   './',
   './index.html',
   './style.css',
-  './app-v22.js?v=28.0.2',
+  './app-v22.js?v=28.0.3',
   './manifest.webmanifest',
-  './assets/branding/worktrack-icon-256.png',
-  './assets/branding/worktrack-icon-512.png',
-  './assets/branding/worktrack-icon-1024.png',
-  './assets/branding/worktrack-logo-1200x420.png',
-  './assets/branding/favicon-64.png',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];
