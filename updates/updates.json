@@ -1,24 +1,15 @@
 {
-  "version": "28.0",
-  "date": "1 October 2026",
+  "version": "28.0.3",
+  "date": "28 September 2026",
   "slides": [
     {
-      "version": "28.0",
+      "version": "28.0.3",
       "date": "1 October 2026",
-      "image": "./backgrounds/background-1-blue.png",
-      "eyebrow": "LATEST RELEASE",
-      "title": "WorkTrack V28.0",
-      "text": "Attendance entry now detects existing user/date records, prevents duplicate attendance, and opens the existing record for editing instead of showing a database error.",
-      "button": "WORKTRACK 28.0"
-    },
-    {
-      "version": "27.9",
-      "date": "28 September 2026",
       "image": "./backgrounds/v27.6-02_deep-ocean.svg",
-      "eyebrow": "LATEST RELEASE",
-      "title": "WorkTrack V27.9",
-      "text": "Introduced the new WorkTrack brand identity across the app with a professional clock-and-W logo, updated header and login branding, favicon and PWA icons.",
-      "button": "WORKTRACK 27.9"
+      "eyebrow": "TEST RELEASE",
+      "title": "WorkTrack V28.0.3",
+      "text": "Attendance saves now synchronize the edited record across the dashboard, calendar and attendance history, with normalized date handling and verified database read-back.",
+      "button": "WORKTRACK 28.0.3"
     },
     {
       "version": "27.8",
