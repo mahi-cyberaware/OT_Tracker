@@ -739,25 +739,12 @@ $('attendanceForm').onsubmit=async e=>{
   let id=$('recordId').value;
   let status=$('status').value;
 
-  if(!$('date').value)
-    return alert('Please select a date.');
+  if(!$('date').value) return alert('Please select a date.');
+  if(status==='present'&&(!$('checkIn').value||!$('checkOut').value)) return alert('Please enter both check-in and check-out times.');
 
-  if(
-    status==='present' &&
-    (!$('checkIn').value||!$('checkOut').value)
-  )
-    return alert('Please enter both check-in and check-out times.');
-
-  let ot=
-    status==='present'
-      ?Math.max(0,hours($('checkIn').value,$('checkOut').value)-duty)
-      :0;
-
-  let otReason=
-    $('otReason')?.value.trim()||null;
-
-  if(ot>0&&!otReason)
-    return alert('Please enter the reason for the overtime.');
+  let ot=status==='present'?Math.max(0,hours($('checkIn').value,$('checkOut').value)-duty):0;
+  let otReason=$('otReason')?.value.trim()||null;
+  if(ot>0&&!otReason) return alert('Please enter the reason for the overtime.');
 
   let obj={
     user_id:user.id,
@@ -770,104 +757,84 @@ $('attendanceForm').onsubmit=async e=>{
     notes:$('notes').value.trim()||null
   };
 
-  // V28.0 — Safe save/update for the one-record-per-user/date rule.
-  // If a record already exists, update that exact record with the values the
-  // user just entered. This avoids the old "open for editing" dead-end.
-  let r;
+  // V28.0.2 — Reliable attendance save.
+  // Never rely on UPDATE ... SELECT returning a row. Some Supabase/RLS
+  // configurations allow UPDATE but return an empty representation.
+  // We update the exact record first, then verify it with a fresh SELECT.
+  let targetId=id||null;
 
-  if(id){
-    // When editing, do not allow the date to collide with another record.
+  if(!targetId){
     let existing=await sb.from('attendance')
-      .select('id,work_date')
+      .select('id')
       .eq('user_id',user.id)
       .eq('work_date',obj.work_date)
-      .neq('id',id)
       .maybeSingle();
 
     if(existing.error){
-      alert('Unable to verify this attendance date. Please try again.');
+      alert(`Could not check attendance for ${obj.work_date}: ${existing.error.message}`);
       return;
     }
-
-    if(existing.data){
-      alert(`Attendance already exists for ${obj.work_date}. Please edit that record instead.`);
-      $('attendanceDialog').close();
-      return;
-    }
-
-    r=await sb.from('attendance')
-      .update(obj)
-      .eq('id',id)
-      .eq('user_id',user.id)
-      .select('*')
-      .maybeSingle();
+    targetId=existing.data?.id||null;
   }else{
-    // First check the exact user/date pair. If it exists, update it directly
-    // with the values currently entered in the form.
-    let existing=await sb.from('attendance')
-      .select('*')
+    let collision=await sb.from('attendance')
+      .select('id')
       .eq('user_id',user.id)
       .eq('work_date',obj.work_date)
+      .neq('id',targetId)
       .maybeSingle();
 
-    if(existing.error){
-      alert('Unable to verify this attendance date. Please try again.');
+    if(collision.error){
+      alert(`Could not verify the attendance date: ${collision.error.message}`);
       return;
     }
-
-    if(existing.data){
-      r=await sb.from('attendance')
-        .update(obj)
-        .eq('id',existing.data.id)
-        .eq('user_id',user.id)
-        .select('*')
-        .maybeSingle();
-    }else{
-      r=await sb.from('attendance')
-        .insert(obj)
-        .select('*')
-        .maybeSingle();
-
-      // Race-condition recovery: another request may have created the same
-      // user/date between the check and insert. Update that record with the
-      // values entered in this form instead of exposing a database error.
-      if(r.error && /attendance_user_id_work_date_key|duplicate key value/i.test(r.error.message||'')){
-        let existingAfterConflict=await sb.from('attendance')
-          .select('*')
-          .eq('user_id',user.id)
-          .eq('work_date',obj.work_date)
-          .maybeSingle();
-
-        if(existingAfterConflict.data){
-          r=await sb.from('attendance')
-            .update(obj)
-            .eq('id',existingAfterConflict.data.id)
-            .eq('user_id',user.id)
-            .select('*')
-            .maybeSingle();
-        }
-      }
+    if(collision.data){
+      alert(`Attendance already exists for ${obj.work_date}. Please edit that record instead.`);
+      return;
     }
   }
 
-  if(r?.error){
-    alert(r.error.message||'Unable to save attendance.');
+  let saveResult;
+  if(targetId){
+    saveResult=await sb.from('attendance')
+      .update(obj)
+      .eq('id',targetId)
+      .eq('user_id',user.id);
+  }else{
+    saveResult=await sb.from('attendance').insert(obj);
+  }
+
+  if(saveResult.error){
+    if(/attendance_user_id_work_date_key|duplicate key value/i.test(saveResult.error.message||'')){
+      alert(`Attendance for ${obj.work_date} already exists. Please open that date from Attendance History and edit it.`);
+    }else{
+      alert(`Unable to save attendance: ${saveResult.error.message}`);
+    }
     return;
   }
 
-  // Supabase can return no row when an UPDATE is blocked by RLS. Treat that
-  // as a real failure instead of falsely closing the form and hiding the issue.
-  if(!r?.data){
-    alert('Attendance could not be updated. Please check your account permissions and try again.');
+  // Verify the actual stored values before closing the form.
+  let verify=await sb.from('attendance')
+    .select('*')
+    .eq('user_id',user.id)
+    .eq('work_date',obj.work_date)
+    .maybeSingle();
+
+  if(verify.error){
+    alert(`Attendance was submitted, but WorkTrack could not verify it: ${verify.error.message}`);
     return;
   }
 
-  // Always display the month containing the saved work date, so a yesterday
-  // entry cannot appear to disappear simply because the selected month changed.
+  if(!verify.data){
+    alert('Attendance was not saved. The database did not return the attendance record. Please check Supabase permissions before trying again.');
+    return;
+  }
+
+  // Show the exact month containing the saved date and refresh every view.
   let savedDate=new Date(`${obj.work_date}T12:00:00`);
   month=new Date(savedDate.getFullYear(),savedDate.getMonth(),1);
   $('attendanceDialog').close();
   await load();
+  alert(`Attendance saved successfully for ${obj.work_date}.`);
 };
 $('deleteRecord').onclick=async()=>{let id=$('recordId').value;if(id&&confirm('Delete this attendance record?')){let r=await sb.from('attendance').delete().eq('id',id).eq('user_id',user.id);if(r.error)alert(r.error.message);else{$('attendanceDialog').close();await load()}}};
 $('addToday').onclick=()=>openDialog(null,todayKey());
