@@ -111,6 +111,19 @@
         <div class="update-dots" id="updateDots" aria-label="Update slides"></div>
       </section>
 
+      <section id="dashboardMonthToolbar" class="dashboard-month-toolbar glass-card" aria-label="Dashboard month selection">
+        <div class="dashboard-month-copy">
+          <div class="section-kicker">DASHBOARD PERIOD</div>
+          <strong id="dashboardMonthTitle">Current month</strong>
+          <span id="dashboardMonthMeta" class="muted small">Dashboard statistics are shown for the selected month.</span>
+        </div>
+        <div class="month-actions dashboard-month-actions">
+          <button id="dashboardTodayMonth" class="ghost" type="button">Current month</button>
+          <button id="dashboardPrevMonth" class="ghost" type="button" aria-label="Previous dashboard month">Previous month</button>
+          <button id="dashboardNextMonth" class="ghost" type="button" aria-label="Next dashboard month">Next month</button>
+        </div>
+      </section>
+
       <section id="homeStats" class="stats">
         <div class="stat glass-card"><span>Working days</span><b id="workingDays">0</b><small>This month</small></div>
         <div class="stat glass-card"><span>Day off</span><b id="dayOffCount">0</b><small>Off days recorded</small></div>
@@ -673,7 +686,7 @@
     window.__worktrackInstantMenu={open,close};
   })();
   </script>
-  <script src="app-v22.js?v=28.0.5"></script>
+  <script src="app-v22.js?v=28.0.6"></script>
   <script>
   (function(){
     function initContactSettings(){

@@ -513,6 +513,8 @@ function renderHomeDutyOverview(){
 
 function render(){
   const selectedMonth=month.toLocaleString('en',{month:'long',year:'numeric'});
+  if($('dashboardMonthTitle'))$('dashboardMonthTitle').textContent=selectedMonth;
+  if($('dashboardMonthMeta'))$('dashboardMonthMeta').textContent=`Showing ${selectedMonth} attendance, hours, overtime and attendance percentage.`;
   $('monthTitle').textContent=selectedMonth;
   $('monthMeta').textContent=`${records.length} record${records.length===1?'':'s'}`;
   if($('historyMonthTitle'))$('historyMonthTitle').textContent=selectedMonth;
@@ -806,6 +808,9 @@ $('addToday').onclick=()=>openDialog(null,todayKey());
 function changeSelectedMonth(offset){month=new Date(month.getFullYear(),month.getMonth()+offset,1);load()}
 function selectCurrentMonth(){let t=new Date();month=new Date(t.getFullYear(),t.getMonth(),1);load()}
 $('prevMonth').onclick=()=>changeSelectedMonth(-1);$('nextMonth').onclick=()=>changeSelectedMonth(1);$('todayMonth').onclick=selectCurrentMonth;
+$('dashboardPrevMonth')?.addEventListener('click',()=>changeSelectedMonth(-1));
+$('dashboardNextMonth')?.addEventListener('click',()=>changeSelectedMonth(1));
+$('dashboardTodayMonth')?.addEventListener('click',selectCurrentMonth);
 $('historyPrevMonth')?.addEventListener('click',()=>changeSelectedMonth(-1));
 $('historyNextMonth')?.addEventListener('click',()=>changeSelectedMonth(1));
 $('historyTodayMonth')?.addEventListener('click',selectCurrentMonth);
