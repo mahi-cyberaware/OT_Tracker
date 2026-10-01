@@ -458,7 +458,7 @@ async function load(){
   updateRosterAdminUI();
   $('dutyHours').value=duty;
   let start=`${monthKey()}-01`,end=new Date(month.getFullYear(),month.getMonth()+1,0).toISOString().slice(0,10);
-  let r=await sb.from('attendance').select('*').gte('work_date',start).lte('work_date',end).order('work_date',{ascending:false});
+  let r=await sb.from('attendance').select('*').eq('user_id',user.id).gte('work_date',start).lte('work_date',end).order('work_date',{ascending:false});
   if(r.error){alert(r.error.message);return}records=r.data||[];await loadRoster();render();
 }
 function todayRosterEntry(){
@@ -770,12 +770,75 @@ $('attendanceForm').onsubmit=async e=>{
     notes:$('notes').value.trim()||null
   };
 
-  let r=id
-    ?await sb.from('attendance').update(obj).eq('id',id).eq('user_id',user.id)
-    :await sb.from('attendance').insert(obj);
+  // V28.0 — Prevent duplicate user/date records and recover gracefully from
+  // the database unique constraint instead of exposing a raw Supabase error.
+  let r;
 
-  if(r.error)
-    alert(r.error.message);
+  if(id){
+    // When editing, do not allow the date to collide with another record.
+    let existing=await sb.from('attendance')
+      .select('*')
+      .eq('user_id',user.id)
+      .eq('work_date',obj.work_date)
+      .neq('id',id)
+      .maybeSingle();
+
+    if(existing.error){
+      alert('Unable to verify this attendance date. Please try again.');
+      return;
+    }
+
+    if(existing.data){
+      alert(`Attendance already exists for ${obj.work_date}. Please edit the existing record instead.`);
+      $('attendanceDialog').close();
+      openDialog(existing.data);
+      return;
+    }
+
+    r=await sb.from('attendance').update(obj).eq('id',id).eq('user_id',user.id);
+  }else{
+    // First check the exact user/date pair. This also makes a hidden existing
+    // record editable instead of attempting a second insert.
+    let existing=await sb.from('attendance')
+      .select('*')
+      .eq('user_id',user.id)
+      .eq('work_date',obj.work_date)
+      .maybeSingle();
+
+    if(existing.error){
+      alert('Unable to verify this attendance date. Please try again.');
+      return;
+    }
+
+    if(existing.data){
+      alert(`Attendance already exists for ${obj.work_date}. The existing record is open for editing.`);
+      $('attendanceDialog').close();
+      openDialog(existing.data);
+      return;
+    }
+
+    r=await sb.from('attendance').insert(obj);
+
+    // Race-condition recovery: another request may have created the same
+    // user/date between the check and insert. Fetch it and open it for editing.
+    if(r.error && /attendance_user_id_work_date_key|duplicate key value/i.test(r.error.message||'')){
+      let existingAfterConflict=await sb.from('attendance')
+        .select('*')
+        .eq('user_id',user.id)
+        .eq('work_date',obj.work_date)
+        .maybeSingle();
+
+      if(existingAfterConflict.data){
+        alert(`Attendance already exists for ${obj.work_date}. The existing record is open for editing.`);
+        $('attendanceDialog').close();
+        openDialog(existingAfterConflict.data);
+        return;
+      }
+    }
+  }
+
+  if(r?.error)
+    alert(r.error.message||'Unable to save attendance.');
   else{
     $('attendanceDialog').close();
     await load();
@@ -1843,9 +1906,10 @@ $('settingsPasswordButton')?.addEventListener('click',openPasswordDialog);
    The local list is a fallback so the section still works if the JSON file is unavailable.
    ========================= */
 const WORKTRACK_UPDATE={
-  version:'27.5',
-  date:'27 September 2026',
+  version:'28.0',
+  date:'1 October 2026',
   slides:[
+    {image:'./backgrounds/background-1-blue.png',eyebrow:'LATEST RELEASE',title:'WorkTrack V28.0',text:'Attendance entry now detects existing user/date records, prevents duplicate attendance, and opens the existing record for editing instead of showing a database error.',button:'WORKTRACK 28.0'},
     {image:'./backgrounds/background-1-blue.png',eyebrow:'LATEST RELEASE',title:'WorkTrack V27.5',text:'Monthly reports now have their own simple month navigation so you can select the exact month before exporting PDF or CSV.',button:'WORKTRACK 27.5'},
     {image:'./backgrounds/background-1-blue.png',eyebrow:'WORKTRACK V27.1',title:'WorkTrack V27.1',text:'AI staff statements now support Base/Ramp context with automatic provider fallback. Profile picture display and profile controls are improved.',button:'WORKTRACK 27.1'},
     {image:'./backgrounds/background-1-blue.png',eyebrow:'WORKTRACK V26.2',title:'WorkTrack V26.2',text:'A cleaner update center with reliable background artwork, responsive layout and a complete release history.',button:'WORKTRACK 26.2'},
