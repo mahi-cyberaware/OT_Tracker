@@ -787,20 +787,32 @@ $('attendanceForm').onsubmit=async e=>{
     }
   }
   if(r.error){alert(r.error.message);return}
-  const saved={...r.data,work_date:attendanceDateKey(r.data?.work_date||date)};
-  records=records.filter(x=>String(x.id)!==String(saved.id));
+  // V28.0.7 — The write can succeed even when PostgREST does not return the
+  // row through SELECT immediately (for example while an existing RLS/session
+  // context is being refreshed). Do not discard a successful write by calling
+  // load() here. Build the UI record from the values just saved instead.
+  const returned=r.data&&typeof r.data==='object'?r.data:null;
+  const localExisting=records.find(x=>attendanceDateKey(x.work_date)===date)||null;
+  const saved={
+    ...(localExisting||{}),
+    ...(returned||{}),
+    user_id:user.id,
+    work_date:date,
+    check_in:obj.check_in,
+    check_out:obj.check_out,
+    break_minutes:obj.break_minutes,
+    status:obj.status,
+    ot_reason:obj.ot_reason,
+    notes:obj.notes,
+    id:(returned?.id||localExisting?.id||`local-${user.id}-${date}`)
+  };
+  records=records.filter(x=>attendanceDateKey(x.work_date)!==date);
   records.push(saved);
   records.sort((a,b)=>String(b.work_date).localeCompare(String(a.work_date)));
   const d=new Date(`${saved.work_date}T00:00:00`);
   month=new Date(d.getFullYear(),d.getMonth(),1);
   render();
   $('attendanceDialog').close();
-  // Re-read the month after rendering so Calendar, History and dashboard are synchronized with Supabase.
-  await load();
-  if(!records.some(x=>attendanceDateKey(x.work_date)===saved.work_date)){
-    alert(`Attendance was saved, but the saved record could not be read back for ${saved.work_date}. Please check Supabase access policies.`);
-    return;
-  }
   alert(`Attendance saved successfully for ${saved.work_date}.`);
 };
 $('deleteRecord').onclick=async()=>{let id=$('recordId').value;if(id&&confirm('Delete this attendance record?')){let r=await sb.from('attendance').delete().eq('id',id).eq('user_id',user.id);if(r.error)alert(r.error.message);else{$('attendanceDialog').close();await load()}}};
