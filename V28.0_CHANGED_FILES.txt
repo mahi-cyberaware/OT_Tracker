@@ -1,6 +1,5 @@
 app-v22.js
 index.html
-manifest.webmanifest
 sw.js
 updates/updates.json
 V28.0_UPDATE_NOTES.md

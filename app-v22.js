@@ -770,14 +770,15 @@ $('attendanceForm').onsubmit=async e=>{
     notes:$('notes').value.trim()||null
   };
 
-  // V28.0 — Prevent duplicate user/date records and recover gracefully from
-  // the database unique constraint instead of exposing a raw Supabase error.
+  // V28.0 — Safe save/update for the one-record-per-user/date rule.
+  // If a record already exists, update that exact record with the values the
+  // user just entered. This avoids the old "open for editing" dead-end.
   let r;
 
   if(id){
     // When editing, do not allow the date to collide with another record.
     let existing=await sb.from('attendance')
-      .select('*')
+      .select('id,work_date')
       .eq('user_id',user.id)
       .eq('work_date',obj.work_date)
       .neq('id',id)
@@ -789,16 +790,20 @@ $('attendanceForm').onsubmit=async e=>{
     }
 
     if(existing.data){
-      alert(`Attendance already exists for ${obj.work_date}. Please edit the existing record instead.`);
+      alert(`Attendance already exists for ${obj.work_date}. Please edit that record instead.`);
       $('attendanceDialog').close();
-      openDialog(existing.data);
       return;
     }
 
-    r=await sb.from('attendance').update(obj).eq('id',id).eq('user_id',user.id);
+    r=await sb.from('attendance')
+      .update(obj)
+      .eq('id',id)
+      .eq('user_id',user.id)
+      .select('*')
+      .maybeSingle();
   }else{
-    // First check the exact user/date pair. This also makes a hidden existing
-    // record editable instead of attempting a second insert.
+    // First check the exact user/date pair. If it exists, update it directly
+    // with the values currently entered in the form.
     let existing=await sb.from('attendance')
       .select('*')
       .eq('user_id',user.id)
@@ -811,38 +816,58 @@ $('attendanceForm').onsubmit=async e=>{
     }
 
     if(existing.data){
-      alert(`Attendance already exists for ${obj.work_date}. The existing record is open for editing.`);
-      $('attendanceDialog').close();
-      openDialog(existing.data);
-      return;
-    }
-
-    r=await sb.from('attendance').insert(obj);
-
-    // Race-condition recovery: another request may have created the same
-    // user/date between the check and insert. Fetch it and open it for editing.
-    if(r.error && /attendance_user_id_work_date_key|duplicate key value/i.test(r.error.message||'')){
-      let existingAfterConflict=await sb.from('attendance')
-        .select('*')
+      r=await sb.from('attendance')
+        .update(obj)
+        .eq('id',existing.data.id)
         .eq('user_id',user.id)
-        .eq('work_date',obj.work_date)
+        .select('*')
+        .maybeSingle();
+    }else{
+      r=await sb.from('attendance')
+        .insert(obj)
+        .select('*')
         .maybeSingle();
 
-      if(existingAfterConflict.data){
-        alert(`Attendance already exists for ${obj.work_date}. The existing record is open for editing.`);
-        $('attendanceDialog').close();
-        openDialog(existingAfterConflict.data);
-        return;
+      // Race-condition recovery: another request may have created the same
+      // user/date between the check and insert. Update that record with the
+      // values entered in this form instead of exposing a database error.
+      if(r.error && /attendance_user_id_work_date_key|duplicate key value/i.test(r.error.message||'')){
+        let existingAfterConflict=await sb.from('attendance')
+          .select('*')
+          .eq('user_id',user.id)
+          .eq('work_date',obj.work_date)
+          .maybeSingle();
+
+        if(existingAfterConflict.data){
+          r=await sb.from('attendance')
+            .update(obj)
+            .eq('id',existingAfterConflict.data.id)
+            .eq('user_id',user.id)
+            .select('*')
+            .maybeSingle();
+        }
       }
     }
   }
 
-  if(r?.error)
+  if(r?.error){
     alert(r.error.message||'Unable to save attendance.');
-  else{
-    $('attendanceDialog').close();
-    await load();
+    return;
   }
+
+  // Supabase can return no row when an UPDATE is blocked by RLS. Treat that
+  // as a real failure instead of falsely closing the form and hiding the issue.
+  if(!r?.data){
+    alert('Attendance could not be updated. Please check your account permissions and try again.');
+    return;
+  }
+
+  // Always display the month containing the saved work date, so a yesterday
+  // entry cannot appear to disappear simply because the selected month changed.
+  let savedDate=new Date(`${obj.work_date}T12:00:00`);
+  month=new Date(savedDate.getFullYear(),savedDate.getMonth(),1);
+  $('attendanceDialog').close();
+  await load();
 };
 $('deleteRecord').onclick=async()=>{let id=$('recordId').value;if(id&&confirm('Delete this attendance record?')){let r=await sb.from('attendance').delete().eq('id',id).eq('user_id',user.id);if(r.error)alert(r.error.message);else{$('attendanceDialog').close();await load()}}};
 $('addToday').onclick=()=>openDialog(null,todayKey());
