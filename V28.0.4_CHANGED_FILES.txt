@@ -1,4 +1,0 @@
-app-v22.js
-index.html
-sw.js
-V28.0.4_UPDATE_NOTES.md
