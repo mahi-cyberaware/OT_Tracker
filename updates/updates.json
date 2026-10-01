@@ -1,7 +1,16 @@
 {
-  "version": "28.0.3",
-  "date": "28 September 2026",
+  "version": "28.0.5",
+  "date": "01 October 2026",
   "slides": [
+    {
+      "version": "28.0.5",
+      "date": "01 October 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V28.0.5",
+      "text": "Attendance reads are now restricted to the signed-in user, and the dashboard month controls clearly support current-month and previous-month views without changing the existing calculations.",
+      "button": "WORKTRACK 28.0.5"
+    },
     {
       "version": "28.0.4",
       "date": "01 October 2026",
