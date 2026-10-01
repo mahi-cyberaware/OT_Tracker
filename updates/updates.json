@@ -1,7 +1,16 @@
 {
-  "version": "28.0.5",
-  "date": "01 October 2026",
+  "version": "28.0.6",
+  "date": "02 October 2026",
   "slides": [
+    {
+      "version": "28.0.6",
+      "date": "02 October 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V28.0.6",
+      "text": "Dashboard now has dedicated month navigation so previous attendance, working hours, overtime and attendance percentage can be reviewed by selecting the required month. Calendar, history and reports stay synchronized with the selected month.",
+      "button": "WORKTRACK 28.0.6"
+    },
     {
       "version": "28.0.5",
       "date": "01 October 2026",
