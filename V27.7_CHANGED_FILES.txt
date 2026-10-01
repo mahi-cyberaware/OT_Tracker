@@ -1,5 +1,0 @@
-app-v22.js
-style.css
-sw.js
-updates/updates.json
-V27.7_UPDATE_NOTES.md
