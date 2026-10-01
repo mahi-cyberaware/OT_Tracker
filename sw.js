@@ -1,9 +1,9 @@
-const CACHE = 'worktrack-v28.0.5-attendance-history';
+const CACHE = 'worktrack-v28.0.6-dashboard-month';
 const APP_SHELL = [
   './',
   './index.html',
   './style.css',
-  './app-v22.js?v=28.0.5',
+  './app-v22.js?v=28.0.6',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png'

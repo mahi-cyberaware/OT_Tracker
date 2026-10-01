@@ -2011,3 +2011,12 @@ html[data-theme="light"] .settings-preferences-block{background:rgba(255,255,255
 :root[data-theme="light"] .quick-action{background:rgba(82,111,228,.06);color:#33436f;border-color:rgba(82,111,228,.14)}
 @media(max-width:900px){.home-duty-overview{grid-template-columns:1fr 1fr}.quick-actions-card{grid-column:1/-1}.quick-actions{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:640px){.home-duty-overview{grid-template-columns:1fr}.quick-actions-card{grid-column:auto}.quick-actions{grid-template-columns:1fr 1fr}.home-duty-card{min-height:135px}.home-duty-card h2{font-size:20px}}
+
+
+/* V28.0.6 — Dashboard historical month selector */
+.dashboard-month-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 18px;border-radius:20px;margin-bottom:13px;border:1px solid var(--border,rgba(255,255,255,.10));background:rgba(255,255,255,.025)}
+.dashboard-month-copy{display:grid;gap:3px;min-width:0}
+.dashboard-month-copy strong{font-size:17px;letter-spacing:-.25px}
+.dashboard-month-actions{flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:640px){.dashboard-month-toolbar{align-items:flex-start;flex-direction:column;padding:15px}.dashboard-month-actions{width:100%;justify-content:stretch}.dashboard-month-actions button{flex:1}.dashboard-month-copy strong{font-size:16px}}
+:root[data-theme="light"] .dashboard-month-toolbar{background:rgba(255,255,255,.70)}
