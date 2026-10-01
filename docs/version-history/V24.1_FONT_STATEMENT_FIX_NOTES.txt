@@ -1,0 +1,1 @@
+V24.1 — Increased written statement font size, forced form text to black, and normalized Staff Statement to begin exactly with Dear Sir, followed by one blank line and the statement on line 3. API prompt updated to enforce the same format. OCR/API/print functionality otherwise unchanged. Deploy to V23-integration only; keep main untouched.
