@@ -460,7 +460,7 @@ async function load(){
   updateRosterAdminUI();
   $('dutyHours').value=duty;
   let start=`${monthKey()}-01`,end=new Date(month.getFullYear(),month.getMonth()+1,0).toISOString().slice(0,10);
-  let r=await sb.from('attendance').select('*').gte('work_date',start).lte('work_date',end).order('work_date',{ascending:false});
+  let r=await sb.from('attendance').select('*').eq('user_id',user.id).gte('work_date',start).lte('work_date',end).order('work_date',{ascending:false});
   if(r.error){alert(r.error.message);return}
   records=(r.data||[]).map(x=>({...x,work_date:attendanceDateKey(x.work_date)}));
   await loadRoster();render();
