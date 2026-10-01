@@ -746,9 +746,44 @@ $('attendanceForm').onsubmit=async e=>{
   let otReason=$('otReason')?.value.trim()||null;
   if(ot>0&&!otReason)return alert('Please enter the reason for the overtime.');
   let obj={user_id:user.id,work_date:date,check_in:status==='present'?$('checkIn').value:null,check_out:status==='present'?$('checkOut').value:null,break_minutes:0,status,ot_reason:otReason,notes:$('notes').value.trim()||null};
+
+  // V28.0.4 — Always resolve the unique user/date record before saving.
+  // This prevents a second INSERT when an attendance row already exists
+  // but the form was opened as a new record.
+  if(!id){
+    const existing=await sb.from('attendance')
+      .select('*')
+      .eq('user_id',user.id)
+      .eq('work_date',date)
+      .maybeSingle();
+    if(existing.error){
+      alert(existing.error.message);return;
+    }
+    if(existing.data?.id){
+      id=existing.data.id;
+      $('recordId').value=id;
+    }
+  }
+
   let r=id
     ?await sb.from('attendance').update(obj).eq('id',id).eq('user_id',user.id).select('*').single()
     :await sb.from('attendance').insert(obj).select('*').single();
+
+  // If a race/old client still reaches INSERT, recover from the unique-key
+  // error by resolving the existing row and updating it once.
+  if(r.error && /attendance_user_id_work_date_key|duplicate key value/i.test(r.error.message||'')){
+    const existing=await sb.from('attendance')
+      .select('*')
+      .eq('user_id',user.id)
+      .eq('work_date',date)
+      .maybeSingle();
+    if(existing.error){alert(existing.error.message);return}
+    if(existing.data?.id){
+      id=existing.data.id;
+      $('recordId').value=id;
+      r=await sb.from('attendance').update(obj).eq('id',id).eq('user_id',user.id).select('*').single();
+    }
+  }
   if(r.error){alert(r.error.message);return}
   const saved={...r.data,work_date:attendanceDateKey(r.data?.work_date||date)};
   records=records.filter(x=>String(x.id)!==String(saved.id));
