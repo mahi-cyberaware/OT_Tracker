@@ -1,7 +1,16 @@
 {
-  "version": "28.0.7",
-  "date": "October 2026",
+  "version": "28.0.8",
+  "date": "03 October 2026",
   "slides": [
+    {
+      "version": "28.0.8",
+      "date": "03 October 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "WORKTRACK V28.0.8",
+      "title": "Attendance Persistence & Mobile Month Controls",
+      "text": "Attendance saves now use the database user/date key with post-save verification, so records remain available after refresh. Dashboard, Calendar, History and Report month controls stay side-by-side on mobile.",
+      "button": "WORKTRACK 28.0.8"
+    },
     {
       "version": "28.0.7",
       "date": "October 2026",
