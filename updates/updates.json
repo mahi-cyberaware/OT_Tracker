@@ -1,7 +1,16 @@
 {
-  "version": "28.0.8",
+  "version": "28.0.9",
   "date": "03 October 2026",
   "slides": [
+    {
+      "version": "28.0.9",
+      "date": "03 October 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "WORKTRACK V28.0.9",
+      "title": "Attendance Persistence Hardening",
+      "text": "Attendance saves now use an authoritative no-cache database read with retry and a final post-reload verification. The app no longer reports success from a session-only record. Mobile Dashboard month controls remain side-by-side.",
+      "button": "WORKTRACK 28.0.9"
+    },
     {
       "version": "28.0.8",
       "date": "03 October 2026",
