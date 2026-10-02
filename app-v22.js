@@ -1,7 +1,11 @@
 const SUPABASE_URL="https://qbbbpussyzkutonpvaze.supabase.co";
 const SUPABASE_ANON_KEY="sb_publishable_QqqqICyurLbmaMBPUwfF_g_8_jVZYuO";
 const REDIRECT_URL="https://ot-tracker-psi.vercel.app/";
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
+  global:{
+    fetch:(url,options={})=>fetch(url,{...options,cache:"no-store"})
+  }
+});
 
 let user=null,records=[],rosterEntries=[],month=new Date(),rosterMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),duty=9,signUp=false,isAdmin=false;
 const NORMAL_OT_RATE=8.94;
@@ -753,51 +757,50 @@ $('attendanceForm').onsubmit=async e=>{
   if(ot>0&&!otReason)return alert('Please enter the reason for the overtime.');
   let obj={user_id:user.id,work_date:date,check_in:status==='present'?$('checkIn').value:null,check_out:status==='present'?$('checkOut').value:null,break_minutes:0,status,ot_reason:otReason,notes:$('notes').value.trim()||null};
 
-  // V28.0.8 — Persist by the database's unique user/date key.
-  // This makes both new and existing attendance rows use the same atomic save
-  // path and avoids the update-vs-insert split that caused 30 Sep to appear
-  // during the current session but disappear after a refresh.
+  // V28.0.9 — authoritative persistence path.
+  // Save against the database unique key, then re-read the exact row with
+  // cache disabled. Finally reload the selected month from Supabase so the UI
+  // never treats a session-only record as successfully persisted.
   let r=await sb.from('attendance')
-    .upsert(obj,{onConflict:'user_id,work_date'})
+    .upsert(obj,{onConflict:'user_id,work_date',ignoreDuplicates:false})
     .select('*')
     .single();
-
   if(r.error){alert(r.error.message);return}
 
-  // Verify the exact date is readable after the write before closing the form.
-  // The verification also ensures the Calendar/History refresh is based on the
-  // persisted database row rather than a session-only copy.
-  const verify=await sb.from('attendance')
-    .select('*')
+  let persisted=null,lastVerifyError=null;
+  for(let attempt=1;attempt<=3;attempt++){
+    const verify=await sb.from('attendance')
+      .select('*')
+      .eq('user_id',user.id)
+      .eq('work_date',date)
+      .maybeSingle();
+    if(!verify.error&&verify.data){persisted=verify.data;break;}
+    lastVerifyError=verify.error||new Error('No attendance row returned.');
+    if(attempt<3)await new Promise(resolve=>setTimeout(resolve,500));
+  }
+  if(!persisted){
+    alert(`Attendance write could not be confirmed for ${date}. ${lastVerifyError?.message||'Please try again.'}`);
+    return;
+  }
+
+  const saved={...persisted,work_date:attendanceDateKey(persisted.work_date||date)};
+  month=new Date(new Date(`${saved.work_date}T00:00:00`).getFullYear(),new Date(`${saved.work_date}T00:00:00`).getMonth(),1);
+  await load();
+
+  // One final exact-date check after the full reload. If it is absent, do not
+  // show a false success message: the database read path is still inconsistent.
+  const finalCheck=await sb.from('attendance')
+    .select('id,user_id,work_date,check_in,check_out,status,ot_reason,notes')
     .eq('user_id',user.id)
     .eq('work_date',date)
     .maybeSingle();
-  if(verify.error){alert(`Attendance saved, but database verification failed: ${verify.error.message}`);return}
-  if(!verify.data){alert('Attendance could not be verified in the database. Please try saving again.');return}
+  if(finalCheck.error||!finalCheck.data){
+    alert(`Attendance was written but could not be confirmed after reload for ${date}. Please save again.`);
+    return;
+  }
 
-  const returned=verify.data;
-  const localExisting=records.find(x=>attendanceDateKey(x.work_date)===date)||null;
-  const saved={
-    ...(localExisting||{}),
-    ...(returned||{}),
-    user_id:user.id,
-    work_date:date,
-    check_in:obj.check_in,
-    check_out:obj.check_out,
-    break_minutes:obj.break_minutes,
-    status:obj.status,
-    ot_reason:obj.ot_reason,
-    notes:obj.notes,
-    id:returned.id
-  };
-  records=records.filter(x=>attendanceDateKey(x.work_date)!==date);
-  records.push(saved);
-  records.sort((a,b)=>String(b.work_date).localeCompare(String(a.work_date)));
-  const d=new Date(`${saved.work_date}T00:00:00`);
-  month=new Date(d.getFullYear(),d.getMonth(),1);
-  render();
   $('attendanceDialog').close();
-  alert(`Attendance saved successfully for ${saved.work_date}.`);
+  alert(`Attendance saved successfully for ${date}.`);
 };
 $('deleteRecord').onclick=async()=>{let id=$('recordId').value;if(id&&confirm('Delete this attendance record?')){let r=await sb.from('attendance').delete().eq('id',id).eq('user_id',user.id);if(r.error)alert(r.error.message);else{$('attendanceDialog').close();await load()}}};
 $('addToday').onclick=()=>openDialog(null,todayKey());
