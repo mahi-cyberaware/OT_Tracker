@@ -459,10 +459,14 @@ async function load(){
   $('adminActivitySection')?.setAttribute('aria-hidden',isAdmin?'false':'true');
   updateRosterAdminUI();
   $('dutyHours').value=duty;
+  // V28.0.8 — Read the signed-in user's attendance set first, then apply the
+  // selected-month filter locally. This avoids losing a boundary-day record
+  // because of a date-range/read-back mismatch.
   let start=`${monthKey()}-01`,end=new Date(month.getFullYear(),month.getMonth()+1,0).toISOString().slice(0,10);
-  let r=await sb.from('attendance').select('*').eq('user_id',user.id).gte('work_date',start).lte('work_date',end).order('work_date',{ascending:false});
+  let r=await sb.from('attendance').select('*').eq('user_id',user.id).order('work_date',{ascending:false});
   if(r.error){alert(r.error.message);return}
-  records=(r.data||[]).map(x=>({...x,work_date:attendanceDateKey(x.work_date)}));
+  const allAttendance=(r.data||[]).map(x=>({...x,work_date:attendanceDateKey(x.work_date)}));
+  records=allAttendance.filter(x=>x.work_date>=start&&x.work_date<=end);
   await loadRoster();render();
 }
 function todayRosterEntry(){
@@ -749,49 +753,29 @@ $('attendanceForm').onsubmit=async e=>{
   if(ot>0&&!otReason)return alert('Please enter the reason for the overtime.');
   let obj={user_id:user.id,work_date:date,check_in:status==='present'?$('checkIn').value:null,check_out:status==='present'?$('checkOut').value:null,break_minutes:0,status,ot_reason:otReason,notes:$('notes').value.trim()||null};
 
-  // V28.0.4 — Always resolve the unique user/date record before saving.
-  // This prevents a second INSERT when an attendance row already exists
-  // but the form was opened as a new record.
-  if(!id){
-    const existing=await sb.from('attendance')
-      .select('*')
-      .eq('user_id',user.id)
-      .eq('work_date',date)
-      .maybeSingle();
-    if(existing.error){
-      alert(existing.error.message);return;
-    }
-    if(existing.data?.id){
-      id=existing.data.id;
-      $('recordId').value=id;
-    }
-  }
+  // V28.0.8 — Persist by the database's unique user/date key.
+  // This makes both new and existing attendance rows use the same atomic save
+  // path and avoids the update-vs-insert split that caused 30 Sep to appear
+  // during the current session but disappear after a refresh.
+  let r=await sb.from('attendance')
+    .upsert(obj,{onConflict:'user_id,work_date'})
+    .select('*')
+    .single();
 
-  let r=id
-    ?await sb.from('attendance').update(obj).eq('id',id).eq('user_id',user.id).select('*').single()
-    :await sb.from('attendance').insert(obj).select('*').single();
-
-  // If a race/old client still reaches INSERT, recover from the unique-key
-  // error by resolving the existing row and updating it once.
-  if(r.error && /attendance_user_id_work_date_key|duplicate key value/i.test(r.error.message||'')){
-    const existing=await sb.from('attendance')
-      .select('*')
-      .eq('user_id',user.id)
-      .eq('work_date',date)
-      .maybeSingle();
-    if(existing.error){alert(existing.error.message);return}
-    if(existing.data?.id){
-      id=existing.data.id;
-      $('recordId').value=id;
-      r=await sb.from('attendance').update(obj).eq('id',id).eq('user_id',user.id).select('*').single();
-    }
-  }
   if(r.error){alert(r.error.message);return}
-  // V28.0.7 — The write can succeed even when PostgREST does not return the
-  // row through SELECT immediately (for example while an existing RLS/session
-  // context is being refreshed). Do not discard a successful write by calling
-  // load() here. Build the UI record from the values just saved instead.
-  const returned=r.data&&typeof r.data==='object'?r.data:null;
+
+  // Verify the exact date is readable after the write before closing the form.
+  // The verification also ensures the Calendar/History refresh is based on the
+  // persisted database row rather than a session-only copy.
+  const verify=await sb.from('attendance')
+    .select('*')
+    .eq('user_id',user.id)
+    .eq('work_date',date)
+    .maybeSingle();
+  if(verify.error){alert(`Attendance saved, but database verification failed: ${verify.error.message}`);return}
+  if(!verify.data){alert('Attendance could not be verified in the database. Please try saving again.');return}
+
+  const returned=verify.data;
   const localExisting=records.find(x=>attendanceDateKey(x.work_date)===date)||null;
   const saved={
     ...(localExisting||{}),
@@ -804,7 +788,7 @@ $('attendanceForm').onsubmit=async e=>{
     status:obj.status,
     ot_reason:obj.ot_reason,
     notes:obj.notes,
-    id:(returned?.id||localExisting?.id||`local-${user.id}-${date}`)
+    id:returned.id
   };
   records=records.filter(x=>attendanceDateKey(x.work_date)!==date);
   records.push(saved);

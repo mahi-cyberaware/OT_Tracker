@@ -1,9 +1,9 @@
-const CACHE = 'worktrack-v28.0.7-attendance-save';
+const CACHE = 'worktrack-v28.0.8-attendance-persistence';
 const APP_SHELL = [
   './',
   './index.html',
   './style.css',
-  './app-v22.js?v=28.0.7',
+  './app-v22.js?v=28.0.8',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png'
