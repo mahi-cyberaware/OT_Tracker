@@ -1,0 +1,13 @@
+WorkTrack V28.0.10 — changed files
+
+Modified:
+- app-v22.js — local-safe month-end filtering; safer editing/update path; break-minute support.
+- index.html — break-minute field and app script cache version.
+- sw.js — service-worker cache version.
+- updates/updates.json — V28.0.10 Update Center entry.
+
+Added:
+- docs/version-history/V28.0.10_UPDATE_NOTES.md
+- docs/version-history/V28.0.10_CHANGED_FILES.txt
+
+No Supabase schema, SQL, or RLS files changed.
