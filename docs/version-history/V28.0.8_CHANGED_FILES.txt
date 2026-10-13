@@ -1,0 +1,8 @@
+V28.0.8 changed files:
+- app-v22.js
+- index.html
+- style.css
+- sw.js
+- updates/updates.json
+- docs/version-history/V28.0.8_UPDATE_NOTES.md
+- docs/version-history/V28.0.8_CHANGED_FILES.txt
