@@ -10,7 +10,6 @@
 </p><p align="center">
   <b>Attendance • Hours • Overtime • Written Statements</b>
 </p>
-## Attendance • Hours • Overtime • Written Statements
 
 # WorkTrack — Attendance & Overtime
 
