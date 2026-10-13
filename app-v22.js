@@ -1,13 +1,17 @@
 const SUPABASE_URL="https://qbbbpussyzkutonpvaze.supabase.co";
 const SUPABASE_ANON_KEY="sb_publishable_QqqqICyurLbmaMBPUwfF_g_8_jVZYuO";
 const REDIRECT_URL="https://ot-tracker-psi.vercel.app/";
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
+  global:{
+    fetch:(url,options={})=>fetch(url,{...options,cache:"no-store"})
+  }
+});
 
 let user=null,records=[],rosterEntries=[],month=new Date(),rosterMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),duty=9,signUp=false,isAdmin=false;
 const NORMAL_OT_RATE=8.94;
 const $=id=>document.getElementById(id);
 function fmt(n){return `${Number(n.toFixed(2))}h`}
-function hours(inT,outT){if(!inT||!outT)return 0;let [ih,im]=inT.split(':').map(Number),[oh,om]=outT.split(':').map(Number);let a=ih*60+im,b=oh*60+om;if(b<a)b+=1440;return Math.max(0,(b-a)/60)}
+function hours(inT,outT,breakMinutes=0){if(!inT||!outT)return 0;let [ih,im]=inT.split(':').map(Number),[oh,om]=outT.split(':').map(Number);let a=ih*60+im,b=oh*60+om;if(b<a)b+=1440;return Math.max(0,(b-a-Math.max(0,Number(breakMinutes)||0))/60)}
 function monthKey(){return `${month.getFullYear()}-${String(month.getMonth()+1).padStart(2,'0')}`}
 function todayKey(){let d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 // V28.0.3: normalize attendance dates so Calendar/History use the same YYYY-MM-DD key.
@@ -395,7 +399,7 @@ function openDateDetails(r,date){
 
   let h=
     r.status==='present'?
-    hours(r.check_in,r.check_out):
+    hours(r.check_in,r.check_out,r.break_minutes):
     0;
 
   let ot=
@@ -459,10 +463,14 @@ async function load(){
   $('adminActivitySection')?.setAttribute('aria-hidden',isAdmin?'false':'true');
   updateRosterAdminUI();
   $('dutyHours').value=duty;
-  let start=`${monthKey()}-01`,end=new Date(month.getFullYear(),month.getMonth()+1,0).toISOString().slice(0,10);
-  let r=await sb.from('attendance').select('*').eq('user_id',user.id).gte('work_date',start).lte('work_date',end).order('work_date',{ascending:false});
+  // V28.0.8 — Read the signed-in user's attendance set first, then apply the
+  // selected-month filter locally. This avoids losing a boundary-day record
+  // because of a date-range/read-back mismatch.
+  let start=`${monthKey()}-01`,lastDay=new Date(month.getFullYear(),month.getMonth()+1,0).getDate(),end=`${monthKey()}-${String(lastDay).padStart(2,'0')}`;
+  let r=await sb.from('attendance').select('*').eq('user_id',user.id).order('work_date',{ascending:false});
   if(r.error){alert(r.error.message);return}
-  records=(r.data||[]).map(x=>({...x,work_date:attendanceDateKey(x.work_date)}));
+  const allAttendance=(r.data||[]).map(x=>({...x,work_date:attendanceDateKey(x.work_date)}));
+  records=allAttendance.filter(x=>x.work_date>=start&&x.work_date<=end);
   await loadRoster();render();
 }
 function todayRosterEntry(){
@@ -522,8 +530,8 @@ function render(){
   if($('reportMonthTitle'))$('reportMonthTitle').textContent=selectedMonth;
   if($('reportMonthMeta'))$('reportMonthMeta').textContent=`${records.length} record${records.length===1?'':'s'} available for this month`;
   let present=records.filter(x=>x.status==='present');
-  let worked=present.reduce((sum,x)=>sum+hours(x.check_in,x.check_out),0);
-  let ot=present.reduce((sum,x)=>sum+Math.max(0,hours(x.check_in,x.check_out)-duty),0);
+  let worked=present.reduce((sum,x)=>sum+hours(x.check_in,x.check_out,x.break_minutes),0);
+  let ot=present.reduce((sum,x)=>sum+Math.max(0,hours(x.check_in,x.check_out,x.break_minutes)-duty),0);
   let dayOffCount=records.filter(x=>x.status==='off').length;
   let leaveCount=records.filter(x=>['leave','annual_leave','sick_leave'].includes(x.status)).length;
   let holidayWorkedCount=records.filter(x=>x.status==='present'&&publicHolidayName(x.work_date)).length;
@@ -586,7 +594,7 @@ function renderAnalytics(){
   let days=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
   for(let n=1;n<=days;n++){
     let date=`${monthKey()}-${String(n).padStart(2,'0')}`,r=records.find(x=>attendanceDateKey(x.work_date)===date);
-    let h=r&&r.status==='present'?hours(r.check_in,r.check_out):0;
+    let h=r&&r.status==='present'?hours(r.check_in,r.check_out,r.break_minutes):0;
     let ot=r&&r.status==='present'?Math.max(0,h-duty):0;
     if(h||ot)daily.push({n,h,ot});
   }
@@ -656,7 +664,7 @@ function renderCalendar(){
     d.innerHTML=`<div class="daynum">${n}</div>`;
 
     if(r){
-      let h=hours(r.check_in,r.check_out),
+      let h=hours(r.check_in,r.check_out,r.break_minutes),
           isPresent=r.status==='present',
           shortDuty=isPresent && h<9,
           ot=isPresent ? Math.max(0,h-duty) : 0;
@@ -712,7 +720,7 @@ function renderUaeHolidayList(){
 }
 function renderTable(){
   let t=$('records');t.innerHTML='';$('emptyRecords').classList.toggle('hidden',records.length>0);
-  records.forEach(r=>{let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty),tr=document.createElement('tr');tr.innerHTML=`<td>${r.work_date}</td><td>${r.check_in||'-'}</td><td>${r.check_out||'-'}</td><td>${fmt(h)}</td><td><b>${fmt(ot)}</b></td><td class="status ${ot?'ot':r.status==='present'?'normal':'leave'}">${statusLabel(r.status)}</td><td><button class="ghost edit" type="button">Edit</button></td>`;tr.querySelector('.edit').onclick=()=>openDialog(r);t.appendChild(tr)})
+  records.forEach(r=>{let h=hours(r.check_in,r.check_out,r.break_minutes),ot=Math.max(0,h-duty),tr=document.createElement('tr');tr.innerHTML=`<td>${r.work_date}</td><td>${r.check_in||'-'}</td><td>${r.check_out||'-'}</td><td>${fmt(h)}</td><td><b>${fmt(ot)}</b></td><td class="status ${ot?'ot':r.status==='present'?'normal':'leave'}">${statusLabel(r.status)}</td><td><button class="ghost edit" type="button">Edit</button></td>`;tr.querySelector('.edit').onclick=()=>openDialog(r);t.appendChild(tr)})
 }
 function openDialog(r,date){
   $('attendanceDialog').showModal();
@@ -723,6 +731,7 @@ function openDialog(r,date){
   $('status').value=r?.status==='leave'?'annual_leave':(r?.status||'present');
   $('notes').value=r?.notes||'';
   if($('otReason'))$('otReason').value=r?.ot_reason||'';
+  if($('breakMinutes'))$('breakMinutes').value=String(Number(r?.break_minutes)||0);
   $('deleteRecord').classList.toggle('hidden',!r);
   $('dialogTitle').textContent=r?'Edit attendance':'Add attendance';
   updateTimeRequirement();
@@ -744,76 +753,64 @@ $('attendanceForm').onsubmit=async e=>{
   let id=$('recordId').value,status=$('status').value,date=$('date').value;
   if(!date)return alert('Please select a date.');
   if(status==='present'&&(!$('checkIn').value||!$('checkOut').value))return alert('Please enter both check-in and check-out times.');
-  let ot=status==='present'?Math.max(0,hours($('checkIn').value,$('checkOut').value)-duty):0;
+  let ot=status==='present'?Math.max(0,hours($('checkIn').value,$('checkOut').value,Number($('breakMinutes')?.value||0))-duty):0;
   let otReason=$('otReason')?.value.trim()||null;
   if(ot>0&&!otReason)return alert('Please enter the reason for the overtime.');
-  let obj={user_id:user.id,work_date:date,check_in:status==='present'?$('checkIn').value:null,check_out:status==='present'?$('checkOut').value:null,break_minutes:0,status,ot_reason:otReason,notes:$('notes').value.trim()||null};
+  const breakMinutes=Number($('breakMinutes')?.value||0);
+  if(!Number.isInteger(breakMinutes)||breakMinutes<0||breakMinutes>1440)return alert('Break minutes must be a whole number from 0 to 1440.');
+  let obj={user_id:user.id,work_date:date,check_in:status==='present'?$('checkIn').value:null,check_out:status==='present'?$('checkOut').value:null,break_minutes:breakMinutes,status,ot_reason:otReason,notes:$('notes').value.trim()||null};
 
-  // V28.0.4 — Always resolve the unique user/date record before saving.
-  // This prevents a second INSERT when an attendance row already exists
-  // but the form was opened as a new record.
-  if(!id){
-    const existing=await sb.from('attendance')
-      .select('*')
-      .eq('user_id',user.id)
-      .eq('work_date',date)
-      .maybeSingle();
-    if(existing.error){
-      alert(existing.error.message);return;
+  // V28.0.10 — update the existing row when editing, rather than upserting
+  // under a changed date and leaving the original row behind. New entries still
+  // use the user/date unique key.
+  let r;
+  if(id){
+    const existing=records.find(x=>String(x.id)===String(id));
+    if(existing&&attendanceDateKey(existing.work_date)!==date){
+      const duplicate=await sb.from('attendance').select('id').eq('user_id',user.id).eq('work_date',date).maybeSingle();
+      if(duplicate.error){alert(`Could not check the target date: ${duplicate.error.message}`);return;}
+      if(duplicate.data&&String(duplicate.data.id)!==String(id)){alert('An attendance record already exists for that date. Edit that record instead to avoid duplicate attendance.');return;}
     }
-    if(existing.data?.id){
-      id=existing.data.id;
-      $('recordId').value=id;
-    }
-  }
-
-  let r=id
-    ?await sb.from('attendance').update(obj).eq('id',id).eq('user_id',user.id).select('*').single()
-    :await sb.from('attendance').insert(obj).select('*').single();
-
-  // If a race/old client still reaches INSERT, recover from the unique-key
-  // error by resolving the existing row and updating it once.
-  if(r.error && /attendance_user_id_work_date_key|duplicate key value/i.test(r.error.message||'')){
-    const existing=await sb.from('attendance')
-      .select('*')
-      .eq('user_id',user.id)
-      .eq('work_date',date)
-      .maybeSingle();
-    if(existing.error){alert(existing.error.message);return}
-    if(existing.data?.id){
-      id=existing.data.id;
-      $('recordId').value=id;
-      r=await sb.from('attendance').update(obj).eq('id',id).eq('user_id',user.id).select('*').single();
-    }
+    r=await sb.from('attendance').update(obj).eq('id',id).eq('user_id',user.id).select('*').single();
+  }else{
+    r=await sb.from('attendance').upsert(obj,{onConflict:'user_id,work_date',ignoreDuplicates:false}).select('*').single();
   }
   if(r.error){alert(r.error.message);return}
-  // V28.0.7 — The write can succeed even when PostgREST does not return the
-  // row through SELECT immediately (for example while an existing RLS/session
-  // context is being refreshed). Do not discard a successful write by calling
-  // load() here. Build the UI record from the values just saved instead.
-  const returned=r.data&&typeof r.data==='object'?r.data:null;
-  const localExisting=records.find(x=>attendanceDateKey(x.work_date)===date)||null;
-  const saved={
-    ...(localExisting||{}),
-    ...(returned||{}),
-    user_id:user.id,
-    work_date:date,
-    check_in:obj.check_in,
-    check_out:obj.check_out,
-    break_minutes:obj.break_minutes,
-    status:obj.status,
-    ot_reason:obj.ot_reason,
-    notes:obj.notes,
-    id:(returned?.id||localExisting?.id||`local-${user.id}-${date}`)
-  };
-  records=records.filter(x=>attendanceDateKey(x.work_date)!==date);
-  records.push(saved);
-  records.sort((a,b)=>String(b.work_date).localeCompare(String(a.work_date)));
-  const d=new Date(`${saved.work_date}T00:00:00`);
-  month=new Date(d.getFullYear(),d.getMonth(),1);
-  render();
+
+  let persisted=null,lastVerifyError=null;
+  for(let attempt=1;attempt<=3;attempt++){
+    const verify=await sb.from('attendance')
+      .select('*')
+      .eq('user_id',user.id)
+      .eq('work_date',date)
+      .maybeSingle();
+    if(!verify.error&&verify.data){persisted=verify.data;break;}
+    lastVerifyError=verify.error||new Error('No attendance row returned.');
+    if(attempt<3)await new Promise(resolve=>setTimeout(resolve,500));
+  }
+  if(!persisted){
+    alert(`Attendance write could not be confirmed for ${date}. ${lastVerifyError?.message||'Please try again.'}`);
+    return;
+  }
+
+  const saved={...persisted,work_date:attendanceDateKey(persisted.work_date||date)};
+  month=new Date(new Date(`${saved.work_date}T00:00:00`).getFullYear(),new Date(`${saved.work_date}T00:00:00`).getMonth(),1);
+  await load();
+
+  // One final exact-date check after the full reload. If it is absent, do not
+  // show a false success message: the database read path is still inconsistent.
+  const finalCheck=await sb.from('attendance')
+    .select('id,user_id,work_date,check_in,check_out,status,ot_reason,notes')
+    .eq('user_id',user.id)
+    .eq('work_date',date)
+    .maybeSingle();
+  if(finalCheck.error||!finalCheck.data){
+    alert(`Attendance was written but could not be confirmed after reload for ${date}. Please save again.`);
+    return;
+  }
+
   $('attendanceDialog').close();
-  alert(`Attendance saved successfully for ${saved.work_date}.`);
+  alert(`Attendance saved successfully for ${date}.`);
 };
 $('deleteRecord').onclick=async()=>{let id=$('recordId').value;if(id&&confirm('Delete this attendance record?')){let r=await sb.from('attendance').delete().eq('id',id).eq('user_id',user.id);if(r.error)alert(r.error.message);else{$('attendanceDialog').close();await load()}}};
 $('addToday').onclick=()=>openDialog(null,todayKey());
@@ -831,7 +828,7 @@ $('reportNextMonth')?.addEventListener('click',()=>changeSelectedMonth(1));
 $('reportTodayMonth')?.addEventListener('click',selectCurrentMonth);
 $('saveSettings').onclick=async()=>{let v=Number($('dutyHours').value);if(v<=0||v>24)return alert('Enter duty hours between 0.25 and 24.');let r=await sb.from('profiles').upsert({id:user.id,duty_hours:v});if(r.error)alert(r.error.message);else{duty=v;render();alert('Settings saved.')}};
 function reportTotals(){
-  let present=records.filter(x=>x.status==='present'),worked=present.reduce((sum,x)=>sum+hours(x.check_in,x.check_out),0),ot=present.reduce((sum,x)=>sum+Math.max(0,hours(x.check_in,x.check_out)-duty),0);
+  let present=records.filter(x=>x.status==='present'),worked=present.reduce((sum,x)=>sum+hours(x.check_in,x.check_out,x.break_minutes),0),ot=present.reduce((sum,x)=>sum+Math.max(0,hours(x.check_in,x.check_out,x.break_minutes)-duty),0);
   return {present,worked,ot,regular:Math.max(0,worked-ot),off:records.filter(x=>x.status==='off').length,leave:records.filter(x=>x.status==='leave').length,holidayWorked:records.filter(x=>x.status==='present'&&publicHolidayName(x.work_date)).length};
 }
 function exportPdf(){
@@ -849,7 +846,7 @@ function exportPdf(){
   let y=242;doc.setFontSize(10);summary.forEach(([k,v],i)=>{let x=i%2?310:40;if(i%2===0&&i>0)y+=25;doc.setFont('helvetica','normal');doc.setTextColor(145,160,185);doc.text(k,x,y);doc.setFont('helvetica','bold');doc.setTextColor(235,241,250);doc.text(String(v),x+105,y)});
   y+=40;doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text('Attendance records',40,y);y+=22;
   let headers=['Date','In','Out','Worked','OT','Status'];let xs=[40,105,170,245,315,380];doc.setFontSize(8);doc.setTextColor(120,137,160);headers.forEach((h,i)=>doc.text(h,xs[i],y));y+=14;
-  records.slice().sort((a,b)=>a.work_date.localeCompare(b.work_date)).forEach(r=>{if(y>790){doc.addPage();doc.setFillColor(11,18,32);doc.rect(0,0,595,842,'F');y=45;headers.forEach((h,i)=>doc.text(h,xs[i],y));y+=14}let h=hours(r.check_in,r.check_out),o=Math.max(0,h-duty);doc.setTextColor(205,214,230);doc.setFont('helvetica','normal');[r.work_date,r.check_in||'-',r.check_out||'-',fmt(h),fmt(o),statusLabel(r.status)].forEach((v,i)=>doc.text(String(v),xs[i],y));y+=18});
+  records.slice().sort((a,b)=>a.work_date.localeCompare(b.work_date)).forEach(r=>{if(y>790){doc.addPage();doc.setFillColor(11,18,32);doc.rect(0,0,595,842,'F');y=45;headers.forEach((h,i)=>doc.text(h,xs[i],y));y+=14}let h=hours(r.check_in,r.check_out,r.break_minutes),o=Math.max(0,h-duty);doc.setTextColor(205,214,230);doc.setFont('helvetica','normal');[r.work_date,r.check_in||'-',r.check_out||'-',fmt(h),fmt(o),statusLabel(r.status)].forEach((v,i)=>doc.text(String(v),xs[i],y));y+=18});
   doc.setFontSize(8);doc.setTextColor(100,116,140);doc.text('Generated by WorkTrack',40,820);doc.save(`worktrack-${monthKey()}.pdf`);
 }
 $('exportPdf').onclick=exportPdf;
@@ -1274,7 +1271,7 @@ setInterval(checkReminder,30000);
 
 $('homeLogo')?.addEventListener('click',()=>showAppSection('home'));
 
-$('exportCsv').onclick=()=>{let rows=[['Date','Check In','Check Out','Worked Hours','Overtime Hours','Status','OT Reason','Notes'],...records.map(r=>{let h=hours(r.check_in,r.check_out),ot=Math.max(0,h-duty);return[r.work_date,r.check_in||'',r.check_out||'',h.toFixed(2),ot.toFixed(2),statusLabel(r.status),r.ot_reason||'',r.notes||'']})];let csv=rows.map(row=>row.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`worktrack-${monthKey()}.csv`;a.click();URL.revokeObjectURL(a.href)};
+$('exportCsv').onclick=()=>{let rows=[['Date','Check In','Check Out','Break Minutes','Worked Hours','Overtime Hours','Status','OT Reason','Notes'],...records.map(r=>{let h=hours(r.check_in,r.check_out,r.break_minutes),ot=Math.max(0,h-duty);return[r.work_date,r.check_in||'',r.check_out||'',Number(r.break_minutes)||0,h.toFixed(2),ot.toFixed(2),statusLabel(r.status),r.ot_reason||'',r.notes||'']})];let csv=rows.map(row=>row.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`worktrack-${monthKey()}.csv`;a.click();URL.revokeObjectURL(a.href)};
 
 /* =========================
    V25 — ADMIN STAFF ACTIVITY CENTER

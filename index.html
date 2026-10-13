@@ -668,7 +668,7 @@
         <div class="two"><label>Check in<input id="checkIn" type="time"></label><label>Check out<input id="checkOut" type="time"></label></div>
       </div>
       <div class="status-picker"><label>Status<select id="status"><option value="present">Present</option><option value="absent">Absent</option><option value="sick_leave">Sick Leave</option><option value="annual_leave">Annual Leave</option><option value="comp_off">Comp-Off</option><option value="off">Day Off</option><option value="holiday">Public Holiday</option></select></label><div class="status-note"><span class="status-dot"></span><span id="timeHint">For Present, both check-in and check-out are required.</span></div></div>
-      <label>Overtime reason<input id="otReason" type="text" maxlength="500" placeholder="Why was overtime required?"></label><label>Notes<textarea id="notes" rows="3" placeholder="Optional note"></textarea></label>
+      <div class="two"><label>Break minutes<input id="breakMinutes" type="number" min="0" max="1440" step="1" value="0" inputmode="numeric"></label><label>Overtime reason<input id="otReason" type="text" maxlength="500" placeholder="Why was overtime required?"></label></div><label>Notes<textarea id="notes" rows="3" placeholder="Optional note"></textarea></label>
       <div class="dialog-actions"><button class="primary" type="submit">Save attendance</button><button type="button" id="deleteRecord" class="danger hidden">Delete record</button></div>
     </form>
   </dialog>
@@ -686,7 +686,7 @@
     window.__worktrackInstantMenu={open,close};
   })();
   </script>
-  <script src="app-v22.js?v=28.0.7"></script>
+  <script src="app-v22.js?v=29.0"></script>
   <script>
   (function(){
     function initContactSettings(){
