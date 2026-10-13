@@ -1,0 +1,11 @@
+Modified:
+- style.css — responsive month-navigation layout
+- index.html — application script version query
+- sw.js — cache and application script version
+- updates/updates.json — V29.0 Update Center slide
+
+Added:
+- docs/version-history/V29.0_UPDATE_NOTES.md
+- docs/version-history/V29.0_CHANGED_FILES.txt
+
+No Supabase, SQL, RLS, or attendance-calculation files changed.
