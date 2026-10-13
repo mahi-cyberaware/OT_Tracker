@@ -1,5 +1,3 @@
-WorkTrack V29.0
-
 <p align="center">
   <img src="https://img.shields.io/badge/WorkTrack-V29.0-4F46E5?style=for-the-badge&logo=github&logoColor=white" alt="WorkTrack V29.0">
   <img src="https://img.shields.io/badge/Status-Active%20Development-16A34A?style=for-the-badge" alt="Active Development">
@@ -12,7 +10,6 @@ WorkTrack V29.0
 </p><p align="center">
   <b>Attendance • Hours • Overtime • Written Statements</b>
 </p>---
-WorkTrack V18
 
 # WorkTrack — Attendance & Overtime
 
