@@ -1,7 +1,16 @@
 {
-  "version": "29.0",
+  "version": "30.0",
   "date": "14 October 2026",
   "slides": [
+    {
+      "version": "30.0",
+      "date": "14 October 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "WORKTRACK V30.0",
+      "title": "Bus & Shuttle Time",
+      "text": "Adds a dedicated Bus & Shuttle Time option to the menu, bringing the ICAD–Catering bus timetable and CCS Catering Shuttle 1 and Shuttle 2 schedules into one responsive page with separate tabs and departure-time search.",
+      "button": "WORKTRACK 30.0"
+    },
     {
       "version": "29.0",
       "date": "14 October 2026",
