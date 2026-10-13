@@ -1,7 +1,16 @@
 {
-  "version": "28.0.10",
-  "date": "12 October 2026",
+  "version": "29.0",
+  "date": "14 October 2026",
   "slides": [
+    {
+      "version": "29.0",
+      "date": "14 October 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "WORKTRACK V29.0",
+      "title": "Responsive Month Navigation",
+      "text": "Keeps Current month, Previous month and Next month controls side-by-side in the Dashboard and Calendar on phones and desktop. The Calendar heading moves above the controls on narrow screens to prevent overflow. Attendance calculations and saved records are unchanged.",
+      "button": "WORKTRACK 29.0"
+    },
     {
       "version": "28.0.10",
       "date": "12 October 2026",
