@@ -106,10 +106,12 @@ REVIEW & EDIT
 PRINT / SAVE PDF
 ```
 
----
+<div align="center">
 
-<div align="center">WorkTrack
+<img src="https://img.shields.io/badge/🔒_PRIVATE-Authorized_Access-6366F1?style=for-the-badge&labelColor=111827" alt="Private Project" />
+<img src="https://img.shields.io/badge/WORKTRACK-POWERED-06B6D4?style=for-the-badge&labelColor=111827" alt="WorkTrack" />
 
+<br><br>
 <img src="https://img.shields.io/badge/ATTENDANCE-TRACKING-22C55E?style=flat-square" alt="Attendance Tracking" />
 <img src="https://img.shields.io/badge/HOURS-MANAGEMENT-3B82F6?style=flat-square" alt="Hours Management" />
 <img src="https://img.shields.io/badge/OVERTIME-CONTROL-F59E0B?style=flat-square" alt="Overtime Control" /><br><br>
