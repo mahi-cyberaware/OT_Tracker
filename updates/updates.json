@@ -1,7 +1,16 @@
 {
-  "version": "28.0.9",
-  "date": "03 October 2026",
+  "version": "28.0.10",
+  "date": "12 October 2026",
   "slides": [
+    {
+      "version": "28.0.10",
+      "date": "12 October 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "WORKTRACK V28.0.10",
+      "title": "Attendance Date & Editing Fix",
+      "text": "Fixes local-timezone month-end filtering so the final day of a month is included. Attendance records can be corrected across dates, including check-in/out, break minutes, status, overtime reason and notes. Editing a record updates its existing row and checks for duplicate target dates.",
+      "button": "WORKTRACK 28.0.10"
+    },
     {
       "version": "28.0.9",
       "date": "03 October 2026",
