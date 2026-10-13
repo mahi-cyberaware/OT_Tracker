@@ -106,13 +106,20 @@ REVIEW & EDIT
 PRINT / SAVE PDF
 ```
 
-## 📌 Project Status
+---
 
-**Current Version: V27.1**  
-**Status: Active Development**
+<div align="center"><img src="https://img.shields.io/badge/🔒_PRIVATE-Authorized_Access-6366F1?style=for-the-badge&labelColor=111827" alt="Private Project" />
+<img src="https://img.shields.io/badge/WORKTRACK-POWERED-06B6D4?style=for-the-badge&labelColor=111827" alt="WorkTrack" /><br><br>
 
-## 🔒 Private Project
+<img src="https://img.shields.io/badge/Attendance-Tracking-22C55E?style=flat-square" alt="Attendance Tracking" />
+<img src="https://img.shields.io/badge/Hours-Management-3B82F6?style=flat-square" alt="Hours Management" />
+<img src="https://img.shields.io/badge/Overtime-Control-F59E0B?style=flat-square" alt="Overtime Control" />
+<img src="https://img.shields.io/badge/Statements-AI%20Assisted-A855F7?style=flat-square" alt="AI Assisted Statements" /><br><br>
 
-WorkTrack is intended for authorized personal/workforce use.
+Built with passion. Designed for operations.
 
-**Built with focus. Built for operations.**
+Made with ❤️ by "Mahi" (https://github.com/mahi-cyberaware)
+
+<img src="https://img.shields.io/badge/MADE_WITH-LOVE-EC4899?style=for-the-badge&logo=heart&logoColor=white" alt="Made with love" /><sub>WorkTrack · Attendance • Hours • Overtime</sub>
+
+<br><img src="https://img.shields.io/badge/©_2026-WorkTrack-64748B?style=flat-square" alt="Copyright 2026 WorkTrack" /></div>
