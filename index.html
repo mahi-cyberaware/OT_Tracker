@@ -458,8 +458,62 @@
           </div>
         </div>
       </section>
+    
+      <section id="busShuttleSection" class="panel glass-card bus-shuttle-panel" hidden>
+        <div class="bus-shuttle-hero">
+          <div class="section-kicker">TRANSPORT SCHEDULES</div>
+          <h2>Bus &amp; Shuttle Time</h2>
+          <p class="muted">Check the ICAD–Catering bus timetable and CCS Catering shuttle departures in one place.</p>
+        </div>
 
-      <footer class="app-footer">
+        <div class="bus-shuttle-tabs" role="tablist" aria-label="Transport schedule">
+          <button type="button" class="bus-shuttle-tab active" data-bus-tab="icad" role="tab" aria-selected="true">🚌 ICAD Bus Times</button>
+          <button type="button" class="bus-shuttle-tab" data-bus-tab="shuttle" role="tab" aria-selected="false">🚐 CCS Shuttle Times</button>
+        </div>
+
+        <div id="icadBusPanel" class="bus-schedule-panel" role="tabpanel">
+          <div class="bus-schedule-heading">
+            <div><div class="section-kicker">ICAD ↔ CATERING</div><h3>ICAD Bus Timetable</h3></div>
+            <span class="bus-live-tag">Fixed schedule</span>
+          </div>
+          <div class="bus-direction-grid">
+            <article class="bus-direction-card">
+              <h4><span>↗</span> From ICAD to Catering</h4>
+              <div class="bus-time-grid" id="icadToCateringTimes">
+                <span>03:15</span><span>05:10</span><span>07:15</span><span>09:15</span><span>11:15</span><span>13:15</span><span>15:15</span><span>17:15</span><span>19:15</span><span>21:15</span><span>23:15</span>
+              </div>
+            </article>
+            <article class="bus-direction-card">
+              <h4><span>↙</span> From Catering to ICAD</h4>
+              <div class="bus-time-grid" id="cateringToIcadTimes">
+                <span>00:30</span><span>02:15</span><span>04:15</span><span>06:15</span><span>08:15</span><span>10:15</span><span>12:15</span><span>14:15</span><span>16:30</span><span>18:15</span><span>20:15</span><span>22:15</span>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div id="shuttleBusPanel" class="bus-schedule-panel" role="tabpanel" hidden>
+          <div class="bus-schedule-heading">
+            <div><div class="section-kicker">CCS CATERING</div><h3>Shuttle Bus Service</h3></div>
+            <span class="bus-live-tag">Shuttle 1 &amp; 2</span>
+          </div>
+          <label class="bus-search-label">Find a departure time
+            <input id="shuttleTimeSearch" type="search" placeholder="Search time, e.g. 06:15" inputmode="search">
+          </label>
+          <div class="shuttle-table-wrap">
+            <table class="shuttle-times-table">
+              <thead>
+                <tr><th colspan="2">🚐 Shuttle 1</th><th colspan="2">🚐 Shuttle 2</th></tr>
+                <tr><th>Catering → MTB</th><th>MTB → Catering</th><th>Catering → MTB</th><th>MTB → Catering</th></tr>
+              </thead>
+              <tbody id="shuttleTimesRows"></tbody>
+            </table>
+          </div>
+          <p class="muted small bus-schedule-note">Times are shown as provided in the supplied CCS Catering timetable. Check the posted notice for operational changes.</p>
+        </div>
+      </section>
+
+<footer class="app-footer">
         <div class="footer-brand">
           <strong>WorkTrack</strong>
           <span>Attendance • Hours • Overtime</span>
@@ -473,7 +527,8 @@
         <div class="footer-security">Private account access • HTTPS • Supabase authentication • Row Level Security</div>
         <div class="footer-bottom"><span>© 2026 WorkTrack</span><span>Built & developed by Mahi</span></div>
       </footer>
-    </main>
+
+</main>
 
     <aside id="appMenu" class="app-menu" aria-hidden="true">
       <div class="menu-backdrop" id="menuBackdrop"></div>
@@ -492,6 +547,7 @@
           <button type="button" class="menu-item" data-nav="calendar">▦ <span>Calendar</span></button>
           <button type="button" class="menu-item" data-nav="analytics">◫ <span>Analytics</span></button>
           <button type="button" class="menu-item" data-nav="reports">▤ <span>Reports</span></button>
+          <button type="button" class="menu-item" data-nav="busShuttle">🚌 <span>Bus &amp; Shuttle Time</span></button>
           <button type="button" class="menu-item" data-nav="records">☷ <span>Attendance history</span></button>
           <button type="button" class="menu-item" data-nav="writtenStatement"><span>Written Statement</span></button>
           <button type="button" class="menu-item" data-nav="payroll">₹ <span>Payroll estimate</span></button>
@@ -686,7 +742,7 @@
     window.__worktrackInstantMenu={open,close};
   })();
   </script>
-  <script src="app-v22.js?v=29.0"></script>
+  <script src="app-v22.js?v=30.0.1"></script>
   <script>
   (function(){
     function initContactSettings(){

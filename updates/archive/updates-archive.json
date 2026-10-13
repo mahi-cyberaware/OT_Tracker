@@ -1,0 +1,158 @@
+{
+  "description": "Archived WorkTrack Update Center slides. Older releases are preserved here and are not deleted.",
+  "slides": [
+    {
+      "version": "28.0.7",
+      "date": "October 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "WORKTRACK V28.0.7",
+      "title": "Targeted Attendance Save Fix",
+      "text": "Successful attendance saves are now reflected immediately in Dashboard, Calendar and Attendance History without discarding the saved record during an immediate read-back.",
+      "button": "WORKTRACK 28.0.7"
+    },
+    {
+      "version": "28.0.6",
+      "date": "02 October 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V28.0.6",
+      "text": "Dashboard now has dedicated month navigation so previous attendance, working hours, overtime and attendance percentage can be reviewed by selecting the required month. Calendar, history and reports stay synchronized with the selected month.",
+      "button": "WORKTRACK 28.0.6"
+    },
+    {
+      "version": "28.0.5",
+      "date": "01 October 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V28.0.5",
+      "text": "Attendance reads are now restricted to the signed-in user, and the dashboard month controls clearly support current-month and previous-month views without changing the existing calculations.",
+      "button": "WORKTRACK 28.0.5"
+    },
+    {
+      "version": "28.0.4",
+      "date": "01 October 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V28.0.4",
+      "text": "Attendance saving now resolves existing user/date records before insert, preventing duplicate-key errors and keeping the record editable.",
+      "button": "WORKTRACK 28.0.4"
+    },
+    {
+      "version": "28.0.3",
+      "date": "1 October 2026",
+      "image": "./backgrounds/v27.6-02_deep-ocean.svg",
+      "eyebrow": "TEST RELEASE",
+      "title": "WorkTrack V28.0.3",
+      "text": "Attendance saves now synchronize the edited record across the dashboard, calendar and attendance history, with normalized date handling and verified database read-back.",
+      "button": "WORKTRACK 28.0.3"
+    },
+    {
+      "version": "27.8",
+      "date": "28 September 2026",
+      "image": "./backgrounds/v27.6-02_deep-ocean.svg",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V27.8",
+      "text": "The home page now gives a focused view of Today, Next duty and Quick Actions without changing the existing dashboard calculations.",
+      "button": "WORKTRACK 27.8"
+    },
+    {
+      "version": "27.7",
+      "date": "28 September 2026",
+      "image": "./backgrounds/v27.6-01_aurora-blue.svg",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V27.7",
+      "text": "Calendar now uses subtle month-based background artwork with readable overlays while preserving all attendance, overtime and holiday indicators.",
+      "button": "WORKTRACK 27.7"
+    },
+    {
+      "version": "27.6",
+      "date": "28 September 2026",
+      "image": "./backgrounds/v27.6-01_aurora-blue.svg",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V27.6",
+      "text": "Added a personal Background Gallery with multiple dark and light backgrounds. Users can choose and save their preferred WorkTrack background from Settings.",
+      "button": "WORKTRACK 27.6"
+    },
+    {
+      "version": "27.5",
+      "date": "27 September 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V27.5",
+      "text": "Monthly reports now have simple month navigation so users can select the exact month before downloading PDF or CSV.",
+      "button": "WORKTRACK 27.5"
+    },
+    {
+      "version": "27.4",
+      "date": "27 September 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V27.4",
+      "text": "Roster and attendance history now show one month at a time with simple month navigation. Supabase email confirmation handling is improved for account email changes.",
+      "button": "WORKTRACK 27.4"
+    },
+    {
+      "version": "27.3",
+      "date": "26 September 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V27.3",
+      "text": "New Light Mode with a persistent Light/Dark theme switch, while preserving the existing WorkTrack functionality and dark-blue design.",
+      "button": "WORKTRACK 27.3"
+    },
+    {
+      "version": "27.2",
+      "date": "26 September 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V27.2",
+      "text": "Calendar intelligence now highlights duty days below 9 hours in red and adds the 2026 UAE public-holiday list below the monthly calendar.",
+      "button": "WORKTRACK 27.2"
+    },
+    {
+      "version": "27.1",
+      "date": "25 September 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V27.1",
+      "text": "AI staff statements now use Base/Ramp context with automatic provider fallback. Profile picture display and profile controls are improved.",
+      "button": "WORKTRACK 27.1"
+    },
+    {
+      "version": "26.2",
+      "date": "20 September 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "LATEST RELEASE",
+      "title": "WorkTrack V26.2",
+      "text": "A cleaner update center with reliable background artwork, responsive layout and a complete release history.",
+      "button": "WORKTRACK 26.2"
+    },
+    {
+      "version": "26.1",
+      "date": "20 September 2026",
+      "image": "./backgrounds/background-2-green.png",
+      "eyebrow": "WORKTRACK V26.1",
+      "title": "WorkTrack V26.1",
+      "text": "Footer alignment improvements and a cleaner presentation across desktop and mobile screens.",
+      "button": "WORKTRACK 26.1"
+    },
+    {
+      "version": "26",
+      "date": "September 2026",
+      "image": "./backgrounds/background-3-purple-security.png",
+      "eyebrow": "WORKTRACK V26",
+      "title": "WorkTrack V26",
+      "text": "Professional footer alignment and the new visual update-center foundation.",
+      "button": "WORKTRACK 26"
+    },
+    {
+      "version": "25.4",
+      "date": "September 2026",
+      "image": "./backgrounds/background-1-blue.png",
+      "eyebrow": "WORKTRACK V25.4",
+      "title": "WorkTrack V25.4",
+      "text": "A more professional WorkTrack experience with an improved update center and responsive presentation.",
+      "button": "WORKTRACK 25.4"
+    }
+  ]
+}

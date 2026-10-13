@@ -1461,6 +1461,7 @@ const appSections={
   calendar:['calendarSection'],
   analytics:['analyticsSection'],
   reports:['reportsSection'],
+  busShuttle:['busShuttleSection'],
   records:['recordsSection'],
   writtenStatement:['writtenStatementSection'],
   payroll:['payrollSection'],
@@ -1475,6 +1476,7 @@ const navLabels={
   calendar:'Calendar',
   analytics:'Analytics',
   reports:'Reports',
+  busShuttle:'Bus & Shuttle Time',
   records:'Attendance history',
   writtenStatement:'Written Statement',
   payroll:'Payroll estimate',
@@ -1617,6 +1619,52 @@ $('closeInfoBottom')?.addEventListener('click',()=>$('infoDialog').close());
 $('infoDialog')?.addEventListener('click',e=>{
   if(e.target===$('infoDialog'))$('infoDialog').close();
 });
+
+
+/* =========================
+   V30.0 — BUS & SHUTTLE TIMES
+   ========================= */
+(function initBusShuttleTimes(){
+  const tabs = Array.from(document.querySelectorAll('[data-bus-tab]'));
+  const icadPanel = document.getElementById('icadBusPanel');
+  const shuttlePanel = document.getElementById('shuttleBusPanel');
+  const rowsHost = document.getElementById('shuttleTimesRows');
+  const search = document.getElementById('shuttleTimeSearch');
+  if (!tabs.length || !icadPanel || !shuttlePanel || !rowsHost) return;
+
+  const shuttle1ToMtb = ['06:15','07:00','07:45','08:25','09:20','10:00','10:45','11:30','12:10','12:55','14:00','14:40','15:20','16:00','17:00','18:15','19:00','19:40','20:20','21:00','22:00','22:40','23:20','00:15','01:00','01:50','02:30','03:15','04:15','05:15'];
+  const shuttle1FromMtb = ['06:40','07:25','08:05','09:00','09:40','10:25','11:10','11:50','12:35','13:40','14:20','15:00','15:40','16:25','17:25','18:40','19:20','20:00','20:40','21:40','22:20','23:00','23:40','00:40','01:30','02:10','02:55','03:40','04:40','05:40'];
+  const shuttle2ToMtb = ['06:30','07:15','08:00','08:45','09:35','10:15','11:00','11:45','12:25','13:10','14:15','15:00','15:40','16:30','17:15','18:30','19:15','20:10','20:50','21:30','22:25','23:05','23:45','00:25','01:15','02:05','02:45','03:30','04:30','05:30'];
+  const shuttle2FromMtb = ['06:55','07:40','08:25','09:15','09:55','10:40','11:25','12:05','12:50','13:55','14:40','15:20','16:00','16:55','17:40','18:55','19:40','20:30','21:10','22:05','22:45','23:25','00:05','00:55','01:45','02:25','03:10','03:55','04:55','05:55'];
+  const allRows = Array.from({length:30}, (_,i)=>[
+    shuttle1ToMtb[i] || '—', shuttle1FromMtb[i] || '—',
+    shuttle2ToMtb[i] || '—', shuttle2FromMtb[i] || '—'
+  ]);
+
+  function renderRows(){
+    const query = (search?.value || '').trim();
+    const filtered = allRows.filter(row => !query || row.some(time => time.includes(query)));
+    rowsHost.innerHTML = filtered.map((row,index) =>
+      `<tr>${row.map(time => `<td>${time}</td>`).join('')}</tr>`
+    ).join('');
+    if (!filtered.length) {
+      rowsHost.innerHTML = '<tr><td colspan="4" class="bus-no-results">No departure times match your search.</td></tr>';
+    }
+  }
+  function setTab(name){
+    const icad = name === 'icad';
+    icadPanel.hidden = !icad;
+    shuttlePanel.hidden = icad;
+    tabs.forEach(tab => {
+      const active = tab.dataset.busTab === name;
+      tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', String(active));
+    });
+  }
+  tabs.forEach(tab => tab.addEventListener('click', () => setTab(tab.dataset.busTab)));
+  search?.addEventListener('input', renderRows);
+  renderRows();
+})();
 
 // Restore the last section after refresh; default to Home.
 let initialSection='home';
