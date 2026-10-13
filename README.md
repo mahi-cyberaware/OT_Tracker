@@ -1,5 +1,15 @@
-# WorkTrack V27.1
-
+<p align="center">
+  <img src="https://img.shields.io/badge/WorkTrack-V29.0-4F46E5?style=for-the-badge&logo=github&logoColor=white" alt="WorkTrack V29.0">
+  <img src="https://img.shields.io/badge/Status-Active%20Development-16A34A?style=for-the-badge" alt="Active Development">
+</p><p align="center">
+  <img src="https://img.shields.io/badge/JavaScript-ES6%2B-F7DF1E?style=flat-square&logo=javascript&logoColor=black" alt="JavaScript">
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white" alt="HTML5">
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white" alt="CSS3">
+  <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=black" alt="Supabase">
+  <img src="https://img.shields.io/badge/PWA-Enabled-5A0FC8?style=flat-square" alt="PWA">
+</p><p align="center">
+  <b>Attendance • Hours • Overtime • Written Statements</b>
+</p>
 ## Attendance • Hours • Overtime • Written Statements
 
 WorkTrack is a private workforce management platform designed to simplify attendance tracking, working-hour calculations, overtime management, employee profiles, OCR-assisted incident capture, and professional written-statement preparation.
