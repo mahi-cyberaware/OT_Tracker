@@ -9,7 +9,8 @@
   <img src="https://img.shields.io/badge/PWA-Enabled-5A0FC8?style=flat-square" alt="PWA">
 </p><p align="center">
   <b>Attendance • Hours • Overtime • Written Statements</b>
-</p>---
+</p>
+## Attendance • Hours • Overtime • Written Statements
 
 # WorkTrack — Attendance & Overtime
 
