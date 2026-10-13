@@ -2072,3 +2072,46 @@ html[data-theme="light"] .settings-preferences-block{background:rgba(255,255,255
     align-items: start;
   }
 }
+
+
+/* V30.0 — Bus & Shuttle Time */
+.bus-shuttle-panel { overflow: hidden; }
+.bus-shuttle-hero { padding: clamp(18px, 3vw, 28px); border-radius: 18px; background: linear-gradient(135deg, rgba(79,70,229,.18), rgba(14,165,233,.08)); border: 1px solid var(--line, rgba(148,163,184,.18)); margin-bottom: 18px; }
+.bus-shuttle-hero h2 { margin: 6px 0 8px; }
+.bus-shuttle-hero p { max-width: 680px; margin: 0; }
+.bus-shuttle-tabs { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin: 16px 0 20px; }
+.bus-shuttle-tab { min-width: 0; border: 1px solid var(--line, rgba(148,163,184,.2)); background: var(--surface-2, rgba(148,163,184,.08)); color: var(--text, inherit); border-radius: 12px; padding: 13px 15px; font: inherit; font-weight: 700; cursor: pointer; transition: transform .18s ease, background .18s ease, border-color .18s ease; }
+.bus-shuttle-tab:hover { transform: translateY(-1px); }
+.bus-shuttle-tab.active { background: linear-gradient(135deg, #4f46e5, #2563eb); color: #fff; border-color: transparent; box-shadow: 0 8px 24px rgba(37,99,235,.2); }
+.bus-schedule-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin: 6px 0 16px; }
+.bus-schedule-heading h3 { margin: 4px 0 0; }
+.bus-live-tag { border: 1px solid rgba(34,197,94,.28); color: #22c55e; background: rgba(34,197,94,.08); border-radius: 999px; padding: 6px 10px; font-size: .78rem; white-space: nowrap; }
+.bus-direction-grid { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:14px; }
+.bus-direction-card { min-width:0; padding:16px; border:1px solid var(--line, rgba(148,163,184,.18)); border-radius:16px; background:var(--surface-1, rgba(148,163,184,.04)); }
+.bus-direction-card h4 { display:flex; gap:8px; align-items:center; margin:0 0 14px; font-size:1rem; }
+.bus-direction-card h4 span { display:inline-grid; place-items:center; width:28px; height:28px; border-radius:9px; background:rgba(59,130,246,.14); color:#60a5fa; }
+.bus-time-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.bus-time-grid span { text-align:center; padding:9px 4px; border-radius:9px; border:1px solid var(--line, rgba(148,163,184,.15)); background:rgba(148,163,184,.06); font-variant-numeric:tabular-nums; font-weight:700; font-size:.92rem; }
+.bus-direction-card:first-child .bus-time-grid span { border-color:rgba(59,130,246,.17); }
+.bus-direction-card:last-child .bus-time-grid span { border-color:rgba(34,197,94,.17); }
+.bus-search-label { display:block; max-width:340px; margin: 0 0 14px; font-weight:600; }
+.bus-search-label input { display:block; width:100%; margin-top:7px; }
+.shuttle-table-wrap { overflow-x:auto; border:1px solid var(--line, rgba(148,163,184,.18)); border-radius:13px; }
+.shuttle-times-table { width:100%; border-collapse:collapse; min-width:520px; font-variant-numeric:tabular-nums; }
+.shuttle-times-table th,.shuttle-times-table td { text-align:center; padding:10px 8px; border-bottom:1px solid var(--line, rgba(148,163,184,.12)); }
+.shuttle-times-table thead tr:first-child th { background:rgba(79,70,229,.14); color:var(--text, inherit); font-size:.92rem; }
+.shuttle-times-table thead tr:nth-child(2) th { background:rgba(148,163,184,.08); font-size:.8rem; }
+.shuttle-times-table tbody tr:nth-child(even) { background:rgba(148,163,184,.045); }
+.shuttle-times-table tbody tr:hover { background:rgba(59,130,246,.09); }
+.shuttle-times-table td { font-weight:650; }
+.bus-schedule-note { margin:12px 0 0; }
+.bus-no-results { padding:22px !important; color:var(--muted, #94a3b8); }
+@media (max-width: 620px) {
+  .bus-shuttle-tabs { gap:7px; }
+  .bus-shuttle-tab { padding:11px 8px; font-size:.88rem; }
+  .bus-schedule-heading { align-items:flex-start; flex-direction:column; }
+  .bus-direction-grid { grid-template-columns:minmax(0,1fr); }
+  .bus-direction-card { padding:13px; }
+  .bus-time-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .bus-time-grid span { padding:8px 3px; font-size:.88rem; }
+}
