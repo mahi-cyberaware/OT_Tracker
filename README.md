@@ -110,14 +110,14 @@ PRINT / SAVE PDF
 
 <div align="center">WorkTrack
 
-"Attendance" · "Hours" · "Overtime"
+<img src="https://img.shields.io/badge/ATTENDANCE-TRACKING-22C55E?style=flat-square" alt="Attendance Tracking" />
+<img src="https://img.shields.io/badge/HOURS-MANAGEMENT-3B82F6?style=flat-square" alt="Hours Management" />
+<img src="https://img.shields.io/badge/OVERTIME-CONTROL-F59E0B?style=flat-square" alt="Overtime Control" /><br><br>
 
-<br>Built with passion. Designed for operations.
+Built with passion. Designed for operations.
 
 Made with ❤️ by "Mahi" (https://github.com/mahi-cyberaware)
 
-<br><img src="https://img.shields.io/badge/MADE_WITH-LOVE-ec4899?style=flat-square&logo=heart&logoColor=white" alt="Made with love" /><br><br>
-
-<sub>© 2026 WorkTrack · All rights reserved</sub>
+<img src="https://img.shields.io/badge/Made_with-♥_Love-EC4899?style=for-the-badge&labelColor=1F2937" alt="Made with love" /><br><sub>© 2026 WorkTrack · All rights reserved</sub>
 
 </div>
