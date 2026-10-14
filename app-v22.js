@@ -1449,7 +1449,7 @@ document.addEventListener('click',event=>{
   const btn=event.target.closest?.('[data-home-action]');
   if(!btn)return;
   const action=btn.dataset.homeAction;
-  if(action==='add')$('addToday')?.click();
+  if(action==='busShuttle')showAppSection('busShuttle');
   else if(action==='calendar')showAppSection('calendar');
   else if(action==='roster')showAppSection('roster');
   else if(action==='reports')showAppSection('reports');
