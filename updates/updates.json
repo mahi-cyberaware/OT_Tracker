@@ -1,7 +1,16 @@
 {
-  "version": "30.0.1",
+  "version": "30.0.2",
   "date": "14 October 2026",
   "slides": [
+    {
+      "version": "30.0.2",
+      "date": "14 October 2026",
+      "image": "./backgrounds/12_v30-quick-actions-teal.svg",
+      "eyebrow": "WORKTRACK V30.0.2",
+      "title": "Quick Actions Upgrade",
+      "text": "Replaces the duplicate Add attendance Quick Action with Bus & Shuttles, opening the existing Bus & Shuttle Time page directly. The main Add attendance button remains available on the homepage.",
+      "button": "WORKTRACK 30.0.2"
+    },
     {
       "version": "30.0.1",
       "date": "14 October 2026",
@@ -46,15 +55,6 @@
       "title": "Attendance Persistence Hardening",
       "text": "Attendance saves now use an authoritative no-cache database read with retry and a final post-reload verification. The app no longer reports success from a session-only record. Mobile Dashboard month controls remain side-by-side.",
       "button": "WORKTRACK 28.0.9"
-    },
-    {
-      "version": "28.0.8",
-      "date": "03 October 2026",
-      "image": "./backgrounds/06_ice-blue.svg",
-      "eyebrow": "WORKTRACK V28.0.8",
-      "title": "Attendance Persistence & Mobile Month Controls",
-      "text": "Attendance saves now use the database user/date key with post-save verification, so records remain available after refresh. Dashboard, Calendar, History and Report month controls stay side-by-side on mobile.",
-      "button": "WORKTRACK 28.0.8"
     }
   ]
 }
