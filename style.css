@@ -2115,3 +2115,12 @@ html[data-theme="light"] .settings-preferences-block{background:rgba(255,255,255
   .bus-time-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
   .bus-time-grid span { padding:8px 3px; font-size:.88rem; }
 }
+
+/* V30.0.3 — roster month navigation */
+.roster-month-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.roster-month-actions button{white-space:nowrap}
+@media(max-width:640px){
+  .roster-month-toolbar{display:flex;flex-direction:column;align-items:stretch;gap:12px}
+  .roster-month-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%}
+  .roster-month-actions button{padding:9px 5px;font-size:12px;min-width:0}
+}
