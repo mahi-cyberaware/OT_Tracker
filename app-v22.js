@@ -1043,7 +1043,19 @@ function exportRosterExcel(){
   });
   let ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:24},{wch:14},{wch:14},{wch:14},{wch:22},{wch:18}];
   let wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'My Roster');
-  XLSX.writeFile(wb,`worktrack-roster-${key}.xlsx`);
+  const fileName=`worktrack-roster-${key}.xlsx`;
+  // Build a real XLSX Blob with the official MIME type so Android does not save it as .bin.
+  const excelBytes=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  const excelBlob=new Blob([excelBytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const downloadUrl=URL.createObjectURL(excelBlob);
+  const link=document.createElement('a');
+  link.href=downloadUrl;
+  link.download=fileName;
+  link.style.display='none';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(downloadUrl),1500);
 }
 function exportRosterPdf(){
   const selected=selectedRosterMonthEntries(),key=rosterMonthKey();
