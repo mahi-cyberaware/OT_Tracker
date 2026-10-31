@@ -171,6 +171,15 @@
       "title": "Attendance Persistence Hardening",
       "text": "Attendance saves now use an authoritative no-cache database read with retry and a final post-reload verification. The app no longer reports success from a session-only record. Mobile Dashboard month controls remain side-by-side.",
       "button": "WORKTRACK 28.0.9"
+    },
+    {
+      "version": "28.0.10",
+      "date": "12 October 2026",
+      "image": "./backgrounds/08_silver-blue.svg",
+      "eyebrow": "WORKTRACK V28.0.10",
+      "title": "Attendance Date & Editing Fix",
+      "text": "Fixes local-timezone month-end filtering so the final day of a month is included. Attendance records can be corrected across dates, including check-in/out, break minutes, status, overtime reason and notes. Editing a record updates its existing row and checks for duplicate target dates.",
+      "button": "WORKTRACK 28.0.10"
     }
   ]
 }
