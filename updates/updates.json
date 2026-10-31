@@ -1,7 +1,16 @@
 {
-  "version": "30.0.3",
+  "version": "30.0.4",
   "date": "30 October 2026",
   "slides": [
+    {
+      "version": "30.0.4",
+      "date": "30 October 2026",
+      "image": "./backgrounds/14_v30-excel-export-fix.svg",
+      "eyebrow": "WORKTRACK V30.0.4",
+      "title": "Excel Download Compatibility Fix",
+      "text": "Improves roster Excel downloads on Android by generating a correctly typed XLSX file with the official Excel MIME type and month-specific filename.",
+      "button": "WORKTRACK 30.0.4"
+    },
     {
       "version": "30.0.3",
       "date": "30 October 2026",
@@ -46,15 +55,6 @@
       "title": "Responsive Month Navigation",
       "text": "Keeps Current month, Previous month and Next month controls side-by-side in the Dashboard and Calendar on phones and desktop. The Calendar heading moves above the controls on narrow screens to prevent overflow. Attendance calculations and saved records are unchanged.",
       "button": "WORKTRACK 29.0"
-    },
-    {
-      "version": "28.0.10",
-      "date": "12 October 2026",
-      "image": "./backgrounds/08_silver-blue.svg",
-      "eyebrow": "WORKTRACK V28.0.10",
-      "title": "Attendance Date & Editing Fix",
-      "text": "Fixes local-timezone month-end filtering so the final day of a month is included. Attendance records can be corrected across dates, including check-in/out, break minutes, status, overtime reason and notes. Editing a record updates its existing row and checks for duplicate target dates.",
-      "button": "WORKTRACK 28.0.10"
     }
   ]
 }
