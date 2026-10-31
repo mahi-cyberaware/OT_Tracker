@@ -1,0 +1,20 @@
+WorkTrack V30.0.3 — Changed Files
+
+Modified:
+- index.html — explicit Previous / Current / Next month roster controls; updated app script version
+- app-v22.js — PDF and Excel exports filtered to the selected roster month; month navigation state updated
+- style.css — responsive side-by-side roster month controls
+- sw.js — cache and app script version updated
+- updates/updates.json — V30.0.3 release slide; latest six retained
+- updates/archive/updates-archive.json — overflow slides archived without deletion
+
+Added:
+- backgrounds/13_v30-roster-monthly-export.svg
+- docs/version-history/V30.0.3_UPDATE_NOTES.md
+- docs/version-history/V30.0.3_CHANGED_FILES.txt
+
+Unchanged:
+- Roster database records and duty timings
+- Attendance calculations and records
+- Supabase configuration and RLS policies
+- Bus & Shuttle timetable data

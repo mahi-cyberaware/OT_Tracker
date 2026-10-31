@@ -1,0 +1,19 @@
+WorkTrack V30.0.4 — Changed Files
+
+Modified:
+- app-v22.js — create XLSX Blob with official Excel MIME type and explicit .xlsx filename
+- index.html — app script version updated
+- sw.js — cache and app script version updated
+- updates/updates.json — V30.0.4 release slide; latest six retained
+- updates/archive/updates-archive.json — overflow slides archived without deletion
+
+Added:
+- backgrounds/14_v30-excel-export-fix.svg
+- docs/version-history/V30.0.4_UPDATE_NOTES.md
+- docs/version-history/V30.0.4_CHANGED_FILES.txt
+
+Unchanged:
+- Selected-month roster filtering from V30.0.3
+- Roster and attendance records
+- Supabase configuration and RLS policies
+- Bus & Shuttle timetable data
