@@ -125,15 +125,15 @@
       </section>
 
       <section id="homeStats" class="stats">
-        <div class="stat glass-card"><span>Working days</span><b id="workingDays">0</b><small>This month</small></div>
-        <div class="stat glass-card"><span>Day off</span><b id="dayOffCount">0</b><small>Off days recorded</small></div>
-        <div class="stat glass-card"><span>Leave</span><b id="leaveCount">0</b><small>Leave records</small></div>
+        <div class="stat glass-card stat-clickable" data-stat-detail="working" role="button" tabindex="0" aria-label="View working days details"><span>Working days</span><b id="workingDays">0</b><small>This month · View details</small></div>
+        <div class="stat glass-card stat-clickable" data-stat-detail="off" role="button" tabindex="0" aria-label="View day off details"><span>Day off</span><b id="dayOffCount">0</b><small>Off days recorded · View details</small></div>
+        <div class="stat glass-card stat-clickable" data-stat-detail="leave" role="button" tabindex="0" aria-label="View leave details"><span>Leave</span><b id="leaveCount">0</b><small>Leave records · View details</small></div>
         <div class="stat glass-card"><span>Attendance</span><b id="attendanceRate">0%</b><small>Selected month</small></div>
         <div class="stat glass-card"><span>Regular hours</span><b id="regularHours">0h</b><small>Duty hours covered</small></div>
-        <div class="stat glass-card stat-ot"><span>Overtime</span><b id="otHours">0h</b><small>Extra hours</small></div>
+        <div class="stat glass-card stat-ot stat-clickable" data-stat-detail="overtime" role="button" tabindex="0" aria-label="View overtime details"><span>Overtime</span><b id="otHours">0h</b><small>Extra hours · View details</small></div>
         <div class="stat glass-card"><span>Total worked</span><b id="workedHours">0h</b><small>Recorded hours</small></div>
         <div class="stat glass-card"><span>Average / day</span><b id="avgHours">0h</b><small>Present days</small></div>
-        <div class="stat glass-card stat-holiday"><span>Holiday worked</span><b id="holidayWorkedCount">0</b><small>Public holidays worked</small></div>
+        <div class="stat glass-card stat-holiday stat-clickable" data-stat-detail="holiday" role="button" tabindex="0" aria-label="View public holiday work details"><span>Holiday worked</span><b id="holidayWorkedCount">0</b><small>Public holidays worked · View details</small></div>
       </section>
 
       <section id="rosterSection" class="panel glass-card roster-panel" hidden>
@@ -744,7 +744,7 @@
     window.__worktrackInstantMenu={open,close};
   })();
   </script>
-  <script src="app-v22.js?v=30.0.4"></script>
+  <script src="app-v22.js?v=30.0.6"></script>
   <script>
   (function(){
     function initContactSettings(){
