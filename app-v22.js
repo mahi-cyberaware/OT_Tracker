@@ -590,58 +590,81 @@ function render(){
 }
 
 
-/* V30.0.5 — Interactive dashboard statistic details.
-   Uses the already-loaded records for the selected month; no additional database
-   requests or changes to attendance calculations are made. */
+/* V30.0.6 — searchable, exportable monthly dashboard detail reports. */
 function dashboardDetailEscape(value){
   return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+let dashboardDetailState=null;
+function dashboardDetailRows(){
+  if(!dashboardDetailState)return [];
+  const q=String(dashboardDetailState.query||'').trim().toLowerCase();
+  if(!q)return dashboardDetailState.rows;
+  return dashboardDetailState.rows.filter(r=>{
+    const date=attendanceDateKey(r.work_date);
+    const values=[date,r.check_in,r.check_out,r.status,r.ot_reason,r.notes,publicHolidayName(date),
+      r.status==='present'?fmt(hours(r.check_in,r.check_out,r.break_minutes)):'',
+      r.status==='present'?fmt(Math.max(0,hours(r.check_in,r.check_out,r.break_minutes)-duty)):'' ];
+    return values.some(v=>String(v??'').toLowerCase().includes(q));
+  });
+}
+function dashboardDetailRecordData(r,type){
+  const date=attendanceDateKey(r.work_date),worked=r.status==='present'?hours(r.check_in,r.check_out,r.break_minutes):0;
+  const ot=r.status==='present'?Math.max(0,worked-duty):0;
+  const labels={present:'Present',off:'Day Off',leave:'Leave',annual_leave:'Annual Leave',sick_leave:'Sick Leave',comp_off:'Comp-Off',holiday:'Public Holiday'};
+  return {date,day:date?new Date(`${date}T12:00:00`).toLocaleDateString('en',{weekday:'long'}):'',status:labels[r.status]||r.status||'—',checkIn:r.check_in||'',checkOut:r.check_out||'',worked:fmt(worked),overtime:fmt(ot),reason:r.ot_reason||'',notes:r.notes||'',holiday:publicHolidayName(date)||''};
+}
+function renderDashboardDetailResults(){
+  if(!dashboardDetailState)return;
+  const {type,title,monthLabel}=dashboardDetailState,rows=dashboardDetailRows();
+  const totalHours=rows.reduce((sum,r)=>sum+(r.status==='present'?hours(r.check_in,r.check_out,r.break_minutes):0),0);
+  const totalOt=rows.reduce((sum,r)=>sum+(r.status==='present'?Math.max(0,hours(r.check_in,r.check_out,r.break_minutes)-duty):0),0);
+  const total=dashboardDetailRows().length;
+  const countLabel=type==='overtime'?`${fmt(totalOt)} overtime · ${rows.length} days`:type==='working'||type==='holiday'?`${rows.length} days · ${fmt(totalHours)} worked`:`${rows.length} records`;
+  const summaryValue=type==='overtime'?fmt(totalOt):type==='working'||type==='holiday'?`${rows.length} days`:`${rows.length}`;
+  const summary=`<div class="dashboard-detail-summary"><strong>${summaryValue}</strong><span>${dashboardDetailEscape(countLabel)} · ${dashboardDetailEscape(monthLabel)}</span></div>`;
+  const search=`<div class="dashboard-detail-toolbar"><label class="dashboard-detail-search"><span aria-hidden="true">⌕</span><input id="dashboardDetailSearch" type="search" value="${dashboardDetailEscape(dashboardDetailState.query||'')}" placeholder="Search date, duty time, OT reason or notes…" autocomplete="off" aria-label="Search monthly records"></label><div class="dashboard-detail-export"><button id="dashboardDetailExcel" class="ghost" type="button">↓ Excel</button><button id="dashboardDetailPdf" class="primary" type="button">↓ PDF</button></div></div><div class="dashboard-detail-result-count">Showing ${rows.length} of ${dashboardDetailState.rows.length} records</div>`;
+  const cards=rows.map(r=>{
+    const d=dashboardDetailRecordData(r,type),dateLabel=d.date?new Date(`${d.date}T12:00:00`).toLocaleDateString('en',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}):'Date unavailable';
+    return `<article class="dashboard-detail-item"><div class="dashboard-detail-top"><strong>${dashboardDetailEscape(dateLabel)}</strong><span class="dashboard-detail-status">${dashboardDetailEscape(d.holiday||d.status)}</span></div>${r.status==='present'?`<div class="dashboard-detail-grid"><span>Check-in<strong>${dashboardDetailEscape(d.checkIn||'—')}</strong></span><span>Check-out<strong>${dashboardDetailEscape(d.checkOut||'—')}</strong></span><span>Worked<strong>${dashboardDetailEscape(d.worked)}</strong></span>${type==='overtime'?`<span>Overtime<strong>${dashboardDetailEscape(d.overtime)}</strong></span>`:''}</div>`:''}${d.reason?`<p><b>Overtime reason:</b> ${dashboardDetailEscape(d.reason)}</p>`:''}${d.notes?`<p><b>Notes:</b> ${dashboardDetailEscape(d.notes)}</p>`:''}${!d.reason&&!d.notes&&type==='overtime'?'<p class="muted small">No overtime reason or notes recorded.</p>':''}</article>`;
+  }).join('');
+  const tableRows=rows.map(r=>{const d=dashboardDetailRecordData(r,type);return `<tr><td>${dashboardDetailEscape(d.date)}</td><td>${dashboardDetailEscape(d.status)}</td><td>${dashboardDetailEscape(d.checkIn||'—')}</td><td>${dashboardDetailEscape(d.checkOut||'—')}</td><td>${dashboardDetailEscape(d.worked)}</td><td>${dashboardDetailEscape(d.overtime)}</td><td>${dashboardDetailEscape(d.reason||'—')}</td><td>${dashboardDetailEscape(d.notes||'—')}</td></tr>`}).join('');
+  const result=rows.length?`<div class="dashboard-detail-cards">${cards}</div><div class="dashboard-detail-table-wrap"><table class="dashboard-detail-table"><thead><tr><th>Date</th><th>Status</th><th>Check-in</th><th>Check-out</th><th>Worked</th><th>OT</th><th>OT reason</th><th>Notes</th></tr></thead><tbody>${tableRows}</tbody></table></div>`:`<div class="dashboard-detail-empty">No matching records found. Try another search term.</div>`;
+  $('infoBody').innerHTML=summary+search+result;
+  $('dashboardDetailSearch')?.addEventListener('input',e=>{dashboardDetailState.query=e.target.value;const cursor=e.target.selectionStart;renderDashboardDetailResults();const input=$('dashboardDetailSearch');input?.focus();input?.setSelectionRange(cursor,cursor)});
+  $('dashboardDetailExcel')?.addEventListener('click',exportDashboardDetailExcel);
+  $('dashboardDetailPdf')?.addEventListener('click',exportDashboardDetailPdf);
 }
 function openDashboardStatDetail(type){
   const definitions={
     working:{title:'Working Days',kicker:'MONTHLY ATTENDANCE DETAILS',filter:r=>r.status==='present'},
     off:{title:'Day Off',kicker:'MONTHLY DAY-OFF DETAILS',filter:r=>r.status==='off'},
-    leave:{title:'Leave Records',kicker:'MONTHLY LEAVE DETAILS',filter:r=>['leave','annual_leave','sick_leave'].includes(r.status)},
+    leave:{title:'Leave Records',kicker:'MONTHLY LEAVE DETAILS',filter:r=>['leave','annual_leave','sick_leave','comp_off'].includes(r.status)},
     overtime:{title:'Overtime Details',kicker:'MONTHLY OVERTIME TRACKER',filter:r=>r.status==='present'&&Math.max(0,hours(r.check_in,r.check_out,r.break_minutes)-duty)>0},
     holiday:{title:'Holiday Worked',kicker:'PUBLIC HOLIDAY WORK DETAILS',filter:r=>r.status==='present'&&!!publicHolidayName(attendanceDateKey(r.work_date))}
   };
-  const config=definitions[type];
-  if(!config)return;
+  const config=definitions[type];if(!config)return;
   const rows=records.filter(config.filter).slice().sort((a,b)=>attendanceDateKey(a.work_date).localeCompare(attendanceDateKey(b.work_date)));
-  const monthLabel=month.toLocaleString('en',{month:'long',year:'numeric'});
-  const totalHours=rows.reduce((sum,r)=>sum+hours(r.check_in,r.check_out,r.break_minutes),0);
-  const totalOt=rows.reduce((sum,r)=>sum+Math.max(0,hours(r.check_in,r.check_out,r.break_minutes)-duty),0);
-  const cards=rows.map(r=>{
-    const date=attendanceDateKey(r.work_date);
-    const dateLabel=date?new Date(`${date}T12:00:00`).toLocaleDateString('en',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}):'Date unavailable';
-    const worked=r.status==='present'?hours(r.check_in,r.check_out,r.break_minutes):0;
-    const overtime=r.status==='present'?Math.max(0,worked-duty):0;
-    const statusLabel=({present:'Present',off:'Day Off',leave:'Leave',annual_leave:'Annual Leave',sick_leave:'Sick Leave',comp_off:'Comp-Off',holiday:'Public Holiday'})[r.status]||r.status||'—';
-    const reason=(type==='overtime'?(r.ot_reason||''):'');
-    const holiday=type==='holiday'?publicHolidayName(date):'';
-    return `<article class="dashboard-detail-item">
-      <div class="dashboard-detail-top"><strong>${dashboardDetailEscape(dateLabel)}</strong><span class="dashboard-detail-status">${dashboardDetailEscape(holiday||statusLabel)}</span></div>
-      ${r.status==='present'?`<div class="dashboard-detail-grid"><span>Check-in<strong>${dashboardDetailEscape(r.check_in||'—')}</strong></span><span>Check-out<strong>${dashboardDetailEscape(r.check_out||'—')}</strong></span><span>Worked<strong>${fmt(worked)}</strong></span>${type==='overtime'?`<span>Overtime<strong>${fmt(overtime)}</strong></span>`:''}</div>`:''}
-      ${reason?`<p><b>Overtime reason:</b> ${dashboardDetailEscape(reason)}</p>`:''}
-      ${r.notes?`<p><b>Notes:</b> ${dashboardDetailEscape(r.notes)}</p>`:''}
-      ${!reason&&!r.notes&&type==='overtime'?'<p class="muted small">No overtime reason or notes recorded.</p>':''}
-    </article>`;
-  }).join('');
-  let summary='';
-  if(type==='overtime')summary=`<div class="dashboard-detail-summary"><strong>${fmt(totalOt)}</strong><span>Total overtime across ${rows.length} day${rows.length===1?'':'s'} · ${monthLabel}</span></div>`;
-  else if(type==='working'||type==='holiday')summary=`<div class="dashboard-detail-summary"><strong>${rows.length} day${rows.length===1?'':'s'}</strong><span>${fmt(totalHours)} total worked · ${monthLabel}</span></div>`;
-  else summary=`<div class="dashboard-detail-summary"><strong>${rows.length} record${rows.length===1?'':'s'}</strong><span>${monthLabel}</span></div>`;
-  $('infoKicker').textContent=config.kicker;
-  $('infoTitle').textContent=config.title;
-  $('infoBody').innerHTML=summary+(cards||'<div class="dashboard-detail-empty">No matching records found for this month.</div>');
-  $('infoDialog').showModal();
+  dashboardDetailState={type,title:config.title,rows,query:'',monthLabel:month.toLocaleString('en',{month:'long',year:'numeric'})};
+  $('infoKicker').textContent=config.kicker;$('infoTitle').textContent=config.title;renderDashboardDetailResults();$('infoDialog').showModal();
 }
-document.querySelectorAll('[data-stat-detail]').forEach(card=>{
-  const activate=()=>openDashboardStatDetail(card.dataset.statDetail);
-  card.addEventListener('click',activate);
-  card.addEventListener('keydown',event=>{
-    if(event.key==='Enter'||event.key===' '){event.preventDefault();activate();}
-  });
-});
+function exportDashboardDetailExcel(){
+  if(!dashboardDetailState)return;const rows=dashboardDetailRows();if(!rows.length){alert('There are no matching records to export.');return}if(!window.XLSX){alert('Excel generator is still loading. Please try again.');return}
+  const data=[['Date','Day','Status','Check-in','Check-out','Worked hours','Overtime','Holiday','Overtime reason','Notes']];
+  rows.forEach(r=>{const d=dashboardDetailRecordData(r,dashboardDetailState.type);data.push([d.date,d.day,d.status,d.checkIn,d.checkOut,d.worked,d.overtime,d.holiday,d.reason,d.notes])});
+  const ws=XLSX.utils.aoa_to_sheet(data);ws['!cols']=[{wch:14},{wch:14},{wch:16},{wch:13},{wch:13},{wch:14},{wch:12},{wch:22},{wch:32},{wch:36}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Monthly Details');const bytes=XLSX.write(wb,{bookType:'xlsx',type:'array'});const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});downloadDashboardDetailBlob(blob,`worktrack-${dashboardDetailState.type}-${monthKey()}-details.xlsx`);
+}
+function downloadDashboardDetailBlob(blob,fileName){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=fileName;a.style.display='none';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
+function exportDashboardDetailPdf(){
+  if(!dashboardDetailState)return;const rows=dashboardDetailRows();if(!rows.length){alert('There are no matching records to export.');return}if(!window.jspdf?.jsPDF){alert('PDF generator is still loading. Please try again.');return}
+  const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'landscape',unit:'pt',format:'a4'}),state=dashboardDetailState;
+  const left=36,right=806;let y=42;doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text(`WorkTrack — ${state.title}`,left,y);y+=20;doc.setFont('helvetica','normal');doc.setFontSize(10);doc.text(`${state.monthLabel} · ${rows.length} records${state.query?` · Search: ${state.query}`:''}`,left,y);y+=24;
+  const cols=[36,112,184,260,336,412,480,550,650],heads=['Date','Status','Check-in','Check-out','Worked','OT','Holiday','OT reason','Notes'];
+  function header(){doc.setFont('helvetica','bold');doc.setFontSize(8);heads.forEach((h,i)=>doc.text(h,cols[i],y));y+=14;doc.setFont('helvetica','normal')};header();
+  rows.forEach(r=>{const d=dashboardDetailRecordData(r,state.type),vals=[d.date,d.status,d.checkIn||'—',d.checkOut||'—',d.worked,d.overtime,d.holiday||'—',d.reason||'—',d.notes||'—'];const wrapped=vals.map((v,i)=>doc.splitTextToSize(String(v),i===7?94:i===8?150:68));const lines=Math.max(...wrapped.map(a=>a.length));const height=Math.max(18,lines*9+7);if(y+height>560){doc.addPage();y=40;header()}wrapped.forEach((arr,i)=>doc.text(arr,cols[i],y));y+=height;doc.setDrawColor(220);doc.line(left,y-4,right,y-4)});
+  doc.save(`worktrack-${state.type}-${monthKey()}-details.pdf`);
+}
+document.querySelectorAll('[data-stat-detail]').forEach(card=>{const activate=()=>openDashboardStatDetail(card.dataset.statDetail);card.addEventListener('click',activate);card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();activate()}})});
 
 function renderAnalytics(){
   let daily=[];

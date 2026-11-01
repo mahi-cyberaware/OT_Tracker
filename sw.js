@@ -1,9 +1,9 @@
-const CACHE = 'worktrack-cache-v30.0.5';
+const CACHE = 'worktrack-cache-v30.0.6';
 const APP_SHELL = [
   './',
   './index.html',
   './style.css',
-  './app-v22.js?v=30.0.5',
+  './app-v22.js?v=30.0.6',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png'
