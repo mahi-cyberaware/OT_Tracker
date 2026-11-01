@@ -2124,3 +2124,23 @@ html[data-theme="light"] .settings-preferences-block{background:rgba(255,255,255
   .roster-month-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%}
   .roster-month-actions button{padding:9px 5px;font-size:12px;min-width:0}
 }
+
+
+/* V30.0.5 — dashboard cards open their monthly detail views */
+.stat-clickable{cursor:pointer;position:relative;transition:transform .16s ease,border-color .16s ease,background .16s ease}
+.stat-clickable:hover{transform:translateY(-2px);border-color:rgba(124,156,255,.42);background:rgba(124,156,255,.07)}
+.stat-clickable:focus-visible{outline:2px solid var(--accent,#829cff);outline-offset:3px}
+.stat-clickable small{color:#91a5c7}
+.dashboard-detail-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 15px;border:1px solid rgba(124,156,255,.18);border-radius:14px;background:rgba(124,156,255,.08)}
+.dashboard-detail-summary strong{font-size:20px;color:#f2f6ff;white-space:nowrap}
+.dashboard-detail-summary span{font-size:11px;color:#aab8cf;text-align:right}
+.dashboard-detail-item{display:grid;gap:10px;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.035)}
+.dashboard-detail-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dashboard-detail-top>strong{font-size:12px;color:#edf2fc}
+.dashboard-detail-status{font-size:10px;color:#aab9d4;background:rgba(124,156,255,.10);padding:5px 8px;border-radius:999px}
+.dashboard-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.dashboard-detail-grid>span{display:grid;gap:3px;padding:9px;border-radius:10px;background:rgba(0,0,0,.13);font-size:10px;color:#8998b0}
+.dashboard-detail-grid strong{font-size:12px;color:#e5ecf8;font-weight:700}
+.dashboard-detail-item p{margin:0;color:#b5c1d4;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+.dashboard-detail-item p b{color:#e5ecf8}
+.dashboard-detail-empty{padding:24px 14px;text-align:center;color:#9ba9bf;border:1px dashed rgba(255,255,255,.13);border-radius:14px;font-size:12px}

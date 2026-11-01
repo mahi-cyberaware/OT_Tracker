@@ -589,6 +589,60 @@ function render(){
   renderCalendar();renderTable();renderAnalytics();applyCalendarMonthBackground();
 }
 
+
+/* V30.0.5 — Interactive dashboard statistic details.
+   Uses the already-loaded records for the selected month; no additional database
+   requests or changes to attendance calculations are made. */
+function dashboardDetailEscape(value){
+  return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function openDashboardStatDetail(type){
+  const definitions={
+    working:{title:'Working Days',kicker:'MONTHLY ATTENDANCE DETAILS',filter:r=>r.status==='present'},
+    off:{title:'Day Off',kicker:'MONTHLY DAY-OFF DETAILS',filter:r=>r.status==='off'},
+    leave:{title:'Leave Records',kicker:'MONTHLY LEAVE DETAILS',filter:r=>['leave','annual_leave','sick_leave'].includes(r.status)},
+    overtime:{title:'Overtime Details',kicker:'MONTHLY OVERTIME TRACKER',filter:r=>r.status==='present'&&Math.max(0,hours(r.check_in,r.check_out,r.break_minutes)-duty)>0},
+    holiday:{title:'Holiday Worked',kicker:'PUBLIC HOLIDAY WORK DETAILS',filter:r=>r.status==='present'&&!!publicHolidayName(attendanceDateKey(r.work_date))}
+  };
+  const config=definitions[type];
+  if(!config)return;
+  const rows=records.filter(config.filter).slice().sort((a,b)=>attendanceDateKey(a.work_date).localeCompare(attendanceDateKey(b.work_date)));
+  const monthLabel=month.toLocaleString('en',{month:'long',year:'numeric'});
+  const totalHours=rows.reduce((sum,r)=>sum+hours(r.check_in,r.check_out,r.break_minutes),0);
+  const totalOt=rows.reduce((sum,r)=>sum+Math.max(0,hours(r.check_in,r.check_out,r.break_minutes)-duty),0);
+  const cards=rows.map(r=>{
+    const date=attendanceDateKey(r.work_date);
+    const dateLabel=date?new Date(`${date}T12:00:00`).toLocaleDateString('en',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}):'Date unavailable';
+    const worked=r.status==='present'?hours(r.check_in,r.check_out,r.break_minutes):0;
+    const overtime=r.status==='present'?Math.max(0,worked-duty):0;
+    const statusLabel=({present:'Present',off:'Day Off',leave:'Leave',annual_leave:'Annual Leave',sick_leave:'Sick Leave',comp_off:'Comp-Off',holiday:'Public Holiday'})[r.status]||r.status||'—';
+    const reason=(type==='overtime'?(r.ot_reason||''):'');
+    const holiday=type==='holiday'?publicHolidayName(date):'';
+    return `<article class="dashboard-detail-item">
+      <div class="dashboard-detail-top"><strong>${dashboardDetailEscape(dateLabel)}</strong><span class="dashboard-detail-status">${dashboardDetailEscape(holiday||statusLabel)}</span></div>
+      ${r.status==='present'?`<div class="dashboard-detail-grid"><span>Check-in<strong>${dashboardDetailEscape(r.check_in||'—')}</strong></span><span>Check-out<strong>${dashboardDetailEscape(r.check_out||'—')}</strong></span><span>Worked<strong>${fmt(worked)}</strong></span>${type==='overtime'?`<span>Overtime<strong>${fmt(overtime)}</strong></span>`:''}</div>`:''}
+      ${reason?`<p><b>Overtime reason:</b> ${dashboardDetailEscape(reason)}</p>`:''}
+      ${r.notes?`<p><b>Notes:</b> ${dashboardDetailEscape(r.notes)}</p>`:''}
+      ${!reason&&!r.notes&&type==='overtime'?'<p class="muted small">No overtime reason or notes recorded.</p>':''}
+    </article>`;
+  }).join('');
+  let summary='';
+  if(type==='overtime')summary=`<div class="dashboard-detail-summary"><strong>${fmt(totalOt)}</strong><span>Total overtime across ${rows.length} day${rows.length===1?'':'s'} · ${monthLabel}</span></div>`;
+  else if(type==='working'||type==='holiday')summary=`<div class="dashboard-detail-summary"><strong>${rows.length} day${rows.length===1?'':'s'}</strong><span>${fmt(totalHours)} total worked · ${monthLabel}</span></div>`;
+  else summary=`<div class="dashboard-detail-summary"><strong>${rows.length} record${rows.length===1?'':'s'}</strong><span>${monthLabel}</span></div>`;
+  $('infoKicker').textContent=config.kicker;
+  $('infoTitle').textContent=config.title;
+  $('infoBody').innerHTML=summary+(cards||'<div class="dashboard-detail-empty">No matching records found for this month.</div>');
+  $('infoDialog').showModal();
+}
+document.querySelectorAll('[data-stat-detail]').forEach(card=>{
+  const activate=()=>openDashboardStatDetail(card.dataset.statDetail);
+  card.addEventListener('click',activate);
+  card.addEventListener('keydown',event=>{
+    if(event.key==='Enter'||event.key===' '){event.preventDefault();activate();}
+  });
+});
+
 function renderAnalytics(){
   let daily=[];
   let days=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
