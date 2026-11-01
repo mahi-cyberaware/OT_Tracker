@@ -1,7 +1,16 @@
 {
-  "version": "30.0.5",
+  "version": "30.0.6",
   "date": "01 November 2026",
   "slides": [
+    {
+      "version": "30.0.6",
+      "date": "01 November 2026",
+      "image": "./backgrounds/16_v30-dashboard-detail-reports.svg",
+      "eyebrow": "WORKTRACK V30.0.6",
+      "title": "Searchable Monthly Detail Reports",
+      "text": "Dashboard detail views now include Excel and PDF downloads, instant search across dates, duty times, overtime reasons and notes, plus a refined desktop table layout while preserving the mobile card experience.",
+      "button": "WORKTRACK 30.0.6"
+    },
     {
       "version": "30.0.5",
       "date": "01 November 2026",
@@ -46,15 +55,6 @@
       "title": "Footer Placement Fix",
       "text": "Moves the WorkTrack footer below the Bus & Shuttle Time section so the page footer appears at the bottom after the timetable content. No attendance calculations, saved records, or transport times are changed.",
       "button": "WORKTRACK 30.0.1"
-    },
-    {
-      "version": "30.0",
-      "date": "14 October 2026",
-      "image": "./backgrounds/10_sunset-violet.svg",
-      "eyebrow": "WORKTRACK V30.0",
-      "title": "Bus & Shuttle Time",
-      "text": "Adds a dedicated Bus & Shuttle Time option to the menu, bringing the ICAD–Catering bus timetable and CCS Catering Shuttle 1 and Shuttle 2 schedules into one responsive page with separate tabs and departure-time search.",
-      "button": "WORKTRACK 30.0"
     }
   ]
 }
