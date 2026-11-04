@@ -132,7 +132,7 @@
         <div class="stat glass-card"><span>Regular hours</span><b id="regularHours">0h</b><small>Duty hours covered</small></div>
         <div class="stat glass-card stat-ot stat-clickable" data-stat-detail="overtime" role="button" tabindex="0" aria-label="View overtime details"><span>Overtime</span><b id="otHours">0h</b><small>Extra hours · View details</small></div>
         <div class="stat glass-card"><span>Total worked</span><b id="workedHours">0h</b><small>Recorded hours</small></div>
-        <div class="stat glass-card"><span>Average / day</span><b id="avgHours">0h</b><small>Present days</small></div>
+        <div class="stat glass-card stat-clickable" data-stat-detail="shortDuty" role="button" tabindex="0" aria-label="View days with duty below 9 hours"><span>Below 9 Hours</span><b id="shortDutyDays">0</b><small>Days · View duty details</small></div>
         <div class="stat glass-card stat-holiday stat-clickable" data-stat-detail="holiday" role="button" tabindex="0" aria-label="View public holiday work details"><span>Holiday worked</span><b id="holidayWorkedCount">0</b><small>Public holidays worked · View details</small></div>
       </section>
 
@@ -744,7 +744,7 @@
     window.__worktrackInstantMenu={open,close};
   })();
   </script>
-  <script src="app-v22.js?v=30.0.6"></script>
+  <script src="app-v22.js?v=30.0.7"></script>
   <script>
   (function(){
     function initContactSettings(){

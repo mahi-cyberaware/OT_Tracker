@@ -531,7 +531,11 @@ function render(){
   if($('reportMonthMeta'))$('reportMonthMeta').textContent=`${records.length} record${records.length===1?'':'s'} available for this month`;
   let present=records.filter(x=>x.status==='present');
   let worked=present.reduce((sum,x)=>sum+hours(x.check_in,x.check_out,x.break_minutes),0);
-  let ot=present.reduce((sum,x)=>sum+Math.max(0,hours(x.check_in,x.check_out,x.break_minutes)-duty),0);
+  let grossOt=present.reduce((sum,x)=>sum+Math.max(0,hours(x.check_in,x.check_out,x.break_minutes)-duty),0);
+  // V30.0.7: one-hour adjustment for each present day below the 9-hour duty threshold.
+  let shortDutyRecords=present.filter(x=>hours(x.check_in,x.check_out,x.break_minutes)<duty);
+  let shortDutyAdjustment=shortDutyRecords.length;
+  let ot=Math.max(0,grossOt-shortDutyAdjustment);
   let dayOffCount=records.filter(x=>x.status==='off').length;
   let leaveCount=records.filter(x=>['leave','annual_leave','sick_leave'].includes(x.status)).length;
   let holidayWorkedCount=records.filter(x=>x.status==='present'&&publicHolidayName(x.work_date)).length;
@@ -571,7 +575,6 @@ function render(){
   let attendanceRate=eligibleDays
     ? Math.round((present.filter(x=>Number(attendanceDateKey(x.work_date).slice(8,10))<=elapsedDays).length/eligibleDays)*100)
     : 0;
-  let avg=present.length?worked/present.length:0;
   $('workingDays').textContent=present.length;
   $('dayOffCount').textContent=dayOffCount;
   $('leaveCount').textContent=leaveCount;
@@ -579,7 +582,7 @@ function render(){
   $('workedHours').textContent=fmt(worked);
   $('otHours').textContent=fmt(ot);
   $('regularHours').textContent=fmt(Math.max(0,worked-ot));
-  $('avgHours').textContent=fmt(avg);
+  if($('shortDutyDays'))$('shortDutyDays').textContent=shortDutyRecords.length;
   $('holidayWorkedCount').textContent=holidayWorkedCount;
   $('payrollOtHours').textContent=fmt(ot);
   $('estimatedOtPay').textContent=`AED ${(ot*NORMAL_OT_RATE).toFixed(2)}`;
@@ -611,24 +614,27 @@ function dashboardDetailRecordData(r,type){
   const date=attendanceDateKey(r.work_date),worked=r.status==='present'?hours(r.check_in,r.check_out,r.break_minutes):0;
   const ot=r.status==='present'?Math.max(0,worked-duty):0;
   const labels={present:'Present',off:'Day Off',leave:'Leave',annual_leave:'Annual Leave',sick_leave:'Sick Leave',comp_off:'Comp-Off',holiday:'Public Holiday'};
-  return {date,day:date?new Date(`${date}T12:00:00`).toLocaleDateString('en',{weekday:'long'}):'',status:labels[r.status]||r.status||'—',checkIn:r.check_in||'',checkOut:r.check_out||'',worked:fmt(worked),overtime:fmt(ot),reason:r.ot_reason||'',notes:r.notes||'',holiday:publicHolidayName(date)||''};
+  const shortDuty=r.status==='present'&&worked<duty;
+  return {date,day:date?new Date(`${date}T12:00:00`).toLocaleDateString('en',{weekday:'long'}):'',status:labels[r.status]||r.status||'—',checkIn:r.check_in||'',checkOut:r.check_out||'',worked:fmt(worked),overtime:fmt(ot),adjustment:shortDuty?'−1h':'—',reason:r.ot_reason||'',notes:r.notes||'',holiday:publicHolidayName(date)||''};
 }
 function renderDashboardDetailResults(){
   if(!dashboardDetailState)return;
   const {type,title,monthLabel}=dashboardDetailState,rows=dashboardDetailRows();
   const totalHours=rows.reduce((sum,r)=>sum+(r.status==='present'?hours(r.check_in,r.check_out,r.break_minutes):0),0);
   const totalOt=rows.reduce((sum,r)=>sum+(r.status==='present'?Math.max(0,hours(r.check_in,r.check_out,r.break_minutes)-duty):0),0);
+  const shortDays=rows.filter(r=>r.status==='present'&&hours(r.check_in,r.check_out,r.break_minutes)<duty).length;
+  const finalOt=Math.max(0,totalOt-shortDays);
   const total=dashboardDetailRows().length;
-  const countLabel=type==='overtime'?`${fmt(totalOt)} overtime · ${rows.length} days`:type==='working'||type==='holiday'?`${rows.length} days · ${fmt(totalHours)} worked`:`${rows.length} records`;
-  const summaryValue=type==='overtime'?fmt(totalOt):type==='working'||type==='holiday'?`${rows.length} days`:`${rows.length}`;
+  const countLabel=type==='overtime'?`${fmt(finalOt)} final OT · ${fmt(totalOt)} gross · ${shortDays} adjustments`:type==='working'||type==='holiday'?`${rows.length} days · ${fmt(totalHours)} worked`:`${rows.length} records`;
+  const summaryValue=type==='overtime'?fmt(finalOt):type==='working'||type==='holiday'?`${rows.length} days`:`${rows.length}`;
   const summary=`<div class="dashboard-detail-summary"><strong>${summaryValue}</strong><span>${dashboardDetailEscape(countLabel)} · ${dashboardDetailEscape(monthLabel)}</span></div>`;
   const search=`<div class="dashboard-detail-toolbar"><label class="dashboard-detail-search"><span aria-hidden="true">⌕</span><input id="dashboardDetailSearch" type="search" value="${dashboardDetailEscape(dashboardDetailState.query||'')}" placeholder="Search date, duty time, OT reason or notes…" autocomplete="off" aria-label="Search monthly records"></label><div class="dashboard-detail-export"><button id="dashboardDetailExcel" class="ghost" type="button">↓ Excel</button><button id="dashboardDetailPdf" class="primary" type="button">↓ PDF</button></div></div><div class="dashboard-detail-result-count">Showing ${rows.length} of ${dashboardDetailState.rows.length} records</div>`;
   const cards=rows.map(r=>{
     const d=dashboardDetailRecordData(r,type),dateLabel=d.date?new Date(`${d.date}T12:00:00`).toLocaleDateString('en',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}):'Date unavailable';
-    return `<article class="dashboard-detail-item"><div class="dashboard-detail-top"><strong>${dashboardDetailEscape(dateLabel)}</strong><span class="dashboard-detail-status">${dashboardDetailEscape(d.holiday||d.status)}</span></div>${r.status==='present'?`<div class="dashboard-detail-grid"><span>Check-in<strong>${dashboardDetailEscape(d.checkIn||'—')}</strong></span><span>Check-out<strong>${dashboardDetailEscape(d.checkOut||'—')}</strong></span><span>Worked<strong>${dashboardDetailEscape(d.worked)}</strong></span>${type==='overtime'?`<span>Overtime<strong>${dashboardDetailEscape(d.overtime)}</strong></span>`:''}</div>`:''}${d.reason?`<p><b>Overtime reason:</b> ${dashboardDetailEscape(d.reason)}</p>`:''}${d.notes?`<p><b>Notes:</b> ${dashboardDetailEscape(d.notes)}</p>`:''}${!d.reason&&!d.notes&&type==='overtime'?'<p class="muted small">No overtime reason or notes recorded.</p>':''}</article>`;
+    return `<article class="dashboard-detail-item"><div class="dashboard-detail-top"><strong>${dashboardDetailEscape(dateLabel)}</strong><span class="dashboard-detail-status">${dashboardDetailEscape(d.holiday||d.status)}</span></div>${r.status==='present'?`<div class="dashboard-detail-grid"><span>Check-in<strong>${dashboardDetailEscape(d.checkIn||'—')}</strong></span><span>Check-out<strong>${dashboardDetailEscape(d.checkOut||'—')}</strong></span><span>Worked<strong>${dashboardDetailEscape(d.worked)}</strong></span>${type==='overtime'?`<span>Gross OT<strong>${dashboardDetailEscape(d.overtime)}</strong></span><span>Adjustment<strong>${dashboardDetailEscape(d.adjustment)}</strong></span>`:''}</div>`:''}${d.reason?`<p><b>Overtime reason:</b> ${dashboardDetailEscape(d.reason)}</p>`:''}${d.notes?`<p><b>Notes:</b> ${dashboardDetailEscape(d.notes)}</p>`:''}${!d.reason&&!d.notes&&type==='overtime'?'<p class="muted small">No overtime reason or notes recorded.</p>':''}</article>`;
   }).join('');
-  const tableRows=rows.map(r=>{const d=dashboardDetailRecordData(r,type);return `<tr><td>${dashboardDetailEscape(d.date)}</td><td>${dashboardDetailEscape(d.status)}</td><td>${dashboardDetailEscape(d.checkIn||'—')}</td><td>${dashboardDetailEscape(d.checkOut||'—')}</td><td>${dashboardDetailEscape(d.worked)}</td><td>${dashboardDetailEscape(d.overtime)}</td><td>${dashboardDetailEscape(d.reason||'—')}</td><td>${dashboardDetailEscape(d.notes||'—')}</td></tr>`}).join('');
-  const result=rows.length?`<div class="dashboard-detail-cards">${cards}</div><div class="dashboard-detail-table-wrap"><table class="dashboard-detail-table"><thead><tr><th>Date</th><th>Status</th><th>Check-in</th><th>Check-out</th><th>Worked</th><th>OT</th><th>OT reason</th><th>Notes</th></tr></thead><tbody>${tableRows}</tbody></table></div>`:`<div class="dashboard-detail-empty">No matching records found. Try another search term.</div>`;
+  const tableRows=rows.map(r=>{const d=dashboardDetailRecordData(r,type);return `<tr><td>${dashboardDetailEscape(d.date)}</td><td>${dashboardDetailEscape(d.status)}</td><td>${dashboardDetailEscape(d.checkIn||'—')}</td><td>${dashboardDetailEscape(d.checkOut||'—')}</td><td>${dashboardDetailEscape(d.worked)}</td><td>${dashboardDetailEscape(d.overtime)}</td><td>${dashboardDetailEscape(d.adjustment)}</td><td>${dashboardDetailEscape(d.reason||'—')}</td><td>${dashboardDetailEscape(d.notes||'—')}</td></tr>`}).join('');
+  const result=rows.length?`<div class="dashboard-detail-cards">${cards}</div><div class="dashboard-detail-table-wrap"><table class="dashboard-detail-table"><thead><tr><th>Date</th><th>Status</th><th>Check-in</th><th>Check-out</th><th>Worked</th><th>Gross OT</th><th>Adjustment</th><th>OT reason</th><th>Notes</th></tr></thead><tbody>${tableRows}</tbody></table></div>`:`<div class="dashboard-detail-empty">No matching records found. Try another search term.</div>`;
   $('infoBody').innerHTML=summary+search+result;
   $('dashboardDetailSearch')?.addEventListener('input',e=>{dashboardDetailState.query=e.target.value;const cursor=e.target.selectionStart;renderDashboardDetailResults();const input=$('dashboardDetailSearch');input?.focus();input?.setSelectionRange(cursor,cursor)});
   $('dashboardDetailExcel')?.addEventListener('click',exportDashboardDetailExcel);
@@ -639,7 +645,8 @@ function openDashboardStatDetail(type){
     working:{title:'Working Days',kicker:'MONTHLY ATTENDANCE DETAILS',filter:r=>r.status==='present'},
     off:{title:'Day Off',kicker:'MONTHLY DAY-OFF DETAILS',filter:r=>r.status==='off'},
     leave:{title:'Leave Records',kicker:'MONTHLY LEAVE DETAILS',filter:r=>['leave','annual_leave','sick_leave','comp_off'].includes(r.status)},
-    overtime:{title:'Overtime Details',kicker:'MONTHLY OVERTIME TRACKER',filter:r=>r.status==='present'&&Math.max(0,hours(r.check_in,r.check_out,r.break_minutes)-duty)>0},
+    overtime:{title:'Final Overtime Details',kicker:'MONTHLY OT AFTER SHORT-DUTY ADJUSTMENT',filter:r=>r.status==='present'&&(Math.max(0,hours(r.check_in,r.check_out,r.break_minutes)-duty)>0||hours(r.check_in,r.check_out,r.break_minutes)<duty)},
+    shortDuty:{title:'Days Below 9 Hours',kicker:'SHORT-DUTY ADJUSTMENT DETAILS',filter:r=>r.status==='present'&&hours(r.check_in,r.check_out,r.break_minutes)<duty},
     holiday:{title:'Holiday Worked',kicker:'PUBLIC HOLIDAY WORK DETAILS',filter:r=>r.status==='present'&&!!publicHolidayName(attendanceDateKey(r.work_date))}
   };
   const config=definitions[type];if(!config)return;
@@ -649,8 +656,8 @@ function openDashboardStatDetail(type){
 }
 function exportDashboardDetailExcel(){
   if(!dashboardDetailState)return;const rows=dashboardDetailRows();if(!rows.length){alert('There are no matching records to export.');return}if(!window.XLSX){alert('Excel generator is still loading. Please try again.');return}
-  const data=[['Date','Day','Status','Check-in','Check-out','Worked hours','Overtime','Holiday','Overtime reason','Notes']];
-  rows.forEach(r=>{const d=dashboardDetailRecordData(r,dashboardDetailState.type);data.push([d.date,d.day,d.status,d.checkIn,d.checkOut,d.worked,d.overtime,d.holiday,d.reason,d.notes])});
+  const data=[['Date','Day','Status','Check-in','Check-out','Worked hours','Gross overtime','Short-duty adjustment','Holiday','Overtime reason','Notes']];
+  rows.forEach(r=>{const d=dashboardDetailRecordData(r,dashboardDetailState.type);data.push([d.date,d.day,d.status,d.checkIn,d.checkOut,d.worked,d.overtime,d.adjustment,d.holiday,d.reason,d.notes])});
   const ws=XLSX.utils.aoa_to_sheet(data);ws['!cols']=[{wch:14},{wch:14},{wch:16},{wch:13},{wch:13},{wch:14},{wch:12},{wch:22},{wch:32},{wch:36}];
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Monthly Details');const bytes=XLSX.write(wb,{bookType:'xlsx',type:'array'});const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});downloadDashboardDetailBlob(blob,`worktrack-${dashboardDetailState.type}-${monthKey()}-details.xlsx`);
 }
