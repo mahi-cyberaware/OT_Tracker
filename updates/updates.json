@@ -1,7 +1,16 @@
 {
-  "version": "30.0.6",
-  "date": "01 November 2026",
+  "version": "30.0.7",
+  "date": "04 November 2026",
   "slides": [
+    {
+      "version": "30.0.7",
+      "date": "04 November 2026",
+      "image": "./backgrounds/17_v30-short-duty-ot-reconciliation.svg",
+      "eyebrow": "WORKTRACK V30.0.7",
+      "title": "Short-Duty Adjustment & Final OT",
+      "text": "Dashboard replaces Average / Day with a Below 9 Hours day count and displays Final OT after a one-hour adjustment for each recorded duty day below the 9-hour threshold. Short-duty dates can be opened and reviewed in monthly details.",
+      "button": "WORKTRACK 30.0.7"
+    },
     {
       "version": "30.0.6",
       "date": "01 November 2026",
@@ -46,15 +55,6 @@
       "title": "Quick Actions Upgrade",
       "text": "Replaces the duplicate Add attendance Quick Action with Bus & Shuttles, opening the existing Bus & Shuttle Time page directly. The main Add attendance button remains available on the homepage.",
       "button": "WORKTRACK 30.0.2"
-    },
-    {
-      "version": "30.0.1",
-      "date": "14 October 2026",
-      "image": "./backgrounds/11_v30-footer-aurora.svg",
-      "eyebrow": "WORKTRACK V30.0.1",
-      "title": "Footer Placement Fix",
-      "text": "Moves the WorkTrack footer below the Bus & Shuttle Time section so the page footer appears at the bottom after the timetable content. No attendance calculations, saved records, or transport times are changed.",
-      "button": "WORKTRACK 30.0.1"
     }
   ]
 }
